@@ -3,5 +3,6 @@ runtime: nodejs
 
 handlers:
 - url: /*
+  script: server.js
   http_headers:
     Access-Control-Allow-Origin: localhost
