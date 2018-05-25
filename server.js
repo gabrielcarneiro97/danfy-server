@@ -11,6 +11,10 @@ app.use(cors());
 // app.use(bodyParser.urlencoded({ extended: false }));
 // app.use(bodyParser.json());
 
+app.get('/', (req, res) => {
+  res.send('hello');
+});
+
 app.post('/notas', (req, res) => {
   console.log('/notas');
   let files = req.body;
