@@ -2,6 +2,6 @@ env: flex
 runtime: nodejs
 
 handlers:
-- url: /.*
+- url: /*
   http_headers:
     Access-Control-Allow-Origin: localhost
