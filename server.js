@@ -5,6 +5,9 @@ const { xml2js } = require('xml-js');
 const {
   lerNfe,
   lerNfse,
+  gravarNota,
+  gravarNotaServico,
+  gravarPessoa,
 } = require('./services');
 // const bodyParser = require('body-parser');
 
@@ -15,10 +18,6 @@ app.options('*', cors());
 app.use(cors());
 // app.use(bodyParser.urlencoded({ extended: false }));
 // app.use(bodyParser.json());
-
-app.get('/hello', (req, res) => {
-  res.send('hello');
-});
 
 app.post('/file', upload.single('file'), (req, res) => {
   const { file } = req;
@@ -31,51 +30,37 @@ app.post('/file', upload.single('file'), (req, res) => {
     lerNfse(obj, (nota, emitente, destinatario) => {
       final = {
         tipo: 'nfse',
+        pessoas: { [nota.emitente]: emitente, [nota.destinatario]: destinatario },
         nota,
-        emitente,
-        destinatario,
       };
-      // gravarPessoa(notaServico.emitente, emitente, err => {
-      //   if (err) {
-      //     console.error(err)
-      //   }
-      // })
-      // gravarPessoa(notaServico.destinatario, destinatario, err => {
-      //   if (err) {
-      //     console.error(err)
-      //   }
-      // })
-      // gravarNotaServico(notaServico.chave, notaServico, err => {
-      //   if (err) {
-      //     console.error(err)
-      //   }
-      // })
+      gravarPessoa(nota.emitente, emitente).catch((err) => {
+        console.error(err);
+      });
+      gravarPessoa(nota.destinatario, destinatario).catch((err) => {
+        console.error(err);
+      });
+      gravarNotaServico(nota.chave, nota).catch((err) => {
+        console.error(err);
+      });
       res.send(final);
     });
   } else if (obj.nfeProc) {
     lerNfe(obj, (nota, emitente, destinatario) => {
       final = {
         tipo: 'nfe',
+        pessoas: { [nota.emitente]: emitente, [nota.destinatario]: destinatario },
         nota,
-        emitente,
-        destinatario,
       };
 
-      // gravarPessoa(nota.emitente, emitente, err => {
-      //   if (err) {
-      //     console.error(err)
-      //   }
-      // })
-      // gravarPessoa(nota.destinatario, destinatario, err => {
-      //   if (err) {
-      //     console.error(err)
-      //   }
-      // })
-      // gravarNota(nota.chave, nota, err => {
-      //   if (err) {
-      //     console.error(err)
-      //   }
-      // })
+      gravarPessoa(nota.emitente, emitente).catch((err) => {
+        console.error(err);
+      });
+      gravarPessoa(nota.destinatario, destinatario).catch((err) => {
+        console.error(err);
+      });
+      gravarNota(nota.chave, nota).catch((err) => {
+        console.error(err);
+      });
 
       res.send(final);
     });
