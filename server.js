@@ -8,6 +8,10 @@ const {
   gravarNota,
   gravarNotaServico,
   gravarPessoa,
+  pegarEmpresaImpostos,
+  pegarNotaChave,
+  calcularImpostosMovimento,
+  gravarNotaSlim,
 } = require('./services');
 // const bodyParser = require('body-parser');
 
@@ -67,6 +71,92 @@ app.post('/file', upload.single('file'), (req, res) => {
   } else {
     res.sendStatus(400);
   }
+});
+
+app.get('/calcularMovimento', (req, res) => {
+  const { notaInicial, notaFinal, cnpj } = req.query;
+  pegarEmpresaImpostos(cnpj).then((aliquotas) => {
+    pegarNotaChave(notaInicial).then((notaInicialObj) => {
+      pegarNotaChave(notaFinal).then((notaFinalObj) => {
+        calcularImpostosMovimento(notaInicialObj, notaFinalObj, aliquotas)
+          .then((movimento) => {
+            res.send(movimento);
+          }).catch((err) => {
+            console.error(err);
+            res.sendStatus(500);
+          });
+      }).catch((err) => {
+        console.error(err);
+        res.sendStatus(500);
+      });
+    }).catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
+  }).catch((err) => {
+    console.error(err);
+    res.sendStatus(500);
+  });
+});
+
+app.get('/calcularMovimentoSlim', (req, res) => {
+  const { notaFinal, cnpj } = req.query;
+  let { valorInicial } = req.query;
+
+  valorInicial = parseFloat(valorInicial.toString().replace(',', '.'));
+
+  pegarNotaChave(notaFinal).then((notaFinalObj) => {
+    const notaInicial = {
+      emitente: 'INTERNO',
+      destinatario: notaFinalObj.emitente,
+      geral: {
+        dataHora: new Date().toISOString(),
+        cfop: 'INTERNO',
+        naturezaOperacao: 'INTERNO',
+        numero: 'INTERNO',
+        status: 'INTERNO',
+        tipo: 'INTERNO',
+      },
+      produtos: {
+        INTERNO: {
+          descricao: 'INTERNO',
+          quantidade: {
+            numero: '1',
+            tipo: 'UN',
+          },
+          valor: {
+            total: valorInicial,
+          },
+        },
+      },
+      valor: {
+        total: valorInicial,
+      },
+    };
+
+    console.log(notaInicial);
+
+    gravarNotaSlim(notaInicial).then((notaInicialCompleta) => {
+      pegarEmpresaImpostos(cnpj).then((aliquotas) => {
+        calcularImpostosMovimento(notaInicialCompleta, notaFinalObj, aliquotas)
+          .then((movimento) => {
+            res.send({ valores: movimento, notaInicial: notaInicialCompleta });
+          }).catch((err) => {
+            console.error(err);
+            res.sendStatus(500);
+          });
+      }).catch((err) => {
+        console.error(err);
+        res.sendStatus(500);
+      });
+    }).catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
+  }).catch((err) => {
+    console.error(err);
+    res.sendStatus(500);
+  });
 });
 
 const server = app.listen(8080, () => {
