@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const { xml2js } = require('xml-js');
+const bodyParser = require('body-parser');
 const {
+  db,
   lerNfe,
   lerNfse,
   gravarNota,
@@ -14,15 +16,17 @@ const {
   calcularImpostosMovimento,
   calcularImpostosServico,
   gravarNotaSlim,
+  totaisTrimestrais,
+  pegarMovimentosMes,
+  pegarServicosMes,
+  validarMovimento,
 } = require('./services');
-// const bodyParser = require('body-parser');
+
 const app = express();
 const upload = multer();
 
 app.options('*', cors());
 app.use(cors());
-// app.use(bodyParser.urlencoded({ extended: false }));
-// app.use(bodyParser.json());
 
 app.post('/file', upload.single('file'), (req, res) => {
   const { file } = req;
@@ -72,6 +76,74 @@ app.post('/file', upload.single('file'), (req, res) => {
   } else {
     res.sendStatus(400);
   }
+});
+
+app.post('/movimentos', bodyParser.json(), (req, res) => {
+  const { notasFinais, usuario } = req.body;
+  const promises = [];
+  const notasIniciais = [];
+
+  notasFinais.forEach((chave) => {
+    const p = new Promise((resolve) => {
+      pegarNotaChave(chave).then((nota) => {
+        const movimento = {
+          notaFinal: chave,
+          notaInicial: null,
+          data: nota.geral.dataHora,
+          conferido: false,
+          dominio: usuario.dominio,
+          valores: {},
+          metaDados: {
+            criadoPor: usuario.email,
+            dataCriacao: new Date().toISOString(),
+            status: 'ATIVO',
+            tipo: 'PRIM',
+            movimentoRef: '',
+          },
+        };
+        const query = db.ref('Notas/').orderByChild('emitente').equalTo(nota.emitente);
+        query.on('child_added', (snap) => {
+          const nota2 = snap.val();
+          if (nota2.chave !== nota.chave) {
+            const produtos = Object.keys(nota.produtos);
+            const produtos2 = Object.keys(nota2.produtos);
+            if (!movimento.notaInicial) {
+              produtos2.forEach((produto) => {
+                if (produtos.includes(produto)) {
+                  validarMovimento(nota2, nota).then(() => {
+                    movimento.notaInicial = nota2.chave;
+                    pegarEmpresaImpostos(nota.emitente).then((aliquotas) => {
+                      calcularImpostosMovimento(nota2, nota, aliquotas).then((valores) => {
+                        movimento.valores = valores;
+                        movimento.conferido = true;
+                        notasIniciais.push(nota2);
+                        resolve(movimento);
+                      });
+                    });
+                  });
+                }
+              });
+            }
+          }
+        });
+        query.once('value', () => {
+          if (!movimento.notaInicial) {
+            pegarEmpresaImpostos(nota.emitente).then((aliquotas) => {
+              calcularImpostosMovimento(null, nota, aliquotas).then((valores) => {
+                movimento.valores = valores;
+                resolve(movimento);
+              });
+            });
+          }
+        });
+      });
+    });
+    promises.push(p);
+  });
+
+  Promise.all(promises).then((movimentos) => {
+    res.send({ movimentos, notasIniciais });
+  }).catch(err => console.error(err));
 });
 
 app.get('/servico', (req, res) => {
@@ -188,6 +260,41 @@ app.get('/movimentoSlim', (req, res) => {
     console.error(err);
     res.sendStatus(500);
   });
+});
+
+app.get('/trimestre', (req, res) => {
+  const data = {};
+  const { cnpj, mes, ano } = req.query;
+  const notas = {};
+
+  const promises = [];
+
+  pegarMovimentosMes(cnpj, { mes, ano }).then((movs) => {
+    data.movimentos = movs;
+    Object.keys(movs).forEach((k) => {
+      promises.push(new Promise((resolve) => {
+        const m = movs[k];
+        pegarNotaChave(m.notaInicial).then((n1) => {
+          pegarNotaChave(m.notaFinal).then((n2) => {
+            notas[n1.chave] = n1;
+            notas[n2.chave] = n2;
+            data.notas = notas;
+            resolve();
+          }).catch((err) => { console.error(err); });
+        }).catch((err) => { console.error(err); });
+      }));
+    });
+
+    pegarServicosMes(cnpj, { mes, ano }).then((servs) => {
+      data.servicos = servs;
+      Promise.all(promises).then(() => {
+        totaisTrimestrais(cnpj, { mes, ano }).then((trim) => {
+          data.trimestre = trim;
+          res.send(data);
+        }).catch((err) => { data.err = err; });
+      });
+    }).catch((err) => { data.err = err; });
+  }).catch((err) => { console.error(err); });
 });
 
 const server = app.listen(8080, () => {

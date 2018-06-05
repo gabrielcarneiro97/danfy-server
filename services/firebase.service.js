@@ -112,6 +112,50 @@ function gravarNotaSlim(nota) {
   });
 }
 
+function pegarServicosMes(cnpj, competencia) {
+  return new Promise((resolve, reject) => {
+    const servicos = {};
+    const query = db.ref(`Servicos/${cnpj}`);
+    query.orderByChild('data').on('child_added', (snap) => {
+      const servico = snap.val();
+      const servicoId = snap.key;
+      const data = new Date(servico.data);
+      const mes = (data.getUTCMonth() + 1).toString();
+      const ano = data.getUTCFullYear().toString();
+
+      if (mes === competencia.mes && ano === competencia.ano) {
+        servicos[servicoId] = servico;
+      }
+    });
+    query.once('value', () => resolve(servicos), err => reject(err));
+  });
+}
+
+function pegarMovimentosMes(cnpj, competencia) {
+  return new Promise((resolve, reject) => {
+    const movimentos = {};
+    const query = db.ref(`Movimentos/${cnpj}`);
+    query.orderByChild('data').on('child_added', (snap) => {
+      const movimento = snap.val();
+      const movimentoId = snap.key;
+      const data = new Date(movimento.data);
+      const mes = (data.getUTCMonth() + 1).toString();
+      const ano = data.getUTCFullYear().toString();
+
+      if (movimento.metaDados) {
+        if (movimento.metaDados.status !== 'CANCELADO' &&
+          mes === competencia.mes &&
+          ano === competencia.ano) {
+          movimentos[movimentoId] = movimento;
+        }
+      } else if (mes === competencia.mes && ano === competencia.ano) {
+        movimentos[movimentoId] = movimento;
+      }
+    });
+    query.once('value', () => resolve(movimentos), err => reject(err));
+  });
+}
+
 
 module.exports = {
   gravarPessoa,
@@ -122,4 +166,7 @@ module.exports = {
   pegarMovimentoNotaFinal,
   pegarNotaChave,
   pegarNotaServicoChave,
+  pegarServicosMes,
+  pegarMovimentosMes,
+  db,
 };
