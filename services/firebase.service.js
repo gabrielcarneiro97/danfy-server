@@ -71,6 +71,19 @@ function pegarNotaChave(chave) {
   });
 }
 
+function pegarNotaServicoChave(chave) {
+  return new Promise((resolve, reject) => {
+    if (chave) {
+      db.ref(`NotasServico/${chave}`).once('value').then((value) => {
+        const nota = value.val();
+        resolve(nota);
+      }, err => reject(err));
+    } else {
+      resolve(null);
+    }
+  });
+}
+
 function gravarNotaSlim(nota) {
   return new Promise((resolve, reject) => {
     const mockChave = '999999999';
@@ -108,4 +121,5 @@ module.exports = {
   pegarEmpresaImpostos,
   pegarMovimentoNotaFinal,
   pegarNotaChave,
+  pegarNotaServicoChave,
 };

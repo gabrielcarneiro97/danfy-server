@@ -10,11 +10,12 @@ const {
   gravarPessoa,
   pegarEmpresaImpostos,
   pegarNotaChave,
+  pegarNotaServicoChave,
   calcularImpostosMovimento,
+  calcularImpostosServico,
   gravarNotaSlim,
 } = require('./services');
 // const bodyParser = require('body-parser');
-
 const app = express();
 const upload = multer();
 
@@ -73,7 +74,37 @@ app.post('/file', upload.single('file'), (req, res) => {
   }
 });
 
-app.get('/calcularMovimento', (req, res) => {
+app.get('/servico', (req, res) => {
+  const { notaServico } = req.query;
+  let { dominioId, email } = req.query;
+  dominioId = decodeURI(dominioId);
+  email = decodeURI(email);
+  pegarNotaServicoChave(notaServico).then((notaServicoObj) => {
+    calcularImpostosServico(notaServicoObj).then((valores) => {
+      const servico = {
+        nota: notaServico,
+        dominio: dominioId,
+        conferido: true,
+        valores,
+        metaDados: {
+          criadoPor: email,
+          dataCriacao: new Date().toISOString(),
+        },
+        data: notaServicoObj.geral.dataHora,
+        notaStatus: notaServicoObj.geral.status,
+      };
+      res.send(servico);
+    }).catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
+  }).catch((err) => {
+    console.error(err);
+    res.sendStatus(500);
+  });
+});
+
+app.get('/valoresMovimento', (req, res) => {
   const { notaInicial, notaFinal, cnpj } = req.query;
   pegarEmpresaImpostos(cnpj).then((aliquotas) => {
     pegarNotaChave(notaInicial).then((notaInicialObj) => {
@@ -99,7 +130,7 @@ app.get('/calcularMovimento', (req, res) => {
   });
 });
 
-app.get('/calcularMovimentoSlim', (req, res) => {
+app.get('/movimentoSlim', (req, res) => {
   const { notaFinal, cnpj } = req.query;
   let { valorInicial } = req.query;
 

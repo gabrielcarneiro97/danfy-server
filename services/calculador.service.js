@@ -1,4 +1,4 @@
-const { pegarEmpresaImpostos, pegarMovimentoNotaFinal } = require('.');
+const { pegarEmpresaImpostos, pegarMovimentoNotaFinal } = require('./firebase.service');
 
 function calcularImpostosServico(notaServico) {
   return new Promise((resolve, reject) => {
