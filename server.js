@@ -104,15 +104,18 @@ app.post('/movimentos', bodyParser.json(), (req, res) => {
           },
         };
         const query = db.ref('Notas/').orderByChild('emitente').equalTo(nota.emitente);
-        query.on('child_added', (snap) => {
-          const nota2 = snap.val();
-          if (nota2.chave !== nota.chave) {
-            const produtos = Object.keys(nota.produtos);
-            const produtos2 = Object.keys(nota2.produtos);
-            if (!movimento.notaInicial) {
-              produtos2.forEach((produto) => {
-                if (produtos.includes(produto)) {
-                  validarMovimento(nota2, nota).then(() => {
+        query.once('value', (snap) => {
+          const notas = snap.val();
+          let includes = false;
+          Object.keys(notas).forEach((k) => {
+            const nota2 = notas[k];
+            if (nota2.chave !== nota.chave) {
+              const produtos = Object.keys(nota.produtos);
+              const produtos2 = Object.keys(nota2.produtos);
+              if (!movimento.notaInicial) {
+                produtos2.forEach((produto) => {
+                  if (produtos.includes(produto) && validarMovimento(nota2, nota).isValid) {
+                    includes = true;
                     movimento.notaInicial = nota2.chave;
                     pegarEmpresaImpostos(nota.emitente).then((aliquotas) => {
                       calcularImpostosMovimento(nota2, nota, aliquotas).then((valores) => {
@@ -122,14 +125,13 @@ app.post('/movimentos', bodyParser.json(), (req, res) => {
                         resolve(movimento);
                       });
                     });
-                  });
-                }
-              });
+                  }
+                });
+              }
             }
-          }
-        });
-        query.once('value', () => {
-          if (!movimento.notaInicial) {
+          });
+
+          if (!includes) {
             pegarEmpresaImpostos(nota.emitente).then((aliquotas) => {
               calcularImpostosMovimento(null, nota, aliquotas).then((valores) => {
                 movimento.valores = valores;

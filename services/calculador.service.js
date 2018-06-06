@@ -80,6 +80,7 @@ function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
     let valorSaida = parseFloat(notaFinal.valor.total);
     let lucro = parseFloat(notaFinal.valor.total)
       - parseFloat(notaInicial ? notaInicial.valor.total : 0);
+    console.log('lucro', lucro);
     const {
       estadoGerador,
       estadoDestino,
@@ -665,17 +666,15 @@ function compararData(notaInicial, notaFinal) {
 }
 
 function validarMovimento(notaInicial, notaFinal) {
-  return new Promise((resolve, reject) => {
-    if (!compararCFOP(notaInicial, notaFinal)) {
-      reject(new Error(`O CFOP da Nota Inicial ${notaInicial.geral.numero} ${notaInicial.geral.cfop} não é valido para o CFOP da Nota Final ${notaFinal.geral.numero} ${notaFinal.geral.cfop}`));
-    } else if (!compararProduto(notaInicial, notaFinal)) {
-      reject(new Error(`O produto da Nota Final ${notaFinal.geral.numero} não foi localizado na Nota Inicial ${notaInicial.geral.numero}!`));
-    } else if (!compararData(notaInicial, notaFinal)) {
-      reject(new Error(`A data da Nota Final ${notaFinal.geral.numero} é anterior a data da Nota Inicial ${notaInicial.geral.numero}!`));
-    } else {
-      resolve();
-    }
-  });
+
+  if (!compararCFOP(notaInicial, notaFinal)) {
+    return { isValid: false, error: new Error(`O CFOP da Nota Inicial ${notaInicial.geral.numero} ${notaInicial.geral.cfop} não é valido para o CFOP da Nota Final ${notaFinal.geral.numero} ${notaFinal.geral.cfop}`) };
+  } else if (!compararProduto(notaInicial, notaFinal)) {
+    return { isValid: false, error: new Error(`O produto da Nota Final ${notaFinal.geral.numero} não foi localizado na Nota Inicial ${notaInicial.geral.numero}!`) };
+  } else if (!compararData(notaInicial, notaFinal)) {
+    return { isValid: false, error: new Error(`A data da Nota Final ${notaFinal.geral.numero} é anterior a data da Nota Inicial ${notaInicial.geral.numero}!`) };
+  }
+  return { isValid: true, error: null };
 }
 
 module.exports = {
