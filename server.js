@@ -3,6 +3,7 @@ const cors = require('cors');
 const multer = require('multer');
 const { xml2js } = require('xml-js');
 const bodyParser = require('body-parser');
+const https = require('https');
 const {
   db,
   lerNfe,
@@ -20,6 +21,7 @@ const {
   pegarMovimentosMes,
   pegarServicosMes,
   validarMovimento,
+  SSL,
 } = require('./services');
 
 const app = express();
@@ -299,10 +301,16 @@ app.get('/trimestre', (req, res) => {
 
 app.get('/hello', (req, res) => {
   res.send('Hello!');
-})
-
-const server = app.listen(8080, () => {
-  const { address } = server.address();
-  const { port } = server.address();
-  console.log(`Example app listening at http://${address}:${port}`);
 });
+
+if (process.argv[2] === 'ssl') {
+  https.createServer(SSL, app).listen(8080, () => {
+    console.log('SSL server listening 8080 port');
+  });
+} else {
+  const server = app.listen(8080, () => {
+    const { address } = server.address();
+    const { port } = server.address();
+    console.log(`Example app listening at http://${address}:${port}`);
+  });
+}
