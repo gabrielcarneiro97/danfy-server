@@ -80,7 +80,6 @@ function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
     let valorSaida = parseFloat(notaFinal.valor.total);
     let lucro = parseFloat(notaFinal.valor.total)
       - parseFloat(notaInicial ? notaInicial.valor.total : 0);
-    console.log('lucro', lucro);
     const {
       estadoGerador,
       estadoDestino,
@@ -666,7 +665,6 @@ function compararData(notaInicial, notaFinal) {
 }
 
 function validarMovimento(notaInicial, notaFinal) {
-
   if (!compararCFOP(notaInicial, notaFinal)) {
     return { isValid: false, error: new Error(`O CFOP da Nota Inicial ${notaInicial.geral.numero} ${notaInicial.geral.cfop} não é valido para o CFOP da Nota Final ${notaFinal.geral.numero} ${notaFinal.geral.cfop}`) };
   } else if (!compararProduto(notaInicial, notaFinal)) {

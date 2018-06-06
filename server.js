@@ -241,8 +241,6 @@ app.get('/movimentoSlim', (req, res) => {
       },
     };
 
-    console.log(notaInicial);
-
     gravarNotaSlim(notaInicial).then((notaInicialCompleta) => {
       pegarEmpresaImpostos(cnpj).then((aliquotas) => {
         calcularImpostosMovimento(notaInicialCompleta, notaFinalObj, aliquotas)
@@ -274,6 +272,7 @@ app.get('/trimestre', (req, res) => {
   const promises = [];
 
   pegarMovimentosMes(cnpj, { mes, ano }).then((movs) => {
+    console.log(Object.keys(movs).length);
     data.movimentos = movs;
     Object.keys(movs).forEach((k) => {
       promises.push(new Promise((resolve) => {
