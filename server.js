@@ -297,6 +297,10 @@ app.get('/trimestre', (req, res) => {
   }).catch((err) => { console.error(err); });
 });
 
+app.get('/hello', (req, res) => {
+  res.send('Hello!');
+})
+
 const server = app.listen(8080, () => {
   const { address } = server.address();
   const { port } = server.address();
