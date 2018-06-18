@@ -8,8 +8,8 @@
     "xml-js": "^1.6.4"
   },
   "scripts": {
-    "start": "node server.js",
-    "ssl": "node server.js ssl"
+    "start": "node main.js",
+    "ssl": "node main.js ssl"
   },
   "name": "danfy-server",
   "version": "0.0.1",
