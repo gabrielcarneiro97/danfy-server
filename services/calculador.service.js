@@ -3,6 +3,8 @@ const {
   pegarMovimentoNotaFinal,
   pegarServicosMes,
   pegarMovimentosMes,
+  pegarTotais,
+  gravarTotais,
 } = require('./firebase.service');
 
 function calcularImpostosServico(notaServico) {
@@ -522,76 +524,128 @@ function totaisTrimestrais(cnpj, competencia) {
     trimestres[competencia.mes].forEach((mes, id, arr) => {
       const ultimoMes = arr[arr.length - 1];
 
-      calculaImpostosEmpresa(cnpj, {
-        mes,
-        ano: competencia.ano,
-        mesAnterior: true,
-      }).then((impostos) => {
-        trimestre[mes] = impostos;
-        trimestre.totais.servicos +=
-          trimestre[mes].totais.servicos;
-        trimestre.totais.lucro +=
-          trimestre[mes].totais.lucro;
+      pegarTotais(cnpj, { ano: competencia.ano, mes })
+        .then((data) => {
+          const checkMes = () => {
+            if (mes % 3 === 0) {
+              let adicionalIr;
+              let baseLucro;
+              let baseServico;
+              pegarEmpresaImpostos(cnpj).then((aliquotas) => {
+                if (aliquotas.irpj === 0.012) {
+                  baseLucro = trimestre.totais.lucro * 0.08;
+                } else {
+                  baseLucro = trimestre.totais.lucro * 0.32;
+                }
+                baseServico = trimestre.totais.servicos * 0.32;
 
-        trimestre.totais.impostos.irpj +=
-          trimestre[mes].totais.impostos.irpj;
-        trimestre.totais.impostos.csll +=
-          trimestre[mes].totais.impostos.csll;
-        trimestre.totais.impostos.iss +=
-          trimestre[mes].totais.impostos.iss;
-        trimestre.totais.impostos.pis +=
-          trimestre[mes].totais.impostos.pis;
-        trimestre.totais.impostos.cofins +=
-          trimestre[mes].totais.impostos.cofins;
-        trimestre.totais.impostos.total +=
-          trimestre[mes].totais.impostos.total;
+                if (baseLucro + baseServico > 60000) {
+                  adicionalIr = ((baseLucro + baseServico) - 60000) * 0.1;
+                } else {
+                  adicionalIr = 0;
+                }
 
-        trimestre.totais.impostos.icms.proprio +=
-          trimestre[mes].totais.impostos.icms.proprio;
-        trimestre.totais.impostos.icms.difal.origem +=
-          trimestre[mes].totais.impostos.icms.difal.origem;
-        trimestre.totais.impostos.icms.difal.destino +=
-          trimestre[mes].totais.impostos.icms.difal.destino;
+                trimestre.totais.impostos.adicionalIr = adicionalIr;
 
-        trimestre.totais.impostos.retencoes.irpj +=
-          trimestre[mes].totais.impostos.retencoes.irpj;
-        trimestre.totais.impostos.retencoes.iss +=
-          trimestre[mes].totais.impostos.retencoes.iss;
-        trimestre.totais.impostos.retencoes.csll +=
-          trimestre[mes].totais.impostos.retencoes.csll;
-        trimestre.totais.impostos.retencoes.pis +=
-          trimestre[mes].totais.impostos.retencoes.pis;
-        trimestre.totais.impostos.retencoes.cofins +=
-          trimestre[mes].totais.impostos.retencoes.cofins;
-        trimestre.totais.impostos.retencoes.total +=
-          trimestre[mes].totais.impostos.retencoes.total;
-
-        if (mes % 3 === 0) {
-          let adicionalIr;
-          let baseLucro;
-          let baseServico;
-          pegarEmpresaImpostos(cnpj).then((aliquotas) => {
-            if (aliquotas.irpj === 0.012) {
-              baseLucro = trimestre.totais.lucro * 0.08;
-            } else {
-              baseLucro = trimestre.totais.lucro * 0.32;
+                resolve(trimestre);
+              }).catch(err => reject(err));
+            } else if (mes === ultimoMes) {
+              resolve(trimestre);
             }
-            baseServico = trimestre.totais.servicos * 0.32;
+          };
 
-            if (baseLucro + baseServico > 60000) {
-              adicionalIr = ((baseLucro + baseServico) - 60000) * 0.1;
-            } else {
-              adicionalIr = 0;
-            }
+          if (!data) {
+            calculaImpostosEmpresa(cnpj, {
+              mes,
+              ano: competencia.ano,
+              mesAnterior: true,
+            }).then((impostos) => {
+              trimestre[mes] = impostos;
+              trimestre.totais.servicos +=
+                trimestre[mes].totais.servicos;
+              trimestre.totais.lucro +=
+                trimestre[mes].totais.lucro;
 
-            trimestre.totais.impostos.adicionalIr = adicionalIr;
+              trimestre.totais.impostos.irpj +=
+                trimestre[mes].totais.impostos.irpj;
+              trimestre.totais.impostos.csll +=
+                trimestre[mes].totais.impostos.csll;
+              trimestre.totais.impostos.iss +=
+                trimestre[mes].totais.impostos.iss;
+              trimestre.totais.impostos.pis +=
+                trimestre[mes].totais.impostos.pis;
+              trimestre.totais.impostos.cofins +=
+                trimestre[mes].totais.impostos.cofins;
+              trimestre.totais.impostos.total +=
+                trimestre[mes].totais.impostos.total;
 
-            resolve(trimestre);
-          }).catch(err => reject(err));
-        } else if (mes === ultimoMes) {
-          resolve(trimestre);
-        }
-      }).catch(err => reject(err));
+              trimestre.totais.impostos.icms.proprio +=
+                trimestre[mes].totais.impostos.icms.proprio;
+              trimestre.totais.impostos.icms.difal.origem +=
+                trimestre[mes].totais.impostos.icms.difal.origem;
+              trimestre.totais.impostos.icms.difal.destino +=
+                trimestre[mes].totais.impostos.icms.difal.destino;
+
+              trimestre.totais.impostos.retencoes.irpj +=
+                trimestre[mes].totais.impostos.retencoes.irpj;
+              trimestre.totais.impostos.retencoes.iss +=
+                trimestre[mes].totais.impostos.retencoes.iss;
+              trimestre.totais.impostos.retencoes.csll +=
+                trimestre[mes].totais.impostos.retencoes.csll;
+              trimestre.totais.impostos.retencoes.pis +=
+                trimestre[mes].totais.impostos.retencoes.pis;
+              trimestre.totais.impostos.retencoes.cofins +=
+                trimestre[mes].totais.impostos.retencoes.cofins;
+              trimestre.totais.impostos.retencoes.total +=
+                trimestre[mes].totais.impostos.retencoes.total;
+
+              gravarTotais(impostos, cnpj, { ano: competencia.ano, mes })
+                .then(() => checkMes())
+                .catch(err => reject(err));
+            }).catch(err => reject(err));
+          } else {
+            trimestre[mes] = data;
+
+            trimestre.totais.servicos +=
+              trimestre[mes].totais.servicos;
+            trimestre.totais.lucro +=
+              trimestre[mes].totais.lucro;
+
+            trimestre.totais.impostos.irpj +=
+              trimestre[mes].totais.impostos.irpj;
+            trimestre.totais.impostos.csll +=
+              trimestre[mes].totais.impostos.csll;
+            trimestre.totais.impostos.iss +=
+              trimestre[mes].totais.impostos.iss;
+            trimestre.totais.impostos.pis +=
+              trimestre[mes].totais.impostos.pis;
+            trimestre.totais.impostos.cofins +=
+              trimestre[mes].totais.impostos.cofins;
+            trimestre.totais.impostos.total +=
+              trimestre[mes].totais.impostos.total;
+
+            trimestre.totais.impostos.icms.proprio +=
+              trimestre[mes].totais.impostos.icms.proprio;
+            trimestre.totais.impostos.icms.difal.origem +=
+              trimestre[mes].totais.impostos.icms.difal.origem;
+            trimestre.totais.impostos.icms.difal.destino +=
+              trimestre[mes].totais.impostos.icms.difal.destino;
+
+            trimestre.totais.impostos.retencoes.irpj +=
+              trimestre[mes].totais.impostos.retencoes.irpj;
+            trimestre.totais.impostos.retencoes.iss +=
+              trimestre[mes].totais.impostos.retencoes.iss;
+            trimestre.totais.impostos.retencoes.csll +=
+              trimestre[mes].totais.impostos.retencoes.csll;
+            trimestre.totais.impostos.retencoes.pis +=
+              trimestre[mes].totais.impostos.retencoes.pis;
+            trimestre.totais.impostos.retencoes.cofins +=
+              trimestre[mes].totais.impostos.retencoes.cofins;
+            trimestre.totais.impostos.retencoes.total +=
+              trimestre[mes].totais.impostos.retencoes.total;
+            checkMes();
+          }
+        });
     });
   });
 }

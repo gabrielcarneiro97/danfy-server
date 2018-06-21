@@ -156,6 +156,26 @@ function pegarMovimentosMes(cnpj, competencia) {
   });
 }
 
+function pegarTotais(cnpj, { mes, ano }) {
+  return new Promise((resolve, reject) => {
+    db
+      .ref(`Totais/${cnpj}/${ano}/${mes}`)
+      .once('value')
+      .then(snap => resolve(snap.val()))
+      .catch(err => reject(err));
+  });
+}
+
+function gravarTotais(dados, cnpj, { mes, ano }) {
+  return new Promise((resolve, reject) => {
+    db
+      .ref(`Totais/${cnpj}/${ano}/${mes}`)
+      .set(dados)
+      .then(() => resolve())
+      .catch(err => reject(err));
+  });
+}
+
 
 module.exports = {
   gravarPessoa,
@@ -168,5 +188,7 @@ module.exports = {
   pegarNotaServicoChave,
   pegarServicosMes,
   pegarMovimentosMes,
+  pegarTotais,
+  gravarTotais,
   db,
 };

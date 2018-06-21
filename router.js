@@ -178,7 +178,7 @@ app.get('/servico', (req, res) => {
   });
 });
 
-app.get('/valoresMovimento', (req, res) => {
+app.get('/movimentos/valor', (req, res) => {
   const { notaInicial, notaFinal, cnpj } = req.query;
   pegarEmpresaImpostos(cnpj).then((aliquotas) => {
     pegarNotaChave(notaInicial).then((notaInicialObj) => {
@@ -204,7 +204,7 @@ app.get('/valoresMovimento', (req, res) => {
   });
 });
 
-app.get('/movimentoSlim', (req, res) => {
+app.get('/movimentos/slim', (req, res) => {
   const { notaFinal, cnpj } = req.query;
   let { valorInicial } = req.query;
 
@@ -270,7 +270,6 @@ app.get('/trimestre', (req, res) => {
   const promises = [];
 
   pegarMovimentosMes(cnpj, { mes, ano }).then((movs) => {
-    console.log(Object.keys(movs).length);
     data.movimentos = movs;
     Object.keys(movs).forEach((k) => {
       promises.push(new Promise((resolve) => {
@@ -296,10 +295,6 @@ app.get('/trimestre', (req, res) => {
       });
     }).catch((err) => { data.err = err; });
   }).catch((err) => { console.error(err); });
-});
-
-app.get('/hello', (req, res) => {
-  res.send('Hello!');
 });
 
 module.exports = {
