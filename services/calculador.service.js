@@ -223,7 +223,7 @@ function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
               + (lucro * aliquotas.icms.reducao
                 * aliquotas.icms.aliquota));
         } else {
-          if (destinatarioContribuinte === '2' || destinatarioContribuinte === '9') { // eslint-disable-line
+          if ((destinatarioContribuinte === '2' || destinatarioContribuinte === '9') && icmsEstados[estadoDestino]) { // eslint-disable-line
             const composicaoDaBase = valorSaida / (1 - icmsEstados[estadoDestino].interno);
             const baseDeCalculo = 0.05 * composicaoDaBase;
             const baseDifal =
