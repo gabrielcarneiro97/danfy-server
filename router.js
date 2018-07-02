@@ -290,9 +290,10 @@ app.get('/trimestre', (req, res) => {
       Promise.all(promises).then(() => {
         totaisTrimestrais(cnpj, { mes, ano }).then((trim) => {
           data.trimestre = trim;
+          console.log(trim);
           res.send(data);
         }).catch((err) => { data.err = err; });
-      });
+      }).catch(err => console.error(err));
     }).catch((err) => { data.err = err; });
   }).catch((err) => { console.error(err); });
 });

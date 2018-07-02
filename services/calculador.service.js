@@ -121,6 +121,15 @@ function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
             cofins: (lucro * aliquotas.cofins),
             csll: (lucro * aliquotas.csll),
             irpj: (lucro * aliquotas.irpj),
+            icms: {
+              composicaoDaBase: 0,
+              difal: {
+                destino: 0,
+                origem: 0,
+              },
+              baseDeCalculo: 0,
+              proprio: 0,
+            },
             total: ((lucro * aliquotas.irpj)
               + (lucro * aliquotas.pis)
               + (lucro * aliquotas.cofins)
@@ -208,6 +217,10 @@ function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
           TO: {
             externo: 0.07,
             interno: 0.18,
+          },
+          resto: {
+            extero: 0,
+            interno: 0,
           },
         };
 
@@ -387,7 +400,9 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
         });
       }
       pegarMovimentosMes(empresaCnpj, competencia).then((movimentos) => {
+        console.log(Object.keys(movimentos).length);
         Object.keys(movimentos).forEach((key) => {
+          console.log(key);
           const movimento = movimentos[key];
           data.movimentos.lucro +=
             parseFloat(movimento.valores.lucro);
@@ -402,17 +417,21 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
             parseFloat(movimento.valores.impostos.cofins);
           data.movimentos.impostos.csll +=
             parseFloat(movimento.valores.impostos.csll);
+
           data.movimentos.impostos.irpj +=
             parseFloat(movimento.valores.impostos.irpj);
-          data.movimentos.impostos.icms.baseDeCalculo +=
-            parseFloat(movimento.valores.impostos.icms.baseDeCalculo);
-          data.movimentos.impostos.icms.proprio +=
-            parseFloat(movimento.valores.impostos.icms.proprio);
-          if (movimento.valores.impostos.icms.difal) {
-            data.movimentos.impostos.icms.difal.origem +=
-              parseFloat(movimento.valores.impostos.icms.difal.origem);
-            data.movimentos.impostos.icms.difal.destino +=
-              parseFloat(movimento.valores.impostos.icms.difal.destino);
+
+          if (movimento.valores.impostos.icms) {
+            data.movimentos.impostos.icms.baseDeCalculo +=
+              parseFloat(movimento.valores.impostos.icms.baseDeCalculo);
+            data.movimentos.impostos.icms.proprio +=
+              parseFloat(movimento.valores.impostos.icms.proprio);
+            if (movimento.valores.impostos.icms.difal) {
+              data.movimentos.impostos.icms.difal.origem +=
+                parseFloat(movimento.valores.impostos.icms.difal.origem);
+              data.movimentos.impostos.icms.difal.destino +=
+                parseFloat(movimento.valores.impostos.icms.difal.destino);
+            }
           }
         });
 
@@ -434,7 +453,7 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
             total: data.movimentos.impostos.total + data.servicos.impostos.total,
           },
         };
-
+        console.log('competencia.mesAnterior', competencia.mesAnterior);
         if (competencia.mesAnterior) {
           let anoAnterior = competencia.ano;
           let mesAnterior;
@@ -464,7 +483,7 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
             }
 
             resolve(data);
-          });
+          }).catch(err => reject(err));
         } else {
           resolve(data);
         }
@@ -475,6 +494,7 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
 
 function totaisTrimestrais(cnpj, competencia) {
   return new Promise((resolve, reject) => {
+    console.log('totaisTrimestrais');
     const trimestres = {};
     trimestres['1'] = ['1'];
     trimestres['2'] = ['1', '2'];
@@ -555,11 +575,13 @@ function totaisTrimestrais(cnpj, competencia) {
           };
 
           if (!data) {
+            console.log('!data');
             calculaImpostosEmpresa(cnpj, {
               mes,
               ano: competencia.ano,
               mesAnterior: true,
             }).then((impostos) => {
+              console.log('calculaImpostosEmpresaCb');
               trimestre[mes] = impostos;
               trimestre.totais.servicos +=
                 trimestre[mes].totais.servicos;
@@ -645,7 +667,8 @@ function totaisTrimestrais(cnpj, competencia) {
               trimestre[mes].totais.impostos.retencoes.total;
             checkMes();
           }
-        });
+        })
+        .catch(err => reject(err));
     });
   });
 }
