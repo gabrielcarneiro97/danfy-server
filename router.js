@@ -264,7 +264,12 @@ app.get('/movimentos/slim', (req, res) => {
 
 app.get('/trimestre', (req, res) => {
   const data = {};
-  const { cnpj, mes, ano } = req.query;
+  const {
+    cnpj,
+    mes,
+    ano,
+    recalcular,
+  } = req.query;
   const notas = {};
 
   const promises = [];
@@ -288,7 +293,7 @@ app.get('/trimestre', (req, res) => {
     pegarServicosMes(cnpj, { mes, ano }).then((servs) => {
       data.servicos = servs;
       Promise.all(promises).then(() => {
-        totaisTrimestrais(cnpj, { mes, ano }).then((trim) => {
+        totaisTrimestrais(cnpj, { mes, ano }, recalcular).then((trim) => {
           data.trimestre = trim;
           console.log(trim);
           res.send(data);

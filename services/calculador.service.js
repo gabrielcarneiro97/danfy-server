@@ -492,7 +492,7 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
   });
 }
 
-function totaisTrimestrais(cnpj, competencia) {
+function totaisTrimestrais(cnpj, competencia, recalcular) {
   return new Promise((resolve, reject) => {
     console.log('totaisTrimestrais');
     const trimestres = {};
@@ -574,14 +574,12 @@ function totaisTrimestrais(cnpj, competencia) {
             }
           };
 
-          if (!data) {
-            console.log('!data');
+          if (!data || recalcular) {
             calculaImpostosEmpresa(cnpj, {
               mes,
               ano: competencia.ano,
               mesAnterior: true,
             }).then((impostos) => {
-              console.log('calculaImpostosEmpresaCb');
               trimestre[mes] = impostos;
               trimestre.totais.servicos +=
                 trimestre[mes].totais.servicos;
