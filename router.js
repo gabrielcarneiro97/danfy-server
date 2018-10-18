@@ -4,18 +4,23 @@ const multer = require('multer');
 const { xml2js } = require('xml-js');
 const bodyParser = require('body-parser');
 const {
+  criarNota,
+  criarPessoa,
+} = require('./services');
+const {
   db,
   lerNfe,
   lerNfse,
-  gravarNota,
-  gravarNotaServico,
-  gravarPessoa,
+  // criarPessoa,
+  // atualizarPessoa,
+  // criarNota,
+  criarNotaServico,
   pegarEmpresaImpostos,
   pegarNotaChave,
   pegarNotaServicoChave,
   calcularImpostosMovimento,
   calcularImpostosServico,
-  gravarNotaSlim,
+  criarNotaSlim,
   totaisTrimestrais,
   pegarMovimentosMes,
   pegarServicosMes,
@@ -42,13 +47,13 @@ app.post('/file', upload.single('file'), (req, res) => {
         pessoas: { [nota.emitente]: emitente, [nota.destinatario]: destinatario },
         nota,
       };
-      gravarPessoa(nota.emitente, emitente).catch((err) => {
+      criarPessoa(nota.emitente, emitente).catch((err) => {
         console.error(err);
       });
-      gravarPessoa(nota.destinatario, destinatario).catch((err) => {
+      criarPessoa(nota.destinatario, destinatario).catch((err) => {
         console.error(err);
       });
-      gravarNotaServico(nota.chave, nota).catch((err) => {
+      criarNotaServico(nota.chave, nota).catch((err) => {
         console.error(err);
       });
       res.send(final);
@@ -61,13 +66,13 @@ app.post('/file', upload.single('file'), (req, res) => {
         nota,
       };
 
-      gravarPessoa(nota.emitente, emitente).catch((err) => {
+      criarPessoa(nota.emitente, emitente).catch((err) => {
         console.error(err);
       });
-      gravarPessoa(nota.destinatario, destinatario).catch((err) => {
+      criarPessoa(nota.destinatario, destinatario).catch((err) => {
         console.error(err);
       });
-      gravarNota(nota.chave, nota).catch((err) => {
+      criarNota(nota.chave, nota).catch((err) => {
         console.error(err);
       });
 
@@ -239,7 +244,7 @@ app.get('/movimentos/slim', (req, res) => {
       },
     };
 
-    gravarNotaSlim(notaInicial).then((notaInicialCompleta) => {
+    criarNotaSlim(notaInicial).then((notaInicialCompleta) => {
       pegarEmpresaImpostos(cnpj).then((aliquotas) => {
         calcularImpostosMovimento(notaInicialCompleta, notaFinalObj, aliquotas)
           .then((movimento) => {

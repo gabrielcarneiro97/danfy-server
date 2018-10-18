@@ -172,6 +172,7 @@ function lerNfe(obj, callback) {
 
   const { det } = info;
   const produtos = {};
+  const produtosCodigo = {};
 
   if (!Array.isArray(det)) {
     const { prod } = det;
@@ -191,6 +192,7 @@ function lerNfe(obj, callback) {
     };
 
     produtos[codigo] = produto;
+    produtosCodigo[codigo] = true;
   } else {
     det.forEach((val) => {
       const { prod } = val;
@@ -210,10 +212,12 @@ function lerNfe(obj, callback) {
       };
 
       produtos[codigo] = produto;
+      produtosCodigo[codigo] = true;
     });
   }
 
   nota.produtos = produtos;
+  nota.produtosCodigo = produtosCodigo;
 
   if (!Array.isArray(info.ide.NFref)) {
     nota.complementar = {

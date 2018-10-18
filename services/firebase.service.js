@@ -1,114 +1,132 @@
 const admin = require('firebase-admin');
 
-const serviceAccount = require('../apiKey');
+const serviceAccount = require('../danfy-rebuild-apiKey');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://danfy-4d504.firebaseio.com',
+  databaseURL: 'https://danfy-rebuild.firebaseio.com',
 });
 
 const db = admin.database();
+const firestore = admin.firestore();
 
-function gravarPessoa(id, pessoa) {
-  return db.ref(`Pessoas/${id}`).set(pessoa);
-}
+const PESSOAS = firestore.collection('Pessoas');
+const NOTAS = firestore.collection('Notas');
+const NOTAS_SERVICO = firestore.collection('NotasServico');
 
-function gravarNota(id, nota) {
-  return db.ref(`Notas/${id}`).set(nota);
-}
-
-function gravarNotaServico(id, nota) {
-  return db.ref(`NotasServico/${id}`).set(nota);
-}
-
-function pegarEmpresaImpostos(empresaCnpj) {
+function criarPessoa(id, pessoa) {
   return new Promise((resolve, reject) => {
-    db.ref(`Impostos/${empresaCnpj}`).once('value', (snap) => {
-      const aliquotas = snap.val();
-      resolve(aliquotas);
-    }, (err) => {
-      reject(err);
-    });
+    const doc = PESSOAS.doc(id);
+
+    doc
+      .get()
+      .then((snap) => {
+        if (!snap.data()) {
+          doc
+            .set(pessoa)
+            .then(newSnap => resolve(newSnap))
+            .catch(err => reject(err));
+        } else {
+          doc
+            .update(pessoa)
+            .then(newSnap => resolve(newSnap))
+            .catch(err => reject(err));
+        }
+      })
+      .catch(err => reject(err));
+  });
+}
+
+const atualizarPessoa = criarPessoa;
+
+function criarNota(id, nota) {
+  return NOTAS.doc(id).set(nota);
+}
+
+function criarNotaServico(id, nota) {
+  return NOTAS_SERVICO.doc(id).set(nota);
+}
+
+function pegarEmpresaImpostos(cnpj) {
+  return new Promise((resolve, reject) => {
+    PESSOAS
+      .doc(cnpj)
+      .get()
+      .then(snap => resolve(snap.data().Aliquotas))
+      .catch(err => reject(err));
   });
 }
 
 function pegarMovimentoNotaFinal(cnpj, chaveNota) {
-  return new Promise((resolve) => {
-    const query = db.ref(`Movimentos/${cnpj}`).orderByChild('notaFinal').equalTo(chaveNota);
-
-    let jaFoi = false;
-
-    query.on('child_added', (snap) => {
-      const movimento = snap.val();
-      if (movimento.metaDados) {
-        if (movimento.metaDados.status === 'ATIVO') {
-          resolve(movimento);
-          jaFoi = true;
+  return new Promise((resolve, reject) => {
+    PESSOAS
+      .doc(cnpj)
+      .collection('Movimentos')
+      .where('notaFinal', '==', chaveNota)
+      .where('metaDados.status', '==', 'ATIVO')
+      .get()
+      .then(({ docs }) => {
+        if (docs.length !== 0) {
+          resolve(docs[0].data());
+        } else {
+          reject(new Error('Mais de um documento ativo com a chave informada!'));
         }
-      } else {
-        resolve(movimento);
-        jaFoi = true;
-      }
-    });
-    query.once('value', () => {
-      if (!jaFoi) {
-        resolve(null);
-      }
-    });
+      })
+      .catch(err => reject(err));
   });
 }
 
 function pegarNotaChave(chave) {
   return new Promise((resolve, reject) => {
-    if (chave) {
-      db.ref(`Notas/${chave}`).once('value').then((value) => {
-        const nota = value.val();
-        resolve(nota);
-      }, err => reject(err));
-    } else {
-      resolve(null);
-    }
+    NOTAS
+      .doc(chave)
+      .get()
+      .then(snap => resolve(snap.data()))
+      .catch(err => reject(err));
   });
 }
 
 function pegarNotaServicoChave(chave) {
   return new Promise((resolve, reject) => {
-    if (chave) {
-      db.ref(`NotasServico/${chave}`).once('value').then((value) => {
-        const nota = value.val();
-        resolve(nota);
-      }, err => reject(err));
-    } else {
-      resolve(null);
-    }
+    NOTAS_SERVICO
+      .doc(chave)
+      .get()
+      .then(snap => resolve(snap.data()))
+      .catch(err => reject(err));
   });
 }
 
-function gravarNotaSlim(nota) {
+function criarNotaSlim(nota) {
   return new Promise((resolve, reject) => {
-    const mockChave = '999999999';
-    nota.chave = mockChave; // eslint-disable-line
+    NOTAS
+      .add(nota)
+      .then((doc) => {
+        doc
+          .update({ chave: doc.id })
+          .then(() => resolve())
+          .catch(err => reject(err));
+      })
+      .catch(err => reject(err));
+  });
+}
 
-    db.ref('Notas/').push(nota, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        db.ref('Notas/')
-          .orderByChild('chave')
-          .equalTo(mockChave)
-          .once('child_added', (snap) => {
-            const chave = snap.key;
-            nota.chave = chave; // eslint-disable-line
-            db.ref(`Notas/${chave}`).set(nota, (err2) => {
-              if (err2) {
-                reject(err2);
-              } else {
-                resolve(nota);
-              }
-            });
+function pegarNotasProduto(id) {
+  return new Promise((resolve, reject) => {
+    if (id !== 'INTERNO') {
+      NOTAS
+        .where(`produtosCodigo.${id}`, '==', true)
+        .get()
+        .then(({ docs }) => {
+          const notas = [];
+          docs.forEach((snapDoc) => {
+            notas.push(snapDoc.data());
           });
-      }
-    });
+          resolve(notas);
+        })
+        .catch(err => reject(err));
+    } else {
+      resolve([]);
+    }
   });
 }
 
@@ -133,6 +151,14 @@ function pegarServicosMes(cnpj, competencia) {
 
 function pegarMovimentosMes(cnpj, competencia) {
   return new Promise((resolve, reject) => {
+    PESSOAS
+      .doc(cnpj)
+      .collection('Movimentos')
+      .get()
+      .then((docs) => {
+
+      });
+
     const movimentos = {};
     const query = db.ref(`Movimentos/${cnpj}`);
     query.orderByChild('data').on('child_added', (snap) => {
@@ -178,13 +204,15 @@ function gravarTotais(dados, cnpj, { mes, ano }) {
 
 
 module.exports = {
-  gravarPessoa,
-  gravarNota,
-  gravarNotaServico,
-  gravarNotaSlim,
+  criarPessoa,
+  atualizarPessoa,
+  criarNota,
+  criarNotaServico,
+  criarNotaSlim,
   pegarEmpresaImpostos,
   pegarMovimentoNotaFinal,
   pegarNotaChave,
+  pegarNotasProduto,
   pegarNotaServicoChave,
   pegarServicosMes,
   pegarMovimentosMes,
