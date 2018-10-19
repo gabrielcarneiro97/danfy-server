@@ -5,42 +5,31 @@ const { Schema } = mongoose;
 
 mongoose.connect(HOST, CONFIG);
 
-const NotaSchema = new Schema({
+const NotaServicoSchema = new Schema({
   _id: String,
   chave: String,
   destinatario: String,
   emitente: String,
-  complementar: {
-    notaReferencia: String,
-    textoComplementar: String,
-  },
   geral: {
-    cfop: String,
     dataHora: Date,
     numero: String,
     status: String,
-    tipo: String,
   },
-  informacoesEstaduais: {
-    destinatarioContribuinte: String,
-    estadoDestino: String,
-    estadoGerador: String,
-  },
-  produtos: Object,
-  valor: {
-    total: String,
-  },
+  valor: Object,
 });
 
-NotaSchema.pre('save', function (next) { // eslint-disable-line
+NotaServicoSchema.pre('save', function (next) { // eslint-disable-line
+  this.chave = this.emitente + this.geral.numero;
+  this._id = this.chave; // eslint-disable-line
+
   if (typeof this.geral.dataHora === 'string') {
     this.geral.dataHora = new Date(this.geral.dataHora);
   }
   next();
 });
 
-const Nota = mongoose.model('Nota', NotaSchema, 'Notas');
+const NotaServico = mongoose.model('NotaServico', NotaServicoSchema, 'NotasServico');
 
 module.exports = {
-  Nota,
+  NotaServico,
 };
