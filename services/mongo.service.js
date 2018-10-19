@@ -1,4 +1,10 @@
-const { Nota, Pessoa, NotaServico } = require('../models');
+const {
+  Nota,
+  Pessoa,
+  NotaServico,
+  Dominio,
+  Usuario,
+} = require('../models');
 
 function criarNota(chave, notaParam) {
   const nota = new Nota({
@@ -89,6 +95,18 @@ function criarTotais(cnpj, totais) {
   });
 }
 
+function criarDominio(_id, dominioParam) {
+  const dominio = new Dominio({ _id, ...dominioParam });
+
+  return dominio.save();
+}
+
+function criarUsuario(_id, usuarioParam) {
+  const usuario = new Usuario({ _id, ...usuarioParam });
+
+  return usuario.save();
+}
+
 module.exports = {
   criarNota,
   criarPessoa,
@@ -99,4 +117,6 @@ module.exports = {
   criarServico,
   criarServicos,
   criarTotais,
+  criarDominio,
+  criarUsuario,
 };

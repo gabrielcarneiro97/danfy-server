@@ -5,4 +5,5 @@ module.exports = {
   ...require('./pessoa.model'),
   ...require('./notaServico.model'),
   ...require('./usuario.model'),
+  ...require('./dominio.model'),
 };

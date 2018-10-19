@@ -5,15 +5,16 @@ const { Schema } = mongoose;
 
 mongoose.connect(HOST, CONFIG);
 
-const usuarioSchema = new Schema({
+const dominioSchema = new Schema({
   _id: String,
-  nome: String,
-  nivel: String,
-  dominio: String,
+  tipo: String,
+  empresa: String,
+  dominioPai: String,
+  empresas: Object,
 });
 
-const Usuario = mongoose.model('Usuario', usuarioSchema, 'Usuarios');
+const Dominio = mongoose.model('Dominio', dominioSchema, 'Dominios');
 
 module.exports = {
-  Usuario,
+  Dominio,
 };

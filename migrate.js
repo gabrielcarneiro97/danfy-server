@@ -10,6 +10,8 @@ const {
   criarServicos,
   criarAliquota,
   criarTotais,
+  criarDominio,
+  criarUsuario,
 } = require('./services');
 
 const appDb = admin.initializeApp({
@@ -18,7 +20,6 @@ const appDb = admin.initializeApp({
 }, 'Old');
 
 const db = appDb.database();
-
 
 // db.ref('/Notas').once('value', (snap) => {
 //   const notas = snap.val();
@@ -85,23 +86,42 @@ const db = appDb.database();
 //   });
 // });
 
-db.ref('/Totais').once('value', (snap) => {
-  const empresas = snap.val();
+// db.ref('/Totais').once('value', (snap) => {
+//   const empresas = snap.val();
 
-  Object.keys(empresas).forEach((cnpj) => {
-    const anos = empresas[cnpj];
-    const totais = [];
+//   Object.keys(empresas).forEach((cnpj) => {
+//     const anos = empresas[cnpj];
+//     const totais = [];
 
-    Object.keys(anos).forEach((ano) => {
-      const meses = anos[ano];
-      Object.keys(meses).forEach((mes) => {
-        const total = meses[mes];
-        total.competencia = new Date(ano, mes, '1');
-        totais.push(total);
-      });
-    });
+//     Object.keys(anos).forEach((ano) => {
+//       const meses = anos[ano];
+//       Object.keys(meses).forEach((mes) => {
+//         const total = meses[mes];
+//         total.competencia = new Date(ano, mes, '1');
+//         totais.push(total);
+//       });
+//     });
 
-    criarTotais(cnpj, totais).then(() => console.log(cnpj)).catch(err => console.error(err));
-  });
-});
+//     criarTotais(cnpj, totais).then(() => console.log(cnpj)).catch(err => console.error(err));
+//   });
+// });
 
+// db.ref('/Dominios').once('value', (snap) => {
+//   const dominios = snap.val();
+
+//   Object.keys(dominios).forEach((id) => {
+//     const dominio = dominios[id];
+
+//     criarDominio(id, dominio).then(() => console.log(id)).catch(err => console.error(err));
+//   });
+// });
+
+// db.ref('/Usuarios').once('value', (snap) => {
+//   const usuarios = snap.val();
+
+//   Object.keys(usuarios).forEach((id) => {
+//     const usuario = usuarios[id];
+
+//     criarUsuario(id, usuario).then(() => console.log(id)).catch(err => console.error(err));
+//   });
+// });
