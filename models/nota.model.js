@@ -32,12 +32,20 @@ const NotaSchema = new Schema({
   },
 });
 
+
 NotaSchema.pre('save', function (next) { // eslint-disable-line
   if (typeof this.geral.dataHora === 'string') {
     this.geral.dataHora = new Date(this.geral.dataHora);
   }
   next();
-});
+}, err => console.log(err));
+
+NotaSchema.pre('findOneAndUpdate', function (next) { // eslint-disable-line
+  if (typeof this._update.geral.dataHora === 'string') {
+    this._update.geral.dataHora = new Date(this._update.geral.dataHora);
+  }
+  next();
+}, err => console.log(err));
 
 const Nota = mongoose.model('Nota', NotaSchema, 'Notas');
 

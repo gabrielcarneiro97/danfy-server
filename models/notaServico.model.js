@@ -28,6 +28,16 @@ NotaServicoSchema.pre('save', function (next) { // eslint-disable-line
   next();
 });
 
+NotaServicoSchema.pre('findOneAndUpdate', function (next) { // eslint-disable-line
+  this.chave = this._update.emitente + this._update.geral.numero;
+  this._id = this._update.chave; // eslint-disable-line
+
+  if (typeof this._update.geral.dataHora === 'string') {
+    this._update.geral.dataHora = new Date(this._update.geral.dataHora);
+  }
+  next();
+});
+
 const NotaServico = mongoose.model('NotaServico', NotaServicoSchema, 'NotasServico');
 
 module.exports = {

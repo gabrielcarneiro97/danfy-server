@@ -97,7 +97,7 @@ const db = appDb.database();
 //       const meses = anos[ano];
 //       Object.keys(meses).forEach((mes) => {
 //         const total = meses[mes];
-//         total.competencia = new Date(ano, mes, '1');
+//         total.competencia = new Date(ano, mes - 1, '1');
 //         totais.push(total);
 //       });
 //     });

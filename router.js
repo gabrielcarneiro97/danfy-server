@@ -4,16 +4,12 @@ const multer = require('multer');
 const { xml2js } = require('xml-js');
 const bodyParser = require('body-parser');
 const {
-  criarNota,
-  criarPessoa,
-} = require('./services');
-const {
   db,
   lerNfe,
   lerNfse,
-  // criarPessoa,
-  // atualizarPessoa,
-  // criarNota,
+  criarPessoa,
+  atualizarPessoa,
+  criarNota,
   criarNotaServico,
   pegarEmpresaImpostos,
   pegarNotaChave,
@@ -47,16 +43,18 @@ app.post('/file', upload.single('file'), (req, res) => {
         pessoas: { [nota.emitente]: emitente, [nota.destinatario]: destinatario },
         nota,
       };
-      criarPessoa(nota.emitente, emitente).catch((err) => {
-        console.error(err);
+
+      const promises = [
+        criarPessoa(nota.emitente, emitente),
+        criarPessoa(nota.destinatario, destinatario),
+        criarNotaServico(nota.chave, nota),
+      ];
+
+      Promise.all(promises).then(() => {
+        res.send(final);
+      }).catch((err) => {
+        res.status(400).send({ ...final, err });
       });
-      criarPessoa(nota.destinatario, destinatario).catch((err) => {
-        console.error(err);
-      });
-      criarNotaServico(nota.chave, nota).catch((err) => {
-        console.error(err);
-      });
-      res.send(final);
     });
   } else if (obj.nfeProc) {
     lerNfe(obj, (nota, emitente, destinatario) => {
@@ -66,17 +64,17 @@ app.post('/file', upload.single('file'), (req, res) => {
         nota,
       };
 
-      criarPessoa(nota.emitente, emitente).catch((err) => {
-        console.error(err);
-      });
-      criarPessoa(nota.destinatario, destinatario).catch((err) => {
-        console.error(err);
-      });
-      criarNota(nota.chave, nota).catch((err) => {
-        console.error(err);
-      });
+      const promises = [
+        criarPessoa(nota.emitente, emitente),
+        criarPessoa(nota.destinatario, destinatario),
+        criarNota(nota.chave, nota),
+      ];
 
-      res.send(final);
+      Promise.all(promises).then(() => {
+        res.send(final);
+      }).catch((err) => {
+        res.status(400).send({ ...final, err });
+      });
     });
   } else {
     res.sendStatus(400);
