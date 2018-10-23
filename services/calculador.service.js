@@ -1,15 +1,15 @@
 const {
-  pegarEmpresaImpostos,
+  pegarEmpresaAliquotas,
   pegarMovimentoNotaFinal,
   pegarServicosMes,
   pegarMovimentosMes,
   pegarTotais,
   gravarTotais,
-} = require('./firebase.service');
+} = require('./mongoose.service');
 
 function calcularImpostosServico(notaServico) {
   return new Promise((resolve, reject) => {
-    pegarEmpresaImpostos(notaServico.emitente).then((aliquotas) => {
+    pegarEmpresaAliquotas(notaServico.emitente).then((aliquotas) => {
       if (aliquotas.tributacao !== 'SN') {
         const valores = {};
 
@@ -551,7 +551,7 @@ function totaisTrimestrais(cnpj, competencia, recalcular) {
               let adicionalIr;
               let baseLucro;
               let baseServico;
-              pegarEmpresaImpostos(cnpj).then((aliquotas) => {
+              pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
                 if (aliquotas.irpj === 0.012) {
                   baseLucro = trimestre.totais.lucro * 0.08;
                 } else {
@@ -619,7 +619,7 @@ function totaisTrimestrais(cnpj, competencia, recalcular) {
               trimestre.totais.impostos.retencoes.total +=
                 trimestre[mes].totais.impostos.retencoes.total;
 
-              gravarTotais(impostos, cnpj, { ano: competencia.ano, mes })
+              gravarTotais(cnpj, impostos, { ano: competencia.ano, mes })
                 .then(() => checkMes())
                 .catch(err => reject(err));
             }).catch(err => reject(err));

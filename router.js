@@ -4,16 +4,15 @@ const multer = require('multer');
 const { xml2js } = require('xml-js');
 const bodyParser = require('body-parser');
 const {
-  db,
   lerNfe,
   lerNfse,
   criarPessoa,
-  atualizarPessoa,
   criarNota,
   criarNotaServico,
-  pegarEmpresaImpostos,
+  pegarEmpresaAliquotas,
   pegarNotaChave,
   pegarNotaServicoChave,
+  pegarNotasProdutoEmitente,
   calcularImpostosMovimento,
   calcularImpostosServico,
   criarNotaSlim,
@@ -104,36 +103,45 @@ app.post('/movimentos', bodyParser.json(), (req, res) => {
             movimentoRef: '',
           },
         };
-        const query = db.ref('Notas/').orderByChild('emitente').equalTo(nota.emitente);
-        query.once('value', (snap) => {
-          const notas = snap.val();
+
+        let notas = [];
+        const produtos = Object.keys(nota.produtos);
+
+        const promisesProdutos = [];
+
+        produtos.forEach((produto) => {
+          const promiseProd = new Promise((resolveProd) => {
+            pegarNotasProdutoEmitente(produto, nota.emitente)
+              .then((notasProd) => {
+                notas = notas.concat(notasProd);
+                resolveProd();
+              });
+          });
+
+          promisesProdutos.push(promiseProd);
+        });
+
+        Promise.all(promisesProdutos).then(() => {
           let includes = false;
-          Object.keys(notas).forEach((k) => {
-            const nota2 = notas[k];
-            if (nota2.chave !== nota.chave) {
-              const produtos = Object.keys(nota.produtos);
-              const produtos2 = Object.keys(nota2.produtos);
-              if (!movimento.notaInicial) {
-                produtos2.forEach((produto) => {
-                  if (produtos.includes(produto) && validarMovimento(nota2, nota).isValid) {
-                    includes = true;
-                    movimento.notaInicial = nota2.chave;
-                    pegarEmpresaImpostos(nota.emitente).then((aliquotas) => {
-                      calcularImpostosMovimento(nota2, nota, aliquotas).then((valores) => {
-                        movimento.valores = valores;
-                        movimento.conferido = true;
-                        notasIniciais.push(nota2);
-                        resolve(movimento);
-                      });
-                    });
-                  }
-                });
-              }
+          Object.keys(notas).forEach((notaIndex) => {
+            const chaveNota = notas[notaIndex].chave;
+            if (chaveNota !== nota.chave && validarMovimento(notas[notaIndex], nota).isValid) {
+              includes = true;
+              movimento.notaInicial = chaveNota;
+              pegarEmpresaAliquotas(nota.emitente).then((aliquotas) => {
+                calcularImpostosMovimento(notas[notaIndex], nota, aliquotas)
+                  .then((valores) => {
+                    movimento.valores = valores;
+                    movimento.conferido = true;
+                    notasIniciais.push(notas[notaIndex]);
+                    resolve(movimento);
+                  });
+              });
             }
           });
 
           if (!includes) {
-            pegarEmpresaImpostos(nota.emitente).then((aliquotas) => {
+            pegarEmpresaAliquotas(nota.emitente).then((aliquotas) => {
               calcularImpostosMovimento(null, nota, aliquotas).then((valores) => {
                 movimento.valores = valores;
                 resolve(movimento);
@@ -183,7 +191,7 @@ app.get('/servico', (req, res) => {
 
 app.get('/movimentos/valor', (req, res) => {
   const { notaInicial, notaFinal, cnpj } = req.query;
-  pegarEmpresaImpostos(cnpj).then((aliquotas) => {
+  pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
     pegarNotaChave(notaInicial).then((notaInicialObj) => {
       pegarNotaChave(notaFinal).then((notaFinalObj) => {
         calcularImpostosMovimento(notaInicialObj, notaFinalObj, aliquotas)
@@ -243,7 +251,7 @@ app.get('/movimentos/slim', (req, res) => {
     };
 
     criarNotaSlim(notaInicial).then((notaInicialCompleta) => {
-      pegarEmpresaImpostos(cnpj).then((aliquotas) => {
+      pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
         calcularImpostosMovimento(notaInicialCompleta, notaFinalObj, aliquotas)
           .then((movimento) => {
             res.send({ valores: movimento, notaInicial: notaInicialCompleta });
