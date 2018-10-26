@@ -750,9 +750,14 @@ function validarMovimento(notaInicial, notaFinal) {
   return { isValid: true, error: null };
 }
 
+function dtof(num) {
+  return parseFloat(num.toString());
+}
+
 module.exports = {
   calcularImpostosServico,
   calcularImpostosMovimento,
   totaisTrimestrais,
   validarMovimento,
+  dtof,
 };

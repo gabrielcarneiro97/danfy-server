@@ -9,6 +9,12 @@ function criarServico(cnpj, servico) {
   });
 }
 
+function pushServico(cnpj, servico) {
+  return Pessoa.updateOne({ _id: cnpj }, {
+    $push: { Servico: servico },
+  });
+}
+
 function criarServicos(cnpj, servicos) {
   return new Promise((resolve, reject) => {
     Pessoa.findById(cnpj).select('Servicos').then((pessoaParam) => {
@@ -36,8 +42,21 @@ function pegarServicosMes(cnpj, competencia) {
   });
 }
 
+function pegarServico(cnpj, servicoId) {
+  return new Promise((resolve, reject) => {
+    Pessoa.findById(cnpj)
+      .select('Servicos -_id')
+      .then(({ Servicos: todosSrvs }) => {
+        const servico = todosSrvs.find(srv => srv.chave === servicoId);
+        resolve(servico);
+      }).catch(err => reject(err));
+  });
+}
+
 module.exports = {
   criarServico,
+  pushServico,
   criarServicos,
   pegarServicosMes,
+  pegarServico,
 };

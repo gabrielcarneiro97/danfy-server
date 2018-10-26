@@ -9,6 +9,12 @@ function criarMovimento(cnpj, movimento) {
   });
 }
 
+function pushMovimento(cnpj, movimento) {
+  return Pessoa.updateOne({ _id: cnpj }, {
+    $push: { Movimentos: movimento },
+  });
+}
+
 function criarMovimentos(cnpj, movimentos) {
   return new Promise((resolve, reject) => {
     Pessoa.findById(cnpj).select('Movimentos').then((pessoaParam) => {
@@ -25,7 +31,7 @@ function pegarMovimentoNotaFinal(cnpj, chaveNota) {
     Pessoa.findById(cnpj)
       .select('Movimentos -_id')
       .then(({ Movimentos: movs }) => {
-        const mov = movs.find(el => el.notaFinal === chaveNota && el.metaDados.status === 'ATIVO');
+        const mov = movs.find(el => el.notaFinal === chaveNota && (el.metaDados.status === 'ATIVO' || !el.metaDados));
         if (movs.length !== 0) {
           resolve(mov);
         } else {
@@ -53,9 +59,22 @@ function pegarMovimentosMes(cnpj, competencia) {
   });
 }
 
+function pegarMovimentoId(cnpj, _id) {
+  return new Promise((resolve, reject) => {
+    Pessoa.findById(cnpj)
+      .select('Movimentos')
+      .then(({ Movimentos: movs }) => {
+        const movimentoIndex = movs.findIndex(el => el._id.toString() === _id); // eslint-disable-line
+        resolve({ movimento: movs[movimentoIndex], movimentoIndex });
+      }).catch(err => reject(err));
+  });
+}
+
 module.exports = {
   criarMovimento,
+  pushMovimento,
   criarMovimentos,
   pegarMovimentoNotaFinal,
   pegarMovimentosMes,
+  pegarMovimentoId,
 };
