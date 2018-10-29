@@ -65,8 +65,30 @@ function pegarMovimentoId(cnpj, _id) {
       .select('Movimentos')
       .then(({ Movimentos: movs }) => {
         const movimentoIndex = movs.findIndex(el => el._id.toString() === _id); // eslint-disable-line
-        resolve({ movimento: movs[movimentoIndex], movimentoIndex });
+        resolve({ movimento: movs[movimentoIndex]._doc, movimentoIndex }); // eslint-disable-line
       }).catch(err => reject(err));
+  });
+}
+
+function cancelarMovimento(cnpj, _id) {
+  return new Promise((resolve, reject) => {
+    pegarMovimentoId(cnpj, _id).then(({ movimento: movParam, movimentoIndex }) => {
+      const movimento = { ...movParam };
+      const updateId = `Movimentos.${movimentoIndex}`;
+      if (movimento.metaDados) {
+        movimento.metaDados.status = 'CANCELADO';
+      } else {
+        movimento.metaDados = {
+          criadoPor: 'DESCONHECIDO',
+          dataCriacao: new Date('07/19/1997').toISOString(),
+          status: 'CANCELADO',
+          tipo: 'PRIM',
+        };
+      }
+      Pessoa.updateOne({ _id: cnpj }, {
+        $set: { [updateId]: movimento },
+      }).then(() => resolve()).catch(err => reject(err));
+    }).catch(err => reject(err));
   });
 }
 
@@ -77,4 +99,5 @@ module.exports = {
   pegarMovimentoNotaFinal,
   pegarMovimentosMes,
   pegarMovimentoId,
+  cancelarMovimento,
 };

@@ -5,6 +5,7 @@ const {
   pegarNotaChave,
   pegarEmpresaAliquotas,
   pegarMovimentoNotaFinal,
+  cancelarMovimento,
 } = require('../services/mongoose.service');
 
 const {
@@ -189,6 +190,18 @@ module.exports = {
       const { notaFinalChave, cnpj } = req.query;
       pegarMovimentoNotaFinal(cnpj, notaFinalChave).then((movimento) => {
         res.send(movimento);
+      }).catch((err) => {
+        console.error(err);
+        res.sendStatus(500);
+      });
+    },
+  },
+  put: {
+    cancelar(req, res) {
+      const { cnpj, movimentoId } = req.query;
+
+      cancelarMovimento(cnpj, movimentoId).then(() => {
+        res.sendStatus(200);
       }).catch((err) => {
         console.error(err);
         res.sendStatus(500);
