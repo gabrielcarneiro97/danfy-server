@@ -33,7 +33,7 @@ function pegarMovimentoNotaFinal(cnpj, chaveNota) {
       .then(({ Movimentos: movs }) => {
         const mov = movs.find(el => el.notaFinal === chaveNota && (el.metaDados.status === 'ATIVO' || !el.metaDados));
         if (movs.length !== 0) {
-          resolve(mov);
+          resolve(mov._doc);
         } else {
           reject(new Error('Mais de um documento ativo com a chave informada!'));
         }
@@ -64,8 +64,12 @@ function pegarMovimentoId(cnpj, _id) {
     Pessoa.findById(cnpj)
       .select('Movimentos')
       .then(({ Movimentos: movs }) => {
-        const movimentoIndex = movs.findIndex(el => el._id.toString() === _id); // eslint-disable-line
-        resolve({ movimento: movs[movimentoIndex]._doc, movimentoIndex }); // eslint-disable-line
+        const movimentoIndex = movs.findIndex(el => el._id.toString() === _id);
+        if (movimentoIndex === -1) {
+          resolve({ movimento: null, movimentoIndex });
+        } else {
+          resolve({ movimento: movs[movimentoIndex]._doc, movimentoIndex });
+        }
       }).catch(err => reject(err));
   });
 }

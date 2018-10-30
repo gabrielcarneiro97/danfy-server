@@ -29,7 +29,7 @@ module.exports = {
           const promises = [
             criarPessoa(nota.emitente, emitente),
             criarPessoa(nota.destinatario, destinatario),
-            criarNotaServico(nota.chave, nota),
+            criarNotaServico(nota),
           ];
 
           Promise.all(promises).then(() => {

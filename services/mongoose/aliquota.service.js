@@ -42,7 +42,7 @@ function pegarEmpresaAliquotas(cnpj) {
     Pessoa.findById(cnpj)
       .select('Aliquotas -_id')
       .then(({ Aliquotas: aliquotasArray }) => {
-        let aliquota = aliquotasArray.find(el => el.ativo);
+        let aliquota = aliquotasArray.find(el => el.ativo)._doc;
 
         aliquota = {
           ...aliquota,

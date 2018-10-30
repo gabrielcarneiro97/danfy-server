@@ -47,9 +47,39 @@ function pegarServico(cnpj, servicoId) {
     Pessoa.findById(cnpj)
       .select('Servicos -_id')
       .then(({ Servicos: todosSrvs }) => {
-        const servico = todosSrvs.find(srv => srv.chave === servicoId);
-        resolve(servico);
+        const servicoIndex = todosSrvs.findIndex(srv => srv._id.toString() === servicoId);
+        if (servicoIndex === -1) {
+          resolve({ servico: null, servicoIndex });
+        } else {
+          resolve({ servico: todosSrvs[servicoIndex]._doc, servicoIndex });
+        }
       }).catch(err => reject(err));
+  });
+}
+
+function pegarServicoNota(cnpj, chaveNota) {
+  return new Promise((resolve, reject) => {
+    Pessoa.findById(cnpj)
+      .select('Servicos -_id')
+      .then(({ Servicos: todosSrvs }) => {
+        const servicoIndex = todosSrvs.findIndex(srv => srv.nota === chaveNota);
+        if (servicoIndex === -1) {
+          resolve({ servico: null, servicoIndex });
+        } else {
+          resolve({ servico: todosSrvs[servicoIndex]._doc, servicoIndex });
+        }
+      }).catch(err => reject(err));
+  });
+}
+
+function excluirServico(cnpj, servicoId) {
+  return new Promise((resolve, reject) => {
+    pegarServico(cnpj, servicoId).then((servico) => {
+      Pessoa.updateOne({ _id: cnpj }, {
+        $pull: { Servicos: { _id: servicoId } },
+      }).then(data => resolve({ deleteInfo: data, servicoCompetencia: servico.data }))
+        .catch(err => reject(err));
+    });
   });
 }
 
@@ -59,4 +89,6 @@ module.exports = {
   criarServicos,
   pegarServicosMes,
   pegarServico,
+  pegarServicoNota,
+  excluirServico,
 };

@@ -26,7 +26,11 @@ app.get('/movimentos/slim', movimentosRouter.get.slim);
 app.get('/movimentos/notaFinal', movimentosRouter.get.notaFinal);
 app.put('/movimentos/cancelar', movimentosRouter.put.cancelar);
 
-app.get('/servicos', servicosRouter.get.root);
+app.post('/servicos/push', bodyParser.json(), servicosRouter.post.push);
+app.get('/servicos/calcular', servicosRouter.get.calcular);
+app.get('/servicos/id', servicosRouter.get.id);
+app.get('/servicos/nota', servicosRouter.get.nota);
+app.delete('/servicos/id', servicosRouter.delete.id);
 
 app.get('/trimestre', trimestreRouter.get.root);
 
