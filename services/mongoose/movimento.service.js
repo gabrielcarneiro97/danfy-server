@@ -18,7 +18,7 @@ function pushMovimento(cnpj, movimento) {
 function criarMovimentos(cnpj, movimentos) {
   return new Promise((resolve, reject) => {
     Pessoa.findById(cnpj).select('Movimentos').then((pessoaParam) => {
-      const pessoa = { ...pessoaParam };
+      const pessoa = pessoaParam;
 
       pessoa.Movimentos = pessoa.Movimentos.concat(movimentos);
       pessoa.save().then(() => resolve()).catch(err => reject(err));
@@ -77,7 +77,7 @@ function pegarMovimentoId(cnpj, _id) {
 function cancelarMovimento(cnpj, _id) {
   return new Promise((resolve, reject) => {
     pegarMovimentoId(cnpj, _id).then(({ movimento: movParam, movimentoIndex }) => {
-      const movimento = { ...movParam };
+      const movimento = movParam;
       const updateId = `Movimentos.${movimentoIndex}`;
       if (movimento.metaDados) {
         movimento.metaDados.status = 'CANCELADO';
