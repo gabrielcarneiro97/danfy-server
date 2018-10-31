@@ -18,7 +18,7 @@ const {
 
 const {
   calculaImpostosEmpresa,
-} = require('../calculador.service');
+} = require('../impostos.service');
 
 
 function criarTotais(cnpj, totais) {
@@ -43,7 +43,7 @@ function gravarTotais(cnpj, dados, compObj) {
     Pessoa.findById(cnpj)
       .select('Totais')
       .then((pessoaParam) => {
-        const pessoa = { ...pessoaParam };
+        const pessoa = pessoaParam;
         const totaisArray = pessoa.Totais;
 
         const checkComp = totaisArray.findIndex((el) => {
@@ -262,41 +262,44 @@ function totaisTrimestrais(cnpj, competencia, recalcular) {
 }
 
 function pegarMovimentosServicosTotal(cnpj, mes, ano, recalcular) {
-  const data = {};
-  const notas = {};
-
-  const promises = [];
-
   return new Promise((resolveEnd, rejectEnd) => {
-    pegarMovimentosMes(cnpj, { mes, ano }).then((movs) => {
-      data.movimentos = movs;
-      Object.keys(movs).forEach((k) => {
-        promises.push(new Promise((resolve) => {
-          const m = movs[k];
-          pegarNotaChave(m.notaInicial).then((n1) => {
-            pegarNotaChave(m.notaFinal).then((n2) => {
-              notas[n1.chave] = n1;
-              notas[n2.chave] = n2;
-              data.notas = notas;
-              resolve();
+    const data = {};
+    const notas = {};
+
+    const promises = [];
+
+    promises.push(new Promise((resolveMovs) => {
+      pegarMovimentosMes(cnpj, { mes, ano }).then((movs) => {
+        data.movimentos = movs;
+        const movsPromises = [];
+        movs.forEach((m) => {
+          movsPromises.push(new Promise((resolveMov) => {
+            pegarNotaChave(m.notaInicial).then((n1) => {
+              pegarNotaChave(m.notaFinal).then((n2) => {
+                notas[n1.chave] = n1;
+                notas[n2.chave] = n2;
+                data.notas = notas;
+                resolveMov();
+              }).catch(err => rejectEnd(err));
             }).catch(err => rejectEnd(err));
-          }).catch(err => rejectEnd(err));
-        }));
-      });
+          }));
+        });
 
-      promises.push(new Promise((resolve) => {
-        pegarServicosMes(cnpj, { mes, ano }).then((servs) => {
-          data.servicos = servs;
-          resolve();
-        }).catch((err) => { data.err = err; });
-      }));
-
-      Promise.all(promises).then(() => {
-        totaisTrimestrais(cnpj, { mes, ano }, recalcular).then((trim) => {
-          data.trimestre = trim;
-          resolveEnd(data);
-        }).catch((err) => { data.err = err; });
+        Promise.all(movsPromises).then(() => resolveMovs());
       }).catch(err => rejectEnd(err));
+    }));
+    promises.push(new Promise((resolveServs) => {
+      pegarServicosMes(cnpj, { mes, ano }).then((servs) => {
+        data.servicos = servs;
+        resolveServs();
+      }).catch((err) => { data.err = err; });
+    }));
+
+    Promise.all(promises).then(() => {
+      totaisTrimestrais(cnpj, { mes, ano }, recalcular).then((trim) => {
+        data.trimestre = trim;
+        resolveEnd(data);
+      }).catch(err => console.error(err));
     }).catch(err => rejectEnd(err));
   });
 }

@@ -1,6 +1,10 @@
 const admin = require('firebase-admin');
 const serviceAccount = require('./apiKey');
 
+const  {
+  Pessoa,
+} = require('./models/pessoa.model');
+
 const {
   criarNota,
   criarNotaServico,
@@ -65,15 +69,15 @@ const db = appDb.database();
 //   });
 // });
 
-// db.ref('/Servicos').once('value', (snap) => {
-//   const empresas = snap.val();
-//   Object.keys(empresas).forEach((cnpj) => {
-//     const servicos = empresas[cnpj];
-//     criarServicos(cnpj, Object.values(servicos))
-//       .then(() => console.log(cnpj))
-//       .catch(err => console.error(err));
-//   });
-// });
+db.ref('/Servicos').once('value', (snap) => {
+  const empresas = snap.val();
+  Object.keys(empresas).forEach((cnpj) => {
+    const servicos = empresas[cnpj];
+    criarServicos(cnpj, Object.values(servicos))
+      .then(() => console.log(cnpj))
+      .catch(err => console.error(err));
+  });
+});
 
 // db.ref('/Impostos').once('value', (snap) => {
 //   const empresas = snap.val();
@@ -125,3 +129,9 @@ const db = appDb.database();
 //     criarUsuario(id, usuario).then(() => console.log(id)).catch(err => console.error(err));
 //   });
 // });
+
+// Pessoa
+//   .updateMany(
+//     { Servicos: { $exists: true } },
+//     { $unset: { Servicos: 1 } },
+//   ).then(d => console.log(d));

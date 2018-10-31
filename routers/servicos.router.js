@@ -9,7 +9,7 @@ const {
 
 const {
   calcularImpostosServico,
-} = require('../services/calculador.service');
+} = require('../services/impostos.service');
 
 module.exports = {
   get: {
@@ -78,8 +78,8 @@ module.exports = {
   delete: {
     id(req, res) {
       const { servicoId, cnpj } = req.query;
-      excluirServico(cnpj, servicoId).then(({ servicoCompetencia }) => {
-        const date = new Date(servicoCompetencia);
+      excluirServico(cnpj, servicoId).then((infos) => {
+        const date = new Date(infos.servicoCompetencia);
         const mes = date.getMonth() + 1;
         const ano = date.getFullYear();
         pegarMovimentosServicosTotal(cnpj, mes, ano, true).then((data) => {

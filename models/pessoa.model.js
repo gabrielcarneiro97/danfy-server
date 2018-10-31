@@ -29,6 +29,7 @@ const ServicoSchema = new Schema({
   conferido: Boolean,
   data: Date,
   dominio: String,
+  notaStatus: String,
   metaDados: {
     criadoPor: String,
     dataCriacao: Date,

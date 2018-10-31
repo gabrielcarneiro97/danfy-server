@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const bodyParser = require('body-parser');
+const morgan = require('morgan');
 
 const movimentosRouter = require('./routers/movimentos.router');
 const fileRouter = require('./routers/file.router');
@@ -16,6 +17,7 @@ const upload = multer();
 
 app.options('*', cors());
 app.use(cors());
+// app.use(morgan('tiny', { stream: process.stdout }));
 
 app.post('/file', upload.single('file'), fileRouter.post.root);
 

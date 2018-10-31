@@ -11,15 +11,16 @@ function criarServico(cnpj, servico) {
 
 function pushServico(cnpj, servico) {
   return Pessoa.updateOne({ _id: cnpj }, {
-    $push: { Servico: servico },
+    $push: { Servicos: servico },
   });
 }
 
 function criarServicos(cnpj, servicos) {
   return new Promise((resolve, reject) => {
     Pessoa.findById(cnpj).select('Servicos').then((pessoaParam) => {
-      const pessoa = { ...pessoaParam };
-      pessoa.Servicos = pessoa.Servicos.concat(servicos);
+      const pessoa = pessoaParam;
+      if (pessoa.Servicos) pessoa.Servicos = pessoa.Servicos.concat(servicos);
+      else pessoa.Servicos = servicos;
       pessoa.save().then(() => resolve()).catch(err => reject(err));
     });
   });
@@ -74,7 +75,7 @@ function pegarServicoNota(cnpj, chaveNota) {
 
 function excluirServico(cnpj, servicoId) {
   return new Promise((resolve, reject) => {
-    pegarServico(cnpj, servicoId).then((servico) => {
+    pegarServico(cnpj, servicoId).then(({ servico }) => {
       Pessoa.updateOne({ _id: cnpj }, {
         $pull: { Servicos: { _id: servicoId } },
       }).then(data => resolve({ deleteInfo: data, servicoCompetencia: servico.data }))

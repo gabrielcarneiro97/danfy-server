@@ -38,14 +38,14 @@ NotaSchema.pre('save', function (next) { // eslint-disable-line
     this.geral.dataHora = new Date(this.geral.dataHora);
   }
   next();
-}, err => console.log(err));
+}, err => console.err(err));
 
 NotaSchema.pre('findOneAndUpdate', function (next) { // eslint-disable-line
   if (typeof this._update.geral.dataHora === 'string') {
     this._update.geral.dataHora = new Date(this._update.geral.dataHora);
   }
   next();
-}, err => console.log(err));
+}, err => console.err(err));
 
 const Nota = mongoose.model('Nota', NotaSchema, 'Notas');
 
