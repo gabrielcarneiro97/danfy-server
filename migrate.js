@@ -1,29 +1,29 @@
-const admin = require('firebase-admin');
-const serviceAccount = require('./apiKey');
+// const admin = require('firebase-admin');
+// const serviceAccount = require('./apiKey');
 
-const  {
-  Pessoa,
-} = require('./models/pessoa.model');
+// const {
+//   Pessoa,
+// } = require('./models/pessoa.model');
 
-const {
-  criarNota,
-  criarNotaServico,
-  criarPessoa,
-  criarMovimento,
-  criarMovimentos,
-  criarServicos,
-  criarAliquota,
-  criarTotais,
-  criarDominio,
-  criarUsuario,
-} = require('./services');
+// const {
+//   criarNota,
+//   criarNotaServico,
+//   criarPessoa,
+//   criarMovimento,
+//   criarMovimentos,
+//   criarServicos,
+//   criarAliquota,
+//   criarTotais,
+//   criarDominio,
+//   criarUsuario,
+// } = require('./services');
 
-const appDb = admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://danfy-4d504.firebaseio.com',
-}, 'Old');
+// const appDb = admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   databaseURL: 'https://danfy-4d504.firebaseio.com',
+// }, 'Old');
 
-const db = appDb.database();
+// const db = appDb.database();
 
 // db.ref('/Notas').once('value', (snap) => {
 //   const notas = snap.val();
@@ -69,15 +69,15 @@ const db = appDb.database();
 //   });
 // });
 
-db.ref('/Servicos').once('value', (snap) => {
-  const empresas = snap.val();
-  Object.keys(empresas).forEach((cnpj) => {
-    const servicos = empresas[cnpj];
-    criarServicos(cnpj, Object.values(servicos))
-      .then(() => console.log(cnpj))
-      .catch(err => console.error(err));
-  });
-});
+// db.ref('/Servicos').once('value', (snap) => {
+//   const empresas = snap.val();
+//   Object.keys(empresas).forEach((cnpj) => {
+//     const servicos = empresas[cnpj];
+//     criarServicos(cnpj, Object.values(servicos))
+//       .then(() => console.log(cnpj))
+//       .catch(err => console.error(err));
+//   });
+// });
 
 // db.ref('/Impostos').once('value', (snap) => {
 //   const empresas = snap.val();
