@@ -32,10 +32,10 @@ function pegarMovimentoNotaFinal(cnpj, chaveNota) {
       .select('Movimentos -_id')
       .then(({ Movimentos: movs }) => {
         const mov = movs.find(el => el.notaFinal === chaveNota && (el.metaDados.status === 'ATIVO' || !el.metaDados));
-        if (movs.length !== 0) {
+        if (mov) {
           resolve(mov._doc);
         } else {
-          reject(new Error('Mais de um documento ativo com a chave informada!'));
+          resolve();
         }
       })
       .catch(err => reject(err));
@@ -52,7 +52,7 @@ function pegarMovimentosMes(cnpj, competencia) {
         const movs = todosMovs.filter((el) => {
           const movMes = el.data.getMonth() + 1;
           const movAno = el.data.getFullYear();
-          return mes === movMes && ano === movAno;
+          return mes === movMes && ano === movAno && el.metaDados.status === 'ATIVO';
         });
         resolve(movs);
       }).catch(err => reject(err));

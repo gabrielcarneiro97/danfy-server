@@ -26,6 +26,7 @@ app.post('/movimentos/push', bodyParser.json(), movimentosRouter.post.push);
 app.get('/movimentos/valor', movimentosRouter.get.valor);
 app.get('/movimentos/slim', movimentosRouter.get.slim);
 app.get('/movimentos/notaFinal', movimentosRouter.get.notaFinal);
+app.put('/movimentos/editar', bodyParser.json(), movimentosRouter.put.editar);
 app.put('/movimentos/cancelar', movimentosRouter.put.cancelar);
 
 app.post('/servicos/push', bodyParser.json(), servicosRouter.post.push);

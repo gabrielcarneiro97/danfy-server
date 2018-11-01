@@ -6,12 +6,17 @@ const {
   pegarEmpresaAliquotas,
   pegarMovimentoNotaFinal,
   cancelarMovimento,
+  pegarMovimentoId,
+  pegarMovimentosServicosTotal,
 } = require('../services/mongoose.service');
 
 const {
   validarMovimento,
-  calcularImpostosMovimento,
 } = require('../services/calculador.service');
+
+const {
+  calcularImpostosMovimento,
+} = require('../services/impostos.service');
 
 module.exports = {
   post: {
@@ -95,11 +100,72 @@ module.exports = {
     },
     push(req, res) {
       const { movimento, cnpj } = req.body;
-      pushMovimento(cnpj, movimento).then(() => {
-        res.sendStatus(201);
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
+      let { valorInicial } = req.body;
+      pegarMovimentoNotaFinal(cnpj, movimento.notaFinal).then((movimentoExiste) => {
+        if (movimentoExiste) {
+          res.status(409).send({ error: `Nota já registrada em outro serviço! ID: ${movimentoExiste._id}` });
+        } else if (movimento.notaInicial) {
+          pushMovimento(cnpj, movimento).then(() => {
+            res.sendStatus(201);
+          }).catch((err) => {
+            console.error(err);
+            res.sendStatus(500);
+          });
+        } else {
+          valorInicial = parseFloat(valorInicial.toString().replace(',', '.'));
+
+          pegarNotaChave(movimento.notaFinal).then((notaFinalObj) => {
+            const notaInicial = {
+              emitente: 'INTERNO',
+              destinatario: notaFinalObj.emitente,
+              geral: {
+                dataHora: new Date().toISOString(),
+                cfop: 'INTERNO',
+                naturezaOperacao: 'INTERNO',
+                numero: 'INTERNO',
+                status: 'INTERNO',
+                tipo: 'INTERNO',
+              },
+              produtos: {
+                INTERNO: {
+                  descricao: 'INTERNO',
+                  quantidade: {
+                    numero: '1',
+                    tipo: 'UN',
+                  },
+                  valor: {
+                    total: valorInicial,
+                  },
+                },
+              },
+              valor: {
+                total: valorInicial,
+              },
+            };
+            criarNotaSlim(notaInicial).then((notaInicialCompleta) => {
+              pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
+                calcularImpostosMovimento(notaInicialCompleta, notaFinalObj, aliquotas)
+                  .then((movimentoSlim) => {
+                    pushMovimento(cnpj, movimentoSlim).then(() => {
+                      res.sendStatus(201);
+                    }).catch((err) => {
+                      console.error(err);
+                      res.sendStatus(500);
+                    });
+                  }).catch((err) => {
+                    console.error(err);
+                    res.sendStatus(500);
+                  });
+              }).catch((err) => {
+                console.error(err);
+                res.sendStatus(500);
+              });
+            }).catch((err) => {
+              console.error(err);
+              res.sendStatus(500);
+            });
+          });
+        }
       });
     },
   },
@@ -200,11 +266,34 @@ module.exports = {
     cancelar(req, res) {
       const { cnpj, movimentoId } = req.query;
 
-      cancelarMovimento(cnpj, movimentoId).then(() => {
-        res.sendStatus(200);
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
+      pegarMovimentoId(cnpj, movimentoId).then(({ movimento }) => {
+        const mes = (movimento.data.getUTCMonth() + 1).toString();
+        const ano = movimento.data.getUTCFullYear().toString();
+        cancelarMovimento(cnpj, movimentoId).then(() => {
+          pegarMovimentosServicosTotal(cnpj, mes, ano, true).then((data) => {
+            res.send(data);
+          });
+        }).catch((err) => {
+          console.error(err);
+          res.sendStatus(500);
+        });
+      });
+    },
+    editar(req, res) {
+      const { cnpj, movimentoAntigoId } = req.query;
+      const { movimentoNovo } = req.body;
+
+      const movimentoData = new Date(movimentoNovo.data);
+
+      const mes = (movimentoData.getUTCMonth() + 1).toString();
+      const ano = movimentoData.getUTCFullYear().toString();
+
+      cancelarMovimento(cnpj, movimentoAntigoId).then(() => {
+        pushMovimento(cnpj, movimentoNovo).then(() => {
+          pegarMovimentosServicosTotal(cnpj, mes, ano, true).then((data) => {
+            res.send(data);
+          });
+        });
       });
     },
   },

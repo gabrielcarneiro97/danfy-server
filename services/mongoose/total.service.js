@@ -24,7 +24,7 @@ const {
 function criarTotais(cnpj, totais) {
   return new Promise((resolve, reject) => {
     Pessoa.findById(cnpj).select('Totais').then((pessoaParam) => {
-      const pessoa = { ...pessoaParam };
+      const pessoa = pessoaParam;
       pessoa.Totais = pessoa.Totais.concat(totais);
       pessoa.save().then(() => resolve()).catch(err => reject(err));
     });
@@ -78,7 +78,8 @@ function pegarTotais(cnpj, competencia) {
           const totAno = el.competencia.getFullYear();
           return mes === totMes && ano === totAno;
         });
-        resolve(total._doc);
+        if (total) resolve(total._doc);
+        else resolve(total);
       }).catch(err => reject(err));
   });
 }
@@ -133,7 +134,6 @@ function totaisTrimestrais(cnpj, competencia, recalcular) {
 
     trimestres[competencia.mes].forEach((mes, id, arr) => {
       const ultimoMes = arr[arr.length - 1];
-
       pegarTotais(cnpj, { ano: competencia.ano, mes })
         .then((data) => {
           new Promise((resolve2) => {
@@ -299,7 +299,7 @@ function pegarMovimentosServicosTotal(cnpj, mes, ano, recalcular) {
       totaisTrimestrais(cnpj, { mes, ano }, recalcular).then((trim) => {
         data.trimestre = trim;
         resolveEnd(data);
-      }).catch(err => console.error(err));
+      }).catch(err => rejectEnd(err));
     }).catch(err => rejectEnd(err));
   });
 }
