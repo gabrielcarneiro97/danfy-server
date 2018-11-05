@@ -1,6 +1,11 @@
 const https = require('https');
+const express = require('express');
 const { SSL } = require('./services');
-const { app } = require('./router');
+const { app: danfy } = require('./router');
+
+const app = express();
+
+app.use('/api', danfy);
 
 
 if (process.argv[2] === 'ssl') {
