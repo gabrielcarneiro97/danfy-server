@@ -1,5 +1,7 @@
 # Private
-apiKey.json
+*apiKey.json
+*private.json
+*build
 
 # Logs
 logs
@@ -62,3 +64,8 @@ typings/
 
 # next.js build output
 .next
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

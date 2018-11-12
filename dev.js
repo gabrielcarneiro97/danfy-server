@@ -1,6 +1,16 @@
 const https = require('https');
+const cors = require('cors');
+const morgan = require('morgan');
+const express = require('express');
 const { SSL } = require('./services');
-const { app } = require('./router');
+const { app: danfy } = require('./router');
+
+const app = express();
+
+app.options('*', cors());
+app.use(cors());
+app.use(morgan('tiny', { stream: process.stdout }));
+app.use('/api', danfy);
 
 
 if (process.argv[2] === 'ssl') {
