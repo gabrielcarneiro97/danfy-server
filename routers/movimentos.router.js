@@ -267,8 +267,8 @@ module.exports = {
       const { cnpj, movimentoId } = req.query;
 
       pegarMovimentoId(cnpj, movimentoId).then(({ movimento }) => {
-        const mes = (movimento.data.getUTCMonth() + 1).toString();
-        const ano = movimento.data.getUTCFullYear().toString();
+        const mes = (movimento.data.getMonth() + 1).toString();
+        const ano = movimento.data.getFullYear().toString();
         cancelarMovimento(cnpj, movimentoId).then(() => {
           pegarMovimentosServicosTotal(cnpj, mes, ano, true).then((data) => {
             res.send(data);
@@ -285,8 +285,8 @@ module.exports = {
 
       const movimentoData = new Date(movimentoNovo.data);
 
-      const mes = (movimentoData.getUTCMonth() + 1).toString();
-      const ano = movimentoData.getUTCFullYear().toString();
+      const mes = (movimentoData.getMonth() + 1).toString();
+      const ano = movimentoData.getFullYear().toString();
 
       cancelarMovimento(cnpj, movimentoAntigoId).then(() => {
         pushMovimento(cnpj, movimentoNovo).then(() => {
