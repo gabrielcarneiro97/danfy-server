@@ -173,16 +173,21 @@ module.exports = {
     valor(req, res) {
       const { notaInicialChave, notaFinalChave, cnpj } = req.query;
       if (!notaInicialChave) module.exports.get.slim(req, res);
-      pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
-        pegarNotaChave(notaInicialChave).then((notaInicialObj) => {
-          pegarNotaChave(notaFinalChave).then((notaFinalObj) => {
-            calcularImpostosMovimento(notaInicialObj, notaFinalObj, aliquotas)
-              .then((movimento) => {
-                res.send(movimento);
-              }).catch((err) => {
-                console.error(err);
-                res.sendStatus(500);
-              });
+      else {
+        pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
+          pegarNotaChave(notaInicialChave).then((notaInicialObj) => {
+            pegarNotaChave(notaFinalChave).then((notaFinalObj) => {
+              calcularImpostosMovimento(notaInicialObj, notaFinalObj, aliquotas)
+                .then((movimento) => {
+                  res.send(movimento);
+                }).catch((err) => {
+                  console.error(err);
+                  res.sendStatus(500);
+                });
+            }).catch((err) => {
+              console.error(err);
+              res.sendStatus(500);
+            });
           }).catch((err) => {
             console.error(err);
             res.sendStatus(500);
@@ -191,10 +196,7 @@ module.exports = {
           console.error(err);
           res.sendStatus(500);
         });
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
-      });
+      }
     },
     slim(req, res) {
       const { notaFinalChave, cnpj } = req.query;
