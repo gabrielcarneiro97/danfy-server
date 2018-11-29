@@ -457,6 +457,7 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
             total: data.movimentos.impostos.total + data.servicos.impostos.total,
           },
         };
+
         if (competencia.mesAnterior) {
           let anoAnterior = competencia.ano;
           let mesAnterior;
@@ -471,17 +472,20 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
             ano: anoAnterior,
             mesAnterior: false,
           }).then((anterior) => {
-            const pisAnterior =
+            let pisAnterior =
               parseFloat(anterior.totais.impostos.pis) -
               parseFloat(anterior.totais.impostos.retencoes.pis);
-            const cofinsAnterior =
+            let cofinsAnterior =
               parseFloat(anterior.totais.impostos.cofins) -
               parseFloat(anterior.totais.impostos.retencoes.cofins);
 
-            if (pisAnterior < 10) {
+            pisAnterior = parseFloat(pisAnterior.toFixed(2));
+            cofinsAnterior = parseFloat(cofinsAnterior.toFixed(2));
+
+            if (pisAnterior < 10 && pisAnterior > 0) {
               data.totais.impostos.acumulado.pis = pisAnterior;
             }
-            if (cofinsAnterior < 10) {
+            if (cofinsAnterior < 10 && cofinsAnterior > 0) {
               data.totais.impostos.acumulado.cofins = cofinsAnterior;
             }
 

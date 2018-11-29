@@ -135,3 +135,9 @@
 //     { Servicos: { $exists: true } },
 //     { $unset: { Servicos: 1 } },
 //   ).then(d => console.log(d));
+
+// Pessoa
+//   .updateMany(
+//     { Movimentos: { $exists: true } },
+//     { $unset: { Movimentos: 1 } },
+//   ).then(d => console.log(d));

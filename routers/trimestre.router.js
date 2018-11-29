@@ -11,6 +11,7 @@ module.exports = {
         ano,
         recalcular,
       } = req.query;
+
       pegarMovimentosServicosTotal(cnpj, mes, ano, recalcular).then((data) => {
         res.send(data);
       }).catch((err) => {

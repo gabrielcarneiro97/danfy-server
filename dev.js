@@ -9,7 +9,7 @@ const app = express();
 
 app.options('*', cors());
 app.use(cors());
-app.use(morgan('tiny', { stream: process.stdout }));
+// app.use(morgan('tiny', { stream: process.stdout }));
 app.use('/api', danfy);
 
 
