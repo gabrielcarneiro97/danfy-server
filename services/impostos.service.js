@@ -458,6 +458,10 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
           },
         };
 
+        if(competencia.mes === '11') {
+          console.log('calculaImpostosEmpresa', empresaCnpj, competencia);
+          console.log(data.servicos);
+        }
         if (competencia.mesAnterior) {
           let anoAnterior = competencia.ano;
           let mesAnterior;
@@ -479,8 +483,8 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
               parseFloat(anterior.totais.impostos.cofins) -
               parseFloat(anterior.totais.impostos.retencoes.cofins);
 
-            pisAnterior = parseFloat(pisAnterior.toFixed(2));
-            cofinsAnterior = parseFloat(cofinsAnterior.toFixed(2));
+            pisAnterior = parseFloat(pisAnterior.toFixed(1));
+            cofinsAnterior = parseFloat(cofinsAnterior.toFixed(1));
 
             if (pisAnterior < 10 && pisAnterior > 0) {
               data.totais.impostos.acumulado.pis = pisAnterior;

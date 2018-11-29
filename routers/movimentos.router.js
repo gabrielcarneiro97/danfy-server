@@ -172,6 +172,7 @@ module.exports = {
   get: {
     valor(req, res) {
       const { notaInicialChave, notaFinalChave, cnpj } = req.query;
+      if (!notaInicialChave) module.exports.get.slim(req, res);
       pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
         pegarNotaChave(notaInicialChave).then((notaInicialObj) => {
           pegarNotaChave(notaFinalChave).then((notaFinalObj) => {
