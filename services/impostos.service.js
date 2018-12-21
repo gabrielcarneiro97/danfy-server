@@ -458,10 +458,6 @@ function calculaImpostosEmpresa(empresaCnpj, competencia) {
           },
         };
 
-        if(competencia.mes === '11') {
-          console.log('calculaImpostosEmpresa', empresaCnpj, competencia);
-          console.log(data.servicos);
-        }
         if (competencia.mesAnterior) {
           let anoAnterior = competencia.ano;
           let mesAnterior;

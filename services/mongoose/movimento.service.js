@@ -50,9 +50,12 @@ function pegarMovimentosMes(cnpj, competencia) {
       .select('Movimentos -_id')
       .then(({ Movimentos: todosMovs }) => {
         const movs = todosMovs.filter((el) => {
-          const movMes = el.data.getMonth() + 1;
-          const movAno = el.data.getFullYear();
-          return mes === movMes && ano === movAno && el.metaDados.status === 'ATIVO';
+          if (el.data) {
+            const movMes = el.data.getMonth() + 1;
+            const movAno = el.data.getFullYear();
+            return mes === movMes && ano === movAno && el.metaDados.status === 'ATIVO';
+          }
+          return false;
         });
         resolve(movs);
       }).catch(err => reject(err));
