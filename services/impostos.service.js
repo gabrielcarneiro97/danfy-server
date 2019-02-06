@@ -16,16 +16,20 @@ const {
 function calcularImpostosServico(notaServico) {
   return new Promise((resolve, reject) => {
     pegarEmpresaAliquotas(notaServico.emitente).then((aliquotas) => {
+      const { valor } = notaServico;
+      const { retencoes } = valor;
+      const { status } = notaServico.geral;
+
       if (aliquotas.tributacao !== 'SN') {
         const valores = {};
 
-        valores.servico = notaServico.geral.status === 'NORMAL' ? notaServico.valor.servico : 0;
+        valores.servico = status === 'NORMAL' ? valor.servico : 0;
 
-        const baseDeCalculo = notaServico.geral.status === 'NORMAL' ? notaServico.valor.baseDeCalculo : 0;
+        const baseDeCalculo = status === 'NORMAL' ? valor.baseDeCalculo : 0;
 
-        const { retencoes } = notaServico.valor;
-        const iss = notaServico.valor.iss ?
-          notaServico.valor.iss.valor :
+
+        const iss = valor.iss ?
+          valor.iss.valor :
           (baseDeCalculo * aliquotas.iss);
         const aliquotaIr = 0.048;
         const aliquotaCsll = 0.0288;
@@ -33,49 +37,48 @@ function calcularImpostosServico(notaServico) {
         valores.impostos = {
           baseDeCalculo,
           retencoes: {
-            iss: notaServico.geral.status === 'NORMAL' ? retencoes.iss : 0,
-            pis: notaServico.geral.status === 'NORMAL' ? retencoes.pis : 0,
-            cofins: notaServico.geral.status === 'NORMAL' ? retencoes.cofins : 0,
-            csll: notaServico.geral.status === 'NORMAL' ? retencoes.csll : 0,
-            irpj: notaServico.geral.status === 'NORMAL' ? retencoes.irpj : 0,
-            total: notaServico.geral.status === 'NORMAL' ? (parseFloat(retencoes.iss) + parseFloat(retencoes.pis) + parseFloat(retencoes.cofins) + parseFloat(retencoes.csll) + parseFloat(retencoes.irpj)) : 0,
+            iss: status === 'NORMAL' ? retencoes.iss : 0,
+            pis: status === 'NORMAL' ? retencoes.pis : 0,
+            cofins: status === 'NORMAL' ? retencoes.cofins : 0,
+            csll: status === 'NORMAL' ? retencoes.csll : 0,
+            irpj: status === 'NORMAL' ? retencoes.irpj : 0,
+            total: status === 'NORMAL' ? (parseFloat(retencoes.iss) + parseFloat(retencoes.pis) + parseFloat(retencoes.cofins) + parseFloat(retencoes.csll) + parseFloat(retencoes.irpj)) : 0,
           },
-          iss: notaServico.geral.status === 'NORMAL' ? iss : 0,
+          iss: status === 'NORMAL' ? iss : 0,
           pis: (baseDeCalculo * aliquotas.pis),
           cofins: (baseDeCalculo * aliquotas.cofins),
           csll: (baseDeCalculo * aliquotaCsll),
           irpj: (baseDeCalculo * aliquotaIr),
-          total: notaServico.geral.status === 'NORMAL' ? (parseFloat(iss) + (baseDeCalculo * aliquotaIr) + (baseDeCalculo * aliquotas.pis) + (baseDeCalculo * aliquotas.cofins) + (baseDeCalculo * aliquotaCsll)) : 0,
+          total: status === 'NORMAL' ? (parseFloat(iss) + (baseDeCalculo * aliquotaIr) + (baseDeCalculo * aliquotas.pis) + (baseDeCalculo * aliquotas.cofins) + (baseDeCalculo * aliquotaCsll)) : 0,
         };
 
         resolve(valores);
       } else {
         const valores = {};
 
-        valores.servico = notaServico.geral.status === 'NORMAL' ? notaServico.valor.servico : 0;
+        valores.servico = status === 'NORMAL' ? valor.servico : 0;
 
-        const baseDeCalculo = notaServico.geral.status === 'NORMAL' ? notaServico.valor.baseDeCalculo : 0;
+        const baseDeCalculo = status === 'NORMAL' ? valor.baseDeCalculo : 0;
 
-        const { retencoes } = notaServico.valor;
-        const aliquotaIss = notaServico.valor.iss ? (notaServico.valor.iss.aliquota ? parseFloat(notaServico.valor.iss.aliquota) : aliquotas.iss) : aliquotas.iss; // eslint-disable-line
-        const iss = notaServico.valor.iss ? (notaServico.valor.iss.valor ? notaServico.valor.iss.valor : 0) : (baseDeCalculo * aliquotaIss); // eslint-disable-line
+        const aliquotaIss = valor.iss ? (valor.iss.aliquota ? parseFloat(valor.iss.aliquota) : aliquotas.iss) : aliquotas.iss; // eslint-disable-line
+        const iss = valor.iss ? (valor.iss.valor ? valor.iss.valor : 0) : (baseDeCalculo * aliquotaIss); // eslint-disable-line
 
         valores.impostos = {
           baseDeCalculo,
           retencoes: {
-            iss: notaServico.geral.status === 'NORMAL' ? retencoes.iss : 0,
-            pis: notaServico.geral.status === 'NORMAL' ? retencoes.pis : 0,
-            cofins: notaServico.geral.status === 'NORMAL' ? retencoes.cofins : 0,
-            csll: notaServico.geral.status === 'NORMAL' ? retencoes.csll : 0,
-            irpj: notaServico.geral.status === 'NORMAL' ? retencoes.irpj : 0,
-            total: notaServico.geral.status === 'NORMAL' ? (parseFloat(retencoes.iss) + parseFloat(retencoes.pis) + parseFloat(retencoes.cofins) + parseFloat(retencoes.csll) + parseFloat(retencoes.irpj)) : 0,
+            iss: status === 'NORMAL' ? retencoes.iss : 0,
+            pis: status === 'NORMAL' ? retencoes.pis : 0,
+            cofins: status === 'NORMAL' ? retencoes.cofins : 0,
+            csll: status === 'NORMAL' ? retencoes.csll : 0,
+            irpj: status === 'NORMAL' ? retencoes.irpj : 0,
+            total: status === 'NORMAL' ? (parseFloat(retencoes.iss) + parseFloat(retencoes.pis) + parseFloat(retencoes.cofins) + parseFloat(retencoes.csll) + parseFloat(retencoes.irpj)) : 0,
           },
-          iss: notaServico.geral.status === 'NORMAL' ? iss : 0,
+          iss: status === 'NORMAL' ? iss : 0,
           pis: 0,
           cofins: 0,
           csll: 0,
           irpj: 0,
-          total: notaServico.geral.status === 'NORMAL' ? iss : 0,
+          total: status === 'NORMAL' ? iss : 0,
         };
         resolve(valores);
       }
@@ -94,6 +97,8 @@ function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
       destinatarioContribuinte,
     } = notaFinal.informacoesEstaduais;
 
+    const { cfop: cfopFinal } = notaFinal.geral;
+
     if (estadoGerador !== 'MG') {
       reject(new Error(`Estado informado não suportado! Estado: ${estadoGerador}`));
     }
@@ -101,7 +106,7 @@ function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
     if (lucro < 0 && estadoGerador !== estadoDestino) {
       lucro = 0;
     }
-    if ((lucro < 0 && notaFinal.geral.cfop !== '1202' && notaFinal.geral.cfop !== '2202') || (notaFinal.geral.cfop === '6918' || notaFinal.geral.cfop === '5918') || (notaFinal.geral.cfop === '6913' || notaFinal.geral.cfop === '5913')) {
+    if ((lucro < 0 && cfopFinal !== '1202' && cfopFinal !== '2202') || (cfopFinal === '6918' || cfopFinal === '5918') || (cfopFinal === '6913' || cfopFinal === '5913')) {
       resolve({
         lucro: 0,
         valorSaida,
@@ -280,7 +285,7 @@ function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
 
         resolve(valores);
       };
-      if (notaFinal.geral.cfop === '1202' || notaFinal.geral.cfop === '2202') {
+      if (cfopFinal === '1202' || cfopFinal === '2202') {
         pegarMovimentoNotaFinal(notaFinal.emitente, notaInicial ? notaInicial.chave : notaInicial)
           .then((movimentoAnterior) => {
             if (movimentoAnterior) {
