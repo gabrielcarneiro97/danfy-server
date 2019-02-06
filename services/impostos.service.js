@@ -257,13 +257,12 @@ function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
               baseDeCalculo,
               proprio,
               difal: {
-                origem: (difal * 0.2),
-                destino: (difal * 0.8),
+                origem: 0,
+                destino: difal,
               },
             };
 
-            valores.impostos.total =
-              (parseFloat(valores.impostos.total) + (difal * 0.8) + (difal * 0.2) + proprio);
+            valores.impostos.total = parseFloat(valores.impostos.total) + difal + proprio;
           } else if (destinatarioContribuinte === '1') {
             const baseDeCalculo = 0.05 * valorSaida;
             const valor = baseDeCalculo * icmsEstados[estadoDestino].externo;
