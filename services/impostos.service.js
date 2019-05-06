@@ -13,6 +13,90 @@ const {
 } = require('./mongoose/servico.service');
 
 
+const { pg, pegarNotaServicoChave } = require('.');
+
+function calcularImpostoServicoPg(chaveNotaServico) {
+  return new Promise((resolve, reject) => {
+    pg.from('tb_nota_servico').where({ chave: chaveNotaServico })
+      .then(([notaPg]) => {
+        const { emitente_cpfcnpj: emitente, status } = notaPg;
+
+        if (status === 'CANCELADA') {
+          resolve({
+            imposto: {
+              iss: 0,
+              irpj: 0,
+              csll: 0,
+              cofins: 0,
+              pis: 0,
+              total: 0,
+            },
+            retencao: {
+              iss: 0,
+              irpj: 0,
+              pis: 0,
+              cofins: 0,
+              csll: 0,
+              inss: 0,
+              total: 0,
+            },
+          });
+        }
+
+        const calcularImpostoPromise = new Promise((resolveImposto, rejectImposto) => {
+          pg.from('tb_aliquota').where({
+            dono_cpfcnpj: emitente,
+            ativo: true,
+          })
+            .then(([aliquotaPg]) => {
+              if (aliquotaPg.tributacao === 'SN') rejectImposto(new Error('Simples Nacional não suportado!'));
+
+              const imposto = {
+                iss: 0,
+                irpj: 0,
+                csll: 0,
+                cofins: 0,
+                pis: 0,
+              };
+              let total = 0;
+
+              aliquotaPg.irpj = 0.048; // eslint-disable-line
+              aliquotaPg.csll = 0.0288; // eslint-disable-line
+              Object.keys(imposto).forEach((impostoNome) => {
+                const valor = aliquotaPg[impostoNome] * notaPg.valor;
+                imposto[impostoNome] = valor;
+                total += valor;
+              });
+
+              resolveImposto({
+                ...imposto,
+                total,
+              });
+            }).catch(e => rejectImposto(e));
+        });
+
+        const calcularRetencaoPromise = new Promise((resolveRetencao, rejectRetencao) => {
+          pg.from('tb_retencao').where({
+            id: notaPg.retencao_id,
+          })
+            .then(([retencaoPg]) => {
+              if (retencaoPg.total === null) retencaoPg.total = 0; // eslint-disable-line
+              resolveRetencao(retencaoPg);
+            }).catch(e => rejectRetencao(e));
+        });
+
+        Promise.all([
+          calcularImpostoPromise,
+          calcularRetencaoPromise,
+        ]).then(([imposto, retencao]) => resolve({ imposto, retencao })).catch(e => reject(e));
+      }).catch(e => reject(e));
+  });
+}
+
+calcularImpostoServicoPg('06914971000123201800000000020').then(d => console.log(d));
+
+pegarNotaServicoChave('06914971000123201800000000020').then(n => calcularImpostosServico(n).then(r => console.log(r)));
+
 function calcularImpostosServico(notaServico) {
   return new Promise((resolve, reject) => {
     pegarEmpresaAliquotas(notaServico.emitente).then((aliquotas) => {
