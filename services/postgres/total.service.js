@@ -13,7 +13,7 @@ const {
 } = require('./servico.service');
 
 const {
-  pegarEmpresaAliquotas,
+  pegarEmpresaAliquota,
 } = require('./aliquota.service');
 
 const {
@@ -233,7 +233,7 @@ function totaisTrimestrais(cnpj, competencia, recalcular) {
               let adicionalIr;
               let baseLucro;
               let baseServico;
-              pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
+              pegarEmpresaAliquota(cnpj).then((aliquotas) => {
                 if (aliquotas.irpj === 0.012) {
                   baseLucro = trimestre.totais.lucro * 0.08;
                 } else {

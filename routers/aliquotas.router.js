@@ -1,7 +1,7 @@
 const {
-  pegarEmpresaAliquotas,
+  pegarEmpresaAliquota,
   criarAliquota,
-} = require('../services/mongoose.service');
+} = require('../services/postgres.service');
 
 module.exports = {
   post: {
@@ -20,8 +20,8 @@ module.exports = {
     root(req, res) {
       const { cnpj } = req.query;
 
-      pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
-        res.send(aliquotas);
+      pegarEmpresaAliquota(cnpj).then((aliquota) => {
+        res.send(aliquota);
       }).catch((err) => {
         console.error(err);
         res.sendStatus(500);

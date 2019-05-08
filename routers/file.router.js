@@ -3,7 +3,7 @@ const {
   criarPessoa,
   criarNota,
   criarNotaServico,
-} = require('../services/mongoose.service');
+} = require('../services/postgres.service');
 const {
   lerNfe,
   lerNfse,

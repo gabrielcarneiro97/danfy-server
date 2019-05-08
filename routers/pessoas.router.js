@@ -1,4 +1,4 @@
-const { pegarPessoaFlat } = require('../services/mongoose.service');
+const { pegarPessoaFlat } = require('../services/postgres.service');
 
 module.exports = {
   get: {

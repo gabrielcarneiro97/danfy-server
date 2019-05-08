@@ -9,8 +9,8 @@ const cfopDevolucaoConsignacao = ['5918', '6918'];
 const cfopDevolucaoDemonstracao = ['6913', '5913'];
 
 function compararCFOP(notaInicial, notaFinal) {
-  const cfopInicial = notaInicial.geral.cfop;
-  const cfopFinal = notaFinal.geral.cfop;
+  const cfopInicial = notaInicial.cfop;
+  const cfopFinal = notaFinal.cfop;
 
   if (cfopCompra.includes(cfopInicial) && cfopVenda.includes(cfopFinal)) {
     return true;

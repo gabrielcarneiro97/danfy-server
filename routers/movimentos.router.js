@@ -3,12 +3,12 @@ const {
   pushMovimento,
   pegarNotasProdutoEmitente,
   pegarNotaChave,
-  pegarEmpresaAliquotas,
+  pegarEmpresaAliquota,
   pegarMovimentoNotaFinal,
   cancelarMovimento,
   pegarMovimentoId,
   pegarMovimentosServicosTotal,
-} = require('../services/mongoose.service');
+} = require('../services/postgres.service');
 
 const {
   validarMovimento,
@@ -68,7 +68,7 @@ module.exports = {
                 if (chaveNota !== nota.chave && validarMovimento(notas[notaIndex], nota).isValid) {
                   includes = true;
                   movimento.notaInicial = chaveNota;
-                  pegarEmpresaAliquotas(nota.emitente).then((aliquotas) => {
+                  pegarEmpresaAliquota(nota.emitente).then((aliquotas) => {
                     calcularImpostosMovimento(notas[notaIndex], nota, aliquotas)
                       .then((valores) => {
                         movimento.valores = valores;
@@ -81,7 +81,7 @@ module.exports = {
               });
 
               if (!includes) {
-                pegarEmpresaAliquotas(nota.emitente).then((aliquotas) => {
+                pegarEmpresaAliquota(nota.emitente).then((aliquotas) => {
                   calcularImpostosMovimento(null, nota, aliquotas).then((valores) => {
                     movimento.valores = valores;
                     resolve(movimento);
@@ -143,7 +143,7 @@ module.exports = {
               },
             };
             criarNotaSlim(notaInicial).then((notaInicialCompleta) => {
-              pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
+              pegarEmpresaAliquota(cnpj).then((aliquotas) => {
                 calcularImpostosMovimento(notaInicialCompleta, notaFinalObj, aliquotas)
                   .then((movimentoSlim) => {
                     pushMovimento(cnpj, movimentoSlim).then(() => {
@@ -174,7 +174,7 @@ module.exports = {
       const { notaInicialChave, notaFinalChave, cnpj } = req.query;
       if (!notaInicialChave) module.exports.get.slim(req, res);
       else {
-        pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
+        pegarEmpresaAliquota(cnpj).then((aliquotas) => {
           pegarNotaChave(notaInicialChave).then((notaInicialObj) => {
             pegarNotaChave(notaFinalChave).then((notaFinalObj) => {
               calcularImpostosMovimento(notaInicialObj, notaFinalObj, aliquotas)
@@ -234,7 +234,7 @@ module.exports = {
         };
 
         criarNotaSlim(notaInicial).then((notaInicialCompleta) => {
-          pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
+          pegarEmpresaAliquota(cnpj).then((aliquotas) => {
             calcularImpostosMovimento(notaInicialCompleta, notaFinalObj, aliquotas)
               .then((movimento) => {
                 res.send({ valores: movimento, notaInicial: notaInicialCompleta });
