@@ -6,6 +6,7 @@ const cfopConsignacao = ['1917', '2917'];
 const cfopCompraConsignacao = ['1113'];
 const cfopVendaConsignacao = ['5115', '6115', '5114'];
 const cfopDevolucaoConsignacao = ['5918', '6918'];
+const cfopDevolucaoDemonstracao = ['6913', '5913'];
 
 function compararCFOP(notaInicial, notaFinal) {
   const cfopInicial = notaInicial.geral.cfop;
@@ -84,4 +85,13 @@ function dtof(num) {
 module.exports = {
   validarMovimento,
   dtof,
+  cfopCompra,
+  cfopDevolucao,
+  cfopDevolucaoCompra,
+  cfopVenda,
+  cfopConsignacao,
+  cfopCompraConsignacao,
+  cfopVendaConsignacao,
+  cfopDevolucaoConsignacao,
+  cfopDevolucaoDemonstracao,
 };
