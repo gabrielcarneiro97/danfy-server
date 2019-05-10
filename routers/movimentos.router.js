@@ -1,6 +1,6 @@
 const {
   criarNotaSlim,
-  pushMovimento,
+  criarMovimento,
   pegarNotasProdutoEmitente,
   pegarNotaChave,
   pegarEmpresaAliquota,
@@ -101,11 +101,11 @@ module.exports = {
     push(req, res) {
       const { movimento, cnpj } = req.body;
       let { valorInicial } = req.body;
-      pegarMovimentoNotaFinal(cnpj, movimento.notaFinal).then((movimentoExiste) => {
+      pegarMovimentoNotaFinal(movimento.notaFinal).then((movimentoExiste) => {
         if (movimentoExiste) {
           res.status(409).send({ error: `Nota já registrada em outro serviço! ID: ${movimentoExiste._id}` });
         } else if (movimento.notaInicial) {
-          pushMovimento(cnpj, movimento).then(() => {
+          criarMovimento(movimento).then(() => {
             res.sendStatus(201);
           }).catch((err) => {
             console.error(err);
@@ -146,7 +146,7 @@ module.exports = {
               pegarEmpresaAliquota(cnpj).then((aliquotas) => {
                 calcularImpostosMovimento(notaInicialCompleta, notaFinalObj, aliquotas)
                   .then((movimentoSlim) => {
-                    pushMovimento(cnpj, movimentoSlim).then(() => {
+                    criarMovimento(movimentoSlim).then(() => {
                       res.sendStatus(201);
                     }).catch((err) => {
                       console.error(err);
@@ -256,8 +256,8 @@ module.exports = {
       });
     },
     notaFinal(req, res) {
-      const { notaFinalChave, cnpj } = req.query;
-      pegarMovimentoNotaFinal(cnpj, notaFinalChave).then((movimento) => {
+      const { notaFinalChave } = req.query;
+      pegarMovimentoNotaFinal(notaFinalChave).then((movimento) => {
         res.send(movimento);
       }).catch((err) => {
         console.error(err);
@@ -269,10 +269,10 @@ module.exports = {
     cancelar(req, res) {
       const { cnpj, movimentoId } = req.query;
 
-      pegarMovimentoId(cnpj, movimentoId).then(({ movimento }) => {
+      pegarMovimentoId(movimentoId).then(({ movimento }) => {
         const mes = (movimento.data.getMonth() + 1).toString();
         const ano = movimento.data.getFullYear().toString();
-        cancelarMovimento(cnpj, movimentoId).then(() => {
+        cancelarMovimento(movimentoId).then(() => {
           pegarMovimentosServicosTotal(cnpj, mes, ano, true).then((data) => {
             res.send(data);
           });
@@ -291,8 +291,8 @@ module.exports = {
       const mes = (movimentoData.getMonth() + 1).toString();
       const ano = movimentoData.getFullYear().toString();
 
-      cancelarMovimento(cnpj, movimentoAntigoId).then(() => {
-        pushMovimento(cnpj, movimentoNovo).then(() => {
+      cancelarMovimento(movimentoAntigoId).then(() => {
+        criarMovimento(movimentoNovo).then(() => {
           pegarMovimentosServicosTotal(cnpj, mes, ano, true).then((data) => {
             res.send(data);
           });

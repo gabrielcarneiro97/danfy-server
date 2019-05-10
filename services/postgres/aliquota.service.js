@@ -30,8 +30,7 @@ function criarAliquota(cpfcnpj, aliquotasParam) {
 
       antigaPromise.then(() => {
         pg.table('tb_aliquota')
-          .returning('id')
-          .insert(aliquotas)
+          .insert(aliquotas, 'id')
           .then(([id]) => {
             resolve(id);
           })
