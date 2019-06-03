@@ -58,8 +58,8 @@ function compararProduto(notaInicial, notaFinal) {
 }
 
 function compararData(notaInicial, notaFinal) {
-  const dataInicial = new Date(notaInicial.geral.dataHora).getTime();
-  const dataFinal = new Date(notaFinal.geral.dataHora).getTime();
+  const dataInicial = new Date(notaInicial.data_hora).getTime();
+  const dataFinal = new Date(notaFinal.data_hora).getTime();
 
   if (dataInicial <= dataFinal) {
     return true;
@@ -69,11 +69,11 @@ function compararData(notaInicial, notaFinal) {
 
 function validarMovimento(notaInicial, notaFinal) {
   if (!compararCFOP(notaInicial, notaFinal)) {
-    return { isValid: false, error: new Error(`O CFOP da Nota Inicial ${notaInicial.geral.numero} ${notaInicial.geral.cfop} não é valido para o CFOP da Nota Final ${notaFinal.geral.numero} ${notaFinal.geral.cfop}`) };
+    return { isValid: false, error: new Error(`O CFOP da Nota Inicial ${notaInicial.numero} ${notaInicial.cfop} não é valido para o CFOP da Nota Final ${notaFinal.numero} ${notaFinal.cfop}`) };
   } else if (!compararProduto(notaInicial, notaFinal)) {
-    return { isValid: false, error: new Error(`O produto da Nota Final ${notaFinal.geral.numero} não foi localizado na Nota Inicial ${notaInicial.geral.numero}!`) };
+    return { isValid: false, error: new Error(`O produto da Nota Final ${notaFinal.numero} não foi localizado na Nota Inicial ${notaInicial.numero}!`) };
   } else if (!compararData(notaInicial, notaFinal)) {
-    return { isValid: false, error: new Error(`A data da Nota Final ${notaFinal.geral.numero} é anterior a data da Nota Inicial ${notaInicial.geral.numero}!`) };
+    return { isValid: false, error: new Error(`A data da Nota Final ${notaFinal.numero} é anterior a data da Nota Inicial ${notaInicial.numero}!`) };
   }
   return { isValid: true, error: null };
 }

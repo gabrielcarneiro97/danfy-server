@@ -66,9 +66,8 @@ function gravarTotais(cnpj, dados, compObj) {
   });
 }
 
-function pegarTotais(cnpj, competencia) {
-  const mes = parseInt(competencia.mes, 10);
-  const ano = parseInt(competencia.ano, 10);
+function pegarTotal(cnpj, competencia) {
+  const data_hora = new Date(competencia.ano, competencia.mes - 1);
   return new Promise((resolve, reject) => {
     Pessoa.findById(cnpj)
       .select('Totais -_id')
@@ -85,6 +84,9 @@ function pegarTotais(cnpj, competencia) {
 }
 
 function totaisTrimestrais(cnpj, competencia, recalcular) {
+  ret = new Promise((resolve, reject) => {
+
+  });
   return new Promise((resolve, reject) => {
     const trimestres = {};
     trimestres['1'] = ['1'];
@@ -304,17 +306,10 @@ function pegarMovimentosServicosTotal(cnpj, mes, ano, recalcular) {
   });
 }
 
-// function excluirTotais() {
-//   Pessoa
-//     .updateMany({ Totais: { $exists: true } }, { $unset: { Totais: 1 } })
-//     .then(a => console.log(a)).catch(err => console.error(err));
-// }
-
 module.exports = {
   criarTotais,
   gravarTotais,
   pegarTotais,
   totaisTrimestrais,
   pegarMovimentosServicosTotal,
-  // excluirTotais,
 };

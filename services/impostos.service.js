@@ -86,7 +86,7 @@ function pegarServicosMesPg(cnpj, competencia) {
   });
 }
 
-function calcularImpostoServicoPg(chaveNotaServico) {
+function calcularImpostoServico(chaveNotaServico) {
   return new Promise((resolve, reject) => {
     pg.from('tb_nota_servico').where({ chave: chaveNotaServico })
       .then(([notaPg]) => {
@@ -164,7 +164,7 @@ function calcularImpostoServicoPg(chaveNotaServico) {
   });
 }
 
-function calcularImpostoMovimentoPg(notaInicialChave, notaFinalChave) {
+function calcularImpostoMovimento(notaInicialChave, notaFinalChave) {
   return new Promise((resolve, reject) => {
     pg.from('tb_nota').where({ chave: notaFinalChave }).then(([notaFinalPg]) => {
       if (notaFinalPg.estado_gerador_id !== 11) reject(new Error('Estado informado não suportado!'));
@@ -291,7 +291,7 @@ function calcularImpostoMovimentoPg(notaInicialChave, notaFinalChave) {
   });
 }
 
-function calcularTotalEmpresaPg(cnpj, competencia) {
+function calcularTotalEmpresa(cnpj, competencia) {
   return new Promise((resolve, reject) => {
     const total = {
       dono_cpfcnpj: cnpj,
@@ -338,7 +338,7 @@ function calcularTotalEmpresaPg(cnpj, competencia) {
     });
 
     const promiseMovimento = new Promise((resolveMovimento, rejectMovimento) => {
-      const total_movimento = { // eslint-disable-line
+      const total_movimento = {
         imposto: {
           pis: 0,
           cofins: 0,
@@ -408,7 +408,7 @@ function calcularTotalEmpresaPg(cnpj, competencia) {
 }
 
 module.exports = {
-  calcularImpostoServicoPg,
-  calcularImpostoMovimentoPg,
-  calcularTotalEmpresaPg,
+  calcularImpostoServico,
+  calcularImpostoMovimento,
+  calcularTotalEmpresa,
 };
