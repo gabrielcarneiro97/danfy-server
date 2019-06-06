@@ -33,6 +33,10 @@ class Retencao extends Table {
   save() {
     return Table.save(this, Retencao);
   }
+
+  del() {
+    return Table.delete(this, Retencao);
+  }
 }
 
 module.exports = Retencao;

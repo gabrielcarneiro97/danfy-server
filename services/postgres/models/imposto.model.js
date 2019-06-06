@@ -33,6 +33,10 @@ class Imposto extends Table {
   save() {
     return Table.save(this, Imposto);
   }
+
+  del() {
+    return Table.delete(this, Imposto);
+  }
 }
 
 module.exports = Imposto;

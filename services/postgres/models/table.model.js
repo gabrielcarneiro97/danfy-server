@@ -137,6 +137,10 @@ class Table {
       }
     });
   }
+
+  static async del(obj, Cl) {
+    return pg.table(Cl.tbName()).where({ [Cl.tbUK()]: obj[Cl.tbUK()] }).del();
+  }
 }
 
 module.exports = Table;

@@ -82,9 +82,17 @@ function dtof(num) {
   return parseFloat(num.toString());
 }
 
+function mesInicioFim(competencia) {
+  return {
+    inicio: new Date(competencia.ano, competencia.mes - 1),
+    fim: new Date(new Date(competencia.ano, competencia.mes) - 1),
+  };
+}
+
 module.exports = {
   validarMovimento,
   dtof,
+  mesInicioFim,
   cfopCompra,
   cfopDevolucao,
   cfopDevolucaoCompra,

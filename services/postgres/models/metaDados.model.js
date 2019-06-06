@@ -29,8 +29,8 @@ class MetaDados extends Table {
     return Table.getBy(column, value, MetaDados);
   }
 
-  save() {
-    return Table.save(this, MetaDados);
+  del() {
+    return Table.delete(this, MetaDados);
   }
 }
 

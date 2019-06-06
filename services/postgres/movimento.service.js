@@ -8,13 +8,8 @@ const {
   MovimentoPool,
 } = require('./pools');
 const { pg } = require('../pg.service');
+const { mesInicioFim } = require('../calculador.service');
 
-function mesInicioFim(competencia) {
-  return {
-    inicio: new Date(competencia.ano, competencia.mes - 1),
-    fim: new Date(new Date(competencia.ano, competencia.mes) - 1),
-  };
-}
 
 async function criarMovimento(movPool) {
   return movPool.save();

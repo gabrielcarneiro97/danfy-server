@@ -6,7 +6,7 @@ class Servico extends Table {
   }
 
   static tbName() {
-    return 'tb_movimento';
+    return 'tb_servico';
   }
 
   static tbUK() {
@@ -33,6 +33,10 @@ class Servico extends Table {
 
   save() {
     return Table.save(this, Servico);
+  }
+
+  del() {
+    return Table.delete(this, Servico);
   }
 }
 
