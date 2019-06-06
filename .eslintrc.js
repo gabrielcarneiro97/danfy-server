@@ -3,5 +3,6 @@ module.exports = {
     "rules": {
         "no-underscore-dangle": "off",
         "camelcase": "off",
+        "no-param-reassign": "off",
     }
 };

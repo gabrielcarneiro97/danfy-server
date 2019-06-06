@@ -1,5 +1,14 @@
 const { pg } = require('../../pg.service');
 
+function select(obj, Cl) {
+  return new Promise((resolve, reject) => {
+    pg.select('*').from(Cl.tbName()).where(obj).then((arr) => {
+      resolve(arr.map(o => new Cl(o, true)));
+    })
+      .catch(reject);
+  });
+}
+
 class Table {
   constructor(obj, isSnake, Cl) {
     if (isSnake) {
@@ -49,24 +58,40 @@ class Table {
     return str;
   }
 
-  static async getBy(column, value, Cl) {
-    if (!Cl.columns().includes(column)) {
-      throw new Error('Coluna não econtrada!');
+  static async getBy(param1, param2, param3) {
+    if (typeof param1 === 'string') {
+      const column = param1;
+      const value = param2;
+      const Cl = param3;
+
+      if (!Cl.columns().includes(column)) {
+        throw new Error('Coluna não econtrada!');
+      } else {
+        return select({ [column]: value }, Cl);
+      }
+    } else if (typeof param1 === 'object') {
+      if (Array.isArray(param1)) {
+        throw new Error('Tipo não suportado!');
+      } else {
+        const obj = Table.objToSnake(param1);
+        const Cl = param3;
+
+        return select(obj, Cl);
+      }
     } else {
-      return new Promise((resolve, reject) => {
-        pg.select('*').from(Cl.tbName()).where({ [column]: value }).then(([pgObj]) => {
-          resolve(new Cl(pgObj, true));
-        })
-          .catch(reject);
-      });
+      throw new Error('Tipo não suportado!');
     }
   }
 
   snakeObj() {
+    return Table.objToSnake(this);
+  }
+
+  static objToSnake(objParam) {
     const obj = {};
-    Object.keys(this).forEach((key) => {
+    Object.keys(objParam).forEach((key) => {
       const snake = Table.toSnake(key);
-      obj[snake] = this[key];
+      obj[snake] = objParam[key];
     });
 
     return obj;
@@ -78,14 +103,14 @@ class Table {
         pg.table(Cl.tbName())
           .update(obj.snakeObj(), Cl.tbUK())
           .where({ [Cl.tbUK()]: obj[Cl.tbUK()] })
-          .then(resolve)
+          .then(([uk]) => resolve(uk))
           .catch(reject);
       };
 
       const insert = () => {
         pg.table(Cl.tbName())
           .insert(obj.snakeObj(), Cl.tbUK())
-          .then(resolve)
+          .then(([uk]) => resolve(uk))
           .catch(reject);
       };
 

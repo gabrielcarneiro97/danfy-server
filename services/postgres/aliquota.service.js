@@ -1,53 +1,39 @@
-const { Pessoa } = require('../../models');
-
-const { dtof } = require('../calculador.service');
-
-const { pg } = require('../pg.service');
+const { Aliquota } = require('./models');
 
 function criarAliquota(cpfcnpj, aliquotasParam) {
-  const aliquotas = {
+  const aliquotas = new Aliquota({
     ...aliquotasParam,
-    dono_cpfcnpj: cpfcnpj,
+    donoCpfcnpj: cpfcnpj,
     ativo: true,
-  };
+  });
   return new Promise((resolve, reject) => {
-    pg.from('tb_aliquota').where({
-      dono_cpfcnpj: cpfcnpj,
+    Aliquota.getBy({
+      donoCpfcnpj: cpfcnpj,
       ativo: true,
-    }).then(([aliquotaAntigaPg]) => {
-      const antigaPromise = new Promise((resolveAntiga, rejectAntiga) => {
-        if (aliquotaAntigaPg) {
-          pg.table('tb_aliquota')
-            .where('id', aliquotaAntigaPg.id)
-            .update({
-              ativo: false,
-              validade: new Date(),
-            })
-            .then(() => resolveAntiga())
-            .catch(e => rejectAntiga(e));
+    }).then(([aliquotaAntiga]) => {
+      const promiseAntiga = new Promise((resolveAntiga, rejectAntiga) => {
+        if (aliquotaAntiga) {
+          aliquotaAntiga.ativo = false;
+          aliquotaAntiga.validade = new Date();
+
+          aliquotaAntiga.save().then(resolveAntiga).catch(rejectAntiga);
         } else resolveAntiga();
       });
 
-      antigaPromise.then(() => {
-        pg.table('tb_aliquota')
-          .insert(aliquotas, 'id')
-          .then(([id]) => {
-            resolve(id);
-          })
-          .catch(e => reject(e));
-      }).catch(e => reject(e));
-    }).catch(e => reject(e));
+      promiseAntiga.then(() => {
+        aliquotas.save().then(resolve).catch(reject);
+      });
+    });
   });
 }
 
 function pegarEmpresaAliquota(cpfcnpj) {
   return new Promise((resolve, reject) => {
-    pg.from('tb_aliquota')
-      .where({
-        dono_cpfcnpj: cpfcnpj,
-        ativo: true,
-      }).then(([aliquotaPg]) => resolve(aliquotaPg))
-      .catch(e => reject(e));
+    Aliquota.getBy({
+      donoCpfcnpj: cpfcnpj,
+      ativo: true,
+    }).then(([aliquota]) => resolve(aliquota))
+      .catch(reject);
   });
 }
 
