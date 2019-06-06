@@ -1,16 +1,14 @@
-const { NotaServico } = require('../../models');
+const { NotaServico } = require('./models');
 
 function criarNotaServico(notaServicoParam) {
-  return NotaServico
-    .findByIdAndUpdate(
-      notaServicoParam.emitente + notaServicoParam.geral.numero,
-      notaServicoParam,
-      { upsert: true, runValidators: true },
-    );
+  return new NotaServico({
+    chave: notaServicoParam.emitente + notaServicoParam.numero,
+    ...notaServicoParam,
+  }).save();
 }
 
 function pegarNotaServicoChave(chave) {
-  return NotaServico.findById(chave);
+  return NotaServico.getBy({ chave });
 }
 
 module.exports = {
