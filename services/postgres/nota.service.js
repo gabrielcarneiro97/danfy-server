@@ -1,28 +1,10 @@
 const crypto = require('crypto');
 const { pg } = require('../');
+const Nota = require('./models');
 
 async function criarNota(chave, notaParam) {
-  return new Promise((resolve, reject) => {
-    pg.from('tb_nota').where({
-      chave,
-    }).then(([notaPg]) => {
-      if (notaPg) {
-        pg.table('tb_nota')
-          .where({ chave })
-          .update(notaParam)
-          .then(resolve)
-          .catch(reject);
-      } else {
-        pg.table('tb_nota')
-          .insert({
-            chave,
-            ...notaParam,
-          })
-          .then(resolve)
-          .catch(reject);
-      }
-    }).catch(reject);
-  });
+  const nota = new Nota({ ...chave, notaParam });
+  return nota.save();
 }
 
 async function criarNotaSlim(notaParam) {
@@ -32,13 +14,10 @@ async function criarNotaSlim(notaParam) {
   /* eslint-disable no-await-in-loop */
   do {
     chave = crypto.randomBytes(20).toString('hex');
-    notasPg = await pg.from('tb_nota').where({ chave });
+    notasPg = await Nota.getBy({ chave });
   } while (notasPg.length !== 0);
 
-  return pg.table('tb_nota').insert({
-    ...notaParam,
-    chave,
-  });
+  return criarNota(chave, notaParam);
 }
 
 function pegarNotasProdutoEmitente(nome, cnpj) {
@@ -51,7 +30,7 @@ function pegarNotasProdutoEmitente(nome, cnpj) {
         .innerJoin('tb_nota as nota', 'prod.nota_chave', 'nota.chave')
         .where('prod.nome', nome)
         .andWhere('nota.emitente_cpfcnpj', cnpj)
-        .then(resolve)
+        .then(notasPg => notasPg.map(o => new Nota(o)))
         .catch(reject);
     }
   });
@@ -59,9 +38,8 @@ function pegarNotasProdutoEmitente(nome, cnpj) {
 
 function pegarNotaChave(chave) {
   return new Promise((resolve, reject) => {
-    pg.from('tb_nota')
-      .where({ chave })
-      .then(([notaPg]) => resolve(notaPg))
+    Nota.getBy({ chave })
+      .then(([nota]) => resolve(nota))
       .catch(reject);
   });
 }
