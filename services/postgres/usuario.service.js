@@ -1,13 +1,13 @@
 const { Usuario } = require('./models');
 
-function criarUsuario(_id, usuarioParam) {
-  const usuario = new Usuario({ _id, ...usuarioParam });
+function criarUsuario(usuarioParam) {
+  const usuario = new Usuario({ usuarioParam });
 
   return usuario.save();
 }
 
-function pegarUsuarioId(_id) {
-  return Usuario.findById(_id);
+function pegarUsuarioId(id) {
+  return Usuario.getBy('id', id);
 }
 
 module.exports = {
