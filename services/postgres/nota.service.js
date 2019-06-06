@@ -30,7 +30,7 @@ function pegarNotasProdutoEmitente(nome, cnpj) {
         .innerJoin('tb_nota as nota', 'prod.nota_chave', 'nota.chave')
         .where('prod.nome', nome)
         .andWhere('nota.emitente_cpfcnpj', cnpj)
-        .then(notasPg => notasPg.map(o => new Nota(o)))
+        .then(notasPg => resolve(notasPg.map(o => new Nota(o, true))))
         .catch(reject);
     }
   });

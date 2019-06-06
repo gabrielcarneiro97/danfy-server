@@ -113,7 +113,10 @@ class Table {
       const insert = () => {
         pg.table(Cl.tbName())
           .insert(obj.snakeObj(), Cl.tbUK())
-          .then(([uk]) => resolve(uk))
+          .then(([uk]) => {
+            obj[Cl.tbUK()] = uk;
+            resolve(uk);
+          })
           .catch(reject);
       };
 
