@@ -76,7 +76,10 @@ class Table {
         const obj = Table.objToSnake(param1);
         const Cl = param3;
 
-        return select(obj, Cl);
+        const err = Object.keys(obj).find(k => !Cl.columns().includes(k));
+
+        if (err) throw new Error(`Coluna ${err} não encontrada!`);
+        else return select(obj, Cl);
       }
     } else {
       throw new Error('Tipo não suportado!');

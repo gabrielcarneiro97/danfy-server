@@ -1,6 +1,7 @@
 const Acumulado = require('./acumulado.model');
 const Aliquota = require('./aliquota.model');
 const DifalAliquota = require('./difalAliquota.model');
+const Dominio = require('./dominio.model');
 const Endereco = require('./endereco.model');
 const Estado = require('./estado.model');
 const Icms = require('./icms.model');
@@ -24,6 +25,7 @@ module.exports = {
   Acumulado,
   Aliquota,
   DifalAliquota,
+  Dominio,
   Endereco,
   Estado,
   Icms,
