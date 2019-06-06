@@ -1,15 +1,21 @@
-const { Pessoa } = require('../../models');
+const { Pessoa, Endereco } = require('./models');
 
-function criarPessoa(_id, pessoaParam) {
-  return Pessoa
-    .findByIdAndUpdate(_id, { _id, ...pessoaParam }, { upsert: true, runValidators: true });
+async function criarPessoa(dados) {
+  const pessoa = new Pessoa(dados.pessoa);
+  const endereco = new Endereco(dados.endereco);
+
+  const enderecoId = await endereco.save();
+
+  pessoa.enderecoId = enderecoId;
+
+  return pessoa.save();
 }
 
-function pegarPessoaFlat(_id) {
-  return Pessoa.findById(_id).select('-Movimentos -Servicos -Aliquotas -Totais');
+function pegarPessoaId(id) {
+  return Pessoa.getBy({ id });
 }
 
 module.exports = {
   criarPessoa,
-  pegarPessoaFlat,
+  pegarPessoaId,
 };

@@ -1,10 +1,10 @@
-const { pegarPessoaFlat } = require('../services/postgres.service');
+const { pegarPessoaId } = require('../services/postgres.service');
 
 module.exports = {
   get: {
     flat(req, res) {
       const { pessoaId } = req.query;
-      pegarPessoaFlat(pessoaId)
+      pegarPessoaId(pessoaId)
         .then(pessoa => res.send({ pessoa }))
         .catch((err) => {
           console.error(err);
