@@ -2,9 +2,9 @@ const Table = require('../models/table.model');
 
 class Pool {
   constructor(objs) {
-    const err = objs.find(o => !(o instanceof Table));
+    const not = objs.find(o => !(o instanceof Table) && !(o instanceof Pool));
 
-    if (err) throw err;
+    if (not) throw new Error('Todos os elementos da Pool devem ser instancias de Pool ou de Table!');
   }
 
   async save() {

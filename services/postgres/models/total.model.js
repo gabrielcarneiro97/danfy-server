@@ -16,7 +16,7 @@ class Total extends Table {
   static columns() {
     return [
       'id',
-      'dono_cpfcpj',
+      'dono_cpfcnpj',
       'data_hora',
       'total_movimento_id',
       'total_servico_id',
