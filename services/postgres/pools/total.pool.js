@@ -3,7 +3,14 @@ const TotalMovimentoPool = require('./totalMovimento.pool');
 const TotalServicoPool = require('./totalServico.pool');
 const TotalSomaPool = require('./totalSoma.pool');
 
-const { Total } = require('../models');
+const {
+  Total,
+  TotalSoma,
+  Imposto,
+  Retencao,
+  Acumulado,
+  Icms,
+} = require('../models');
 const { mesInicioFim } = require('../../calculador.service');
 const { pg } = require('../../pg.service');
 
@@ -71,6 +78,36 @@ class TotalPool extends Pool {
         resolve(new TotalPool(total, totalMovimentoPool, totalServicoPool, totalSomaPool));
       }).catch(reject);
     });
+  }
+
+  static newByPools(totalMovimentoPool, totalServicoPool, donoCpfCnpj, dataHora, tipo) {
+    const total = new Total();
+    total.donoCpfcnpj = donoCpfCnpj;
+    total.dataHora = dataHora;
+    total.anual = tipo === 12;
+    total.trimestral = tipo === 3;
+
+    const totalSoma = new TotalSoma();
+    totalSoma.valorMovimento = totalMovimentoPool.totalMovimento.lucro;
+    totalSoma.valorServico = totalServicoPool.totalServico.total;
+    const impostoTotalSoma = new Imposto();
+    impostoTotalSoma.soma(totalMovimentoPool.imposto);
+    impostoTotalSoma.soma(totalServicoPool.imposto);
+    const icmsTotalSoma = new Icms();
+    icmsTotalSoma.soma(totalMovimentoPool.icms);
+    const retencaoTotalSoma = new Retencao();
+    retencaoTotalSoma.soma(totalServicoPool.retencao);
+    const acumuladoTotalSoma = new Acumulado();
+
+    const totalSomaPool = new TotalSomaPool(
+      totalSoma,
+      impostoTotalSoma,
+      icmsTotalSoma,
+      retencaoTotalSoma,
+      acumuladoTotalSoma,
+    );
+
+    return new TotalPool(total, totalMovimentoPool, totalServicoPool, totalSomaPool);
   }
 }
 

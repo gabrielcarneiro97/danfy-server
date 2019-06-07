@@ -1,7 +1,7 @@
 const { Pessoa } = require('../../models');
 
 const {
-  pegarMovimentosMes,
+  pegarMovimentosPoolMes,
 } = require('./movimento.service');
 
 const {
@@ -9,7 +9,7 @@ const {
 } = require('./nota.service');
 
 const {
-  pegarServicosMes,
+  pegarServicosPoolMes,
 } = require('./servico.service');
 
 const {
@@ -19,6 +19,15 @@ const {
 const {
   calculaImpostosEmpresa,
 } = require('../impostos.service');
+
+const {
+  TotalMovimento,
+  TotalServico,
+  Imposto,
+  Icms,
+  Retencao,
+} = require('./models');
+const { TotalPool, TotalMovimentoPool, TotalServicoPool } = require('./pools');
 
 
 function criarTotais(cnpj, totais) {
@@ -66,21 +75,54 @@ function gravarTotais(cnpj, dados, compObj) {
   });
 }
 
-function pegarTotal(cnpj, competencia) {
-  const data_hora = new Date(competencia.ano, competencia.mes - 1);
-  return new Promise((resolve, reject) => {
-    Pessoa.findById(cnpj)
-      .select('Totais -_id')
-      .then(({ Totais: totais }) => {
-        const total = totais.find((el) => {
-          const totMes = el.competencia.getMonth() + 1;
-          const totAno = el.competencia.getFullYear();
-          return mes === totMes && ano === totAno;
-        });
-        if (total) resolve(total._doc);
-        else resolve(total);
-      }).catch(err => reject(err));
-  });
+function pegarTotalPool(cnpj, competencia) {
+  return TotalPool.getByCnpjComp(cnpj, competencia, 1);
+}
+
+function getTrimestre(mes) {
+  mes = parseInt(mes, 10);
+  if ((mes - 1) % 3 === 0) return [mes];
+  else if ((mes - 2) % 3 === 0) return [mes - 1, mes];
+  return [mes - 2, mes - 1, mes];
+}
+
+async function calcularTotalMes(cnpj, competencia) {
+  const [totalMovimentoPool, totalServicoPool] = await Promise.all([
+    new Promise(async (resolve) => {
+      const movimentosPool = await pegarMovimentosPoolMes(cnpj, competencia);
+      const totalMovimento = new TotalMovimento();
+      const imposto = new Imposto();
+      const icms = new Icms();
+
+      movimentosPool.forEach(({ movimento: mov, imposto: impostoMov, icms: icmsMov }) => {
+        totalMovimento.soma(mov);
+        imposto.soma(impostoMov);
+        icms.soma(icmsMov);
+      });
+      resolve(new TotalMovimentoPool(totalMovimento, imposto, icms));
+    }),
+    new Promise(async (resolve) => {
+      const servicosPool = await pegarServicosPoolMes(cnpj, competencia);
+      const totalServico = new TotalServico();
+      const imposto = new Imposto();
+      const retencao = new Retencao();
+
+      servicosPool.forEach(({ servico: serv, imposto: impostoServ, retencao: retencaoServ }) => {
+        totalServico.soma(serv);
+        imposto.soma(impostoServ);
+        retencao.soma(retencaoServ);
+      });
+      resolve(new TotalServicoPool(totalServico, imposto, retencao));
+    }),
+  ]);
+
+  return TotalPool.newByPools(
+    totalMovimentoPool,
+    totalServicoPool,
+    cnpj,
+    new Date(competencia.ano, competencia.mes - 1),
+    1,
+  );
 }
 
 function totaisTrimestrais(cnpj, competencia, recalcular) {
@@ -88,20 +130,6 @@ function totaisTrimestrais(cnpj, competencia, recalcular) {
 
   });
   return new Promise((resolve, reject) => {
-    const trimestres = {};
-    trimestres['1'] = ['1'];
-    trimestres['2'] = ['1', '2'];
-    trimestres['3'] = ['1', '2', '3'];
-    trimestres['4'] = ['4'];
-    trimestres['5'] = ['4', '5'];
-    trimestres['6'] = ['4', '5', '6'];
-    trimestres['7'] = ['7'];
-    trimestres['8'] = ['7', '8'];
-    trimestres['9'] = ['7', '8', '9'];
-    trimestres['10'] = ['10'];
-    trimestres['11'] = ['10', '11'];
-    trimestres['12'] = ['10', '11', '12'];
-
     const trimestre = {};
 
     trimestre.totais = {
@@ -134,7 +162,7 @@ function totaisTrimestrais(cnpj, competencia, recalcular) {
       },
     };
 
-    trimestres[competencia.mes].forEach((mes, id, arr) => {
+    getTrimestre(competencia.mes).forEach((mes, id, arr) => {
       const ultimoMes = arr[arr.length - 1];
       pegarTotais(cnpj, { ano: competencia.ano, mes })
         .then((data) => {
@@ -306,10 +334,14 @@ function pegarMovimentosServicosTotal(cnpj, mes, ano, recalcular) {
   });
 }
 
+// pegarTotalPool('06914971000123', { mes: 1, ano: 2019 }).then(a => console.log(a));
+
+calcularTotalMes('06914971000123', { mes: 1, ano: 2019 }).then(a => console.log(a));
+
 module.exports = {
   criarTotais,
   gravarTotais,
-  pegarTotais,
+  pegarTotalPool,
   totaisTrimestrais,
   pegarMovimentosServicosTotal,
 };

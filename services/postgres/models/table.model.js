@@ -11,7 +11,12 @@ function select(obj, Cl) {
 
 class Table {
   constructor(obj, isSnake, Cl) {
-    if (isSnake) {
+    if (!obj) {
+      Cl.columns().forEach((column) => {
+        const camel = Table.toCamel(column);
+        this[camel] = null;
+      });
+    } else if (isSnake) {
       Cl.columns().forEach((column) => {
         const camel = Table.toCamel(column);
         this[camel] = obj[column];

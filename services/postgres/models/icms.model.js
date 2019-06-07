@@ -28,6 +28,20 @@ class Icms extends Table {
     return Table.getBy(column, value, Icms);
   }
 
+  soma({
+    baseCalculo,
+    composicaoBase,
+    difalDestino,
+    difalOrigem,
+    proprio,
+  }) {
+    this.baseCalculo += baseCalculo;
+    this.composicaoBase += composicaoBase;
+    this.difalDestino += difalDestino;
+    this.difalOrigem += difalOrigem;
+    this.proprio += proprio;
+  }
+
   save() {
     return Table.save(this, Icms);
   }

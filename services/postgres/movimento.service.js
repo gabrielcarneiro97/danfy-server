@@ -15,12 +15,12 @@ async function criarMovimento(movPool) {
   return movPool.save();
 }
 
-async function pegarMovimentosPoolMes(cnpj, competencia) {
+async function pegarMovimentosPoolMes(donoCpfcnpj, competencia) {
   const mes = mesInicioFim(competencia);
 
   const select = str => pg.select(str)
     .from('tb_movimento as mov')
-    .where('mov.dono_cpfcnpj', cnpj)
+    .where('mov.dono_cpfcnpj', donoCpfcnpj)
     .andWhere('md.ativo', true)
     .andWhere('mov.data_hora', '<=', mes.fim)
     .andWhere('mov.data_hora', '>=', mes.inicio);

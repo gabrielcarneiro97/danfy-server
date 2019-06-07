@@ -26,6 +26,10 @@ class TotalServico extends Table {
     return Table.getBy(column, value, TotalServico);
   }
 
+  soma({ valor }) {
+    this.total += valor;
+  }
+
   save() {
     return Table.save(this, TotalServico);
   }

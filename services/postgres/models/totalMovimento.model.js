@@ -26,6 +26,14 @@ class TotalMovimento extends Table {
     return Table.getBy(column, value, TotalMovimento);
   }
 
+  soma({
+    valorSaida,
+    lucro,
+  }) {
+    this.valorSaida += valorSaida;
+    this.lucro += lucro;
+  }
+
   save() {
     return Table.save(this, TotalMovimento);
   }

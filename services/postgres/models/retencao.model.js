@@ -30,6 +30,24 @@ class Retencao extends Table {
     return Table.getBy(column, value, Retencao);
   }
 
+  soma({
+    iss,
+    cofins,
+    csll,
+    irpj,
+    pis,
+    inss,
+    total,
+  }) {
+    this.iss += iss;
+    this.cofins += cofins;
+    this.csll += csll;
+    this.irpj += irpj;
+    this.pis += pis;
+    this.inss += inss;
+    this.total += total;
+  }
+
   save() {
     return Table.save(this, Retencao);
   }

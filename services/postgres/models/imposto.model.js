@@ -34,6 +34,22 @@ class Imposto extends Table {
     return Table.save(this, Imposto);
   }
 
+  soma({
+    cofins,
+    csll,
+    irpj,
+    pis,
+    iss,
+    total,
+  }) {
+    this.cofins += cofins;
+    this.csll += csll;
+    this.irpj += irpj;
+    this.pis += pis;
+    this.iss += iss;
+    this.total += total;
+  }
+
   del() {
     return Table.delete(this, Imposto);
   }
