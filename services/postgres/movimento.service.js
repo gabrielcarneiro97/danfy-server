@@ -6,6 +6,7 @@ const {
 } = require('./models');
 const {
   MovimentoPool,
+  ImpostoPool,
 } = require('./pools');
 const { pg } = require('../pg.service');
 const { mesInicioFim } = require('../calculador.service');
@@ -55,8 +56,7 @@ async function pegarMovimentosPoolMes(donoCpfcnpj, competencia) {
         return new MovimentoPool(
           movimento,
           metaDados,
-          imposto,
-          icms,
+          new ImpostoPool(imposto, icms),
         );
       });
 
@@ -71,7 +71,7 @@ async function pegarMovimentoPoolId(id) {
   const [imposto] = await Imposto.getBy({ id: movimento.impostoId });
   const [icms] = await Icms.getBy({ id: imposto.icmsId });
 
-  return new MovimentoPool(movimento, metaDados, imposto, icms);
+  return new MovimentoPool(movimento, metaDados, new ImpostoPool(imposto, icms));
 }
 
 async function pegarMovimentoPoolNotaFinal(chaveNota) {

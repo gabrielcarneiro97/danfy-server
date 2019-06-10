@@ -1,20 +1,17 @@
 const Pool = require('./pool');
+const ImpostoPool = require('./imposto.pool');
 
-const { TotalMovimento, Imposto, Icms } = require('../models');
+const { TotalMovimento } = require('../models');
 
 class TotalMovimentoPool extends Pool {
-  constructor(totalMovimento, imposto, icms) {
-    super([totalMovimento, imposto, icms]);
+  constructor(totalMovimento, impostoPool) {
+    super([totalMovimento, impostoPool]);
     this.totalMovimento = totalMovimento;
-    this.imposto = imposto;
-    this.icms = icms;
+    this.impostoPool = impostoPool;
   }
 
   async save() {
-    const icmsId = await this.icms.save();
-    this.imposto.icmsId = icmsId;
-    const impostoId = await this.imposto.save();
-
+    const impostoId = await this.impostoPool.save();
     this.totalMovimento.impostoId = impostoId;
 
     return this.totalMovimento.save();
@@ -22,10 +19,9 @@ class TotalMovimentoPool extends Pool {
 
   static async getById(id) {
     const [totalMovimento] = await TotalMovimento.getBy({ id });
-    const [imposto] = await Imposto.getBy('id', totalMovimento.impostoId);
-    const [icms] = await Icms.getBy('id', imposto.icmsId);
+    const [impostoPool] = await ImpostoPool.getById(totalMovimento.impostoId);
 
-    return new TotalMovimentoPool(totalMovimento, imposto, icms);
+    return new TotalMovimentoPool(totalMovimento, impostoPool);
   }
 }
 

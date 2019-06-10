@@ -2,6 +2,7 @@ const Pool = require('./pool');
 const TotalMovimentoPool = require('./totalMovimento.pool');
 const TotalServicoPool = require('./totalServico.pool');
 const TotalSomaPool = require('./totalSoma.pool');
+const ImpostoPool = require('./imposto.pool');
 
 const {
   Total,
@@ -101,8 +102,7 @@ class TotalPool extends Pool {
 
     const totalSomaPool = new TotalSomaPool(
       totalSoma,
-      impostoTotalSoma,
-      icmsTotalSoma,
+      new ImpostoPool(impostoTotalSoma, icmsTotalSoma),
       retencaoTotalSoma,
       acumuladoTotalSoma,
     );

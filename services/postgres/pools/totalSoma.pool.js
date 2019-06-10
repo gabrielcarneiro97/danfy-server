@@ -1,28 +1,23 @@
 const Pool = require('./pool');
+const ImpostoPool = require('./imposto.pool');
 
 const {
   TotalSoma,
-  Imposto,
   Retencao,
   Acumulado,
-  Icms,
 } = require('../models');
 
 class TotalSomaPool extends Pool {
-  constructor(totalSoma, imposto, icms, retencao, acumulado) {
-    super([totalSoma, imposto, icms, retencao, acumulado]);
+  constructor(totalSoma, impostoPool, retencao, acumulado) {
+    super([totalSoma, impostoPool, retencao, acumulado]);
     this.totalSoma = totalSoma;
-    this.imposto = imposto;
-    this.icms = icms;
+    this.impostoPool = impostoPool;
     this.retencao = retencao;
     this.acumulado = acumulado;
   }
 
   async save() {
-    const icmsId = await this.icms.save();
-    this.imposto.icmsId = icmsId;
-
-    const impostoId = await this.imposto.save();
+    const impostoId = await this.impostoPool.save();
     const retencaoId = await this.retencao.save();
     const acumuladoId = await this.acumulado.save();
 
@@ -37,17 +32,15 @@ class TotalSomaPool extends Pool {
     const [totalSoma] = await TotalSoma.getBy({ id });
     return new Promise((resolve, reject) => {
       Promise.all([
-        Imposto.getBy('id', totalSoma.impostoId),
+        ImpostoPool.getById(totalSoma.impostoId),
         Retencao.getBy('id', totalSoma.retencaoId),
         Acumulado.getBy('id', totalSoma.acumuladoId),
       ]).then(([
-        [imposto],
+        [impostoPool],
         [retencao],
         [acumulado],
       ]) => {
-        Icms.getBy('id', imposto.icmsId).then(([icms]) => {
-          resolve(new TotalSomaPool(totalSoma, imposto, icms, retencao, acumulado));
-        }).catch(reject);
+        resolve(new TotalSomaPool(totalSoma, impostoPool, retencao, acumulado));
       })
         .catch(reject);
     });
