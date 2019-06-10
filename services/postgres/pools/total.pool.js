@@ -92,10 +92,10 @@ class TotalPool extends Pool {
     totalSoma.valorMovimento = totalMovimentoPool.totalMovimento.lucro;
     totalSoma.valorServico = totalServicoPool.totalServico.total;
     const impostoTotalSoma = new Imposto();
-    impostoTotalSoma.soma(totalMovimentoPool.imposto);
+    impostoTotalSoma.soma(totalMovimentoPool.impostoPool.imposto);
     impostoTotalSoma.soma(totalServicoPool.imposto);
     const icmsTotalSoma = new Icms();
-    icmsTotalSoma.soma(totalMovimentoPool.icms);
+    icmsTotalSoma.soma(totalMovimentoPool.impostoPool.icms);
     const retencaoTotalSoma = new Retencao();
     retencaoTotalSoma.soma(totalServicoPool.retencao);
     const acumuladoTotalSoma = new Acumulado();

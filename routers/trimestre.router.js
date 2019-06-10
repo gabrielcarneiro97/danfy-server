@@ -12,7 +12,7 @@ module.exports = {
         recalcular,
       } = req.query;
 
-      pegarMovimentosServicosTotal(cnpj, mes, ano, recalcular).then((data) => {
+      pegarMovimentosServicosTotal(cnpj, { mes, ano }, true).then((data) => {
         res.send(data);
       }).catch((err) => {
         console.error(err);

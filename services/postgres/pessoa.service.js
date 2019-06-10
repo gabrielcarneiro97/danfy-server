@@ -1,14 +1,15 @@
+const { PessoaPool } = require('./pools');
 const { Pessoa, Endereco } = require('./models');
 
-async function criarPessoa(dados) {
-  const pessoa = new Pessoa(dados.pessoa);
-  const endereco = new Endereco(dados.endereco);
+async function criarPessoa(pessoaPool) {
+  if (pessoaPool instanceof PessoaPool) {
+    return pessoaPool.save();
+  }
 
-  const enderecoId = await endereco.save();
+  const pessoa = new Pessoa(pessoaPool.pessoa);
+  const endereco = new Endereco(pessoaPool.endereco);
 
-  pessoa.enderecoId = enderecoId;
-
-  return pessoa.save();
+  return new PessoaPool(pessoa, endereco).save();
 }
 
 function pegarPessoaId(id) {

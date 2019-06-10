@@ -1,5 +1,6 @@
 const Pool = require('./pool');
 const ImpostoPool = require('./imposto.pool');
+const MovimentoPool = require('./movimento.pool');
 
 const { TotalMovimento } = require('../models');
 
@@ -8,6 +9,15 @@ class TotalMovimentoPool extends Pool {
     super([totalMovimento, impostoPool]);
     this.totalMovimento = totalMovimento;
     this.impostoPool = impostoPool;
+  }
+
+  soma(pool) {
+    if (pool instanceof MovimentoPool) {
+      this.totalMovimento.soma(pool.movimento);
+    } else if (pool instanceof TotalMovimento) {
+      this.totalMovimento.soma(pool.totalMovimento);
+    }
+    this.impostoPool.soma(pool.impostoPool);
   }
 
   async save() {

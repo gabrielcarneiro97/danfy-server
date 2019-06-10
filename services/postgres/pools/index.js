@@ -6,6 +6,7 @@ const TotalPool = require('./total.pool');
 const TotalMovimentoPool = require('./totalMovimento.pool');
 const TotalServicoPool = require('./totalServico.pool');
 const TotalSomaPool = require('./totalSoma.pool');
+const PessoaPool = require('./pessoa.pool');
 
 module.exports = {
   Pool,
@@ -16,4 +17,5 @@ module.exports = {
   TotalMovimentoPool,
   TotalServicoPool,
   TotalSomaPool,
+  PessoaPool,
 };

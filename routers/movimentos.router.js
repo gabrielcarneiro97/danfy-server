@@ -273,7 +273,7 @@ module.exports = {
         const mes = (movimento.data.getMonth() + 1).toString();
         const ano = movimento.data.getFullYear().toString();
         cancelarMovimento(movimentoId).then(() => {
-          pegarMovimentosServicosTotal(cnpj, mes, ano, true).then((data) => {
+          pegarMovimentosServicosTotal(cnpj, { mes, ano }, true).then((data) => {
             res.send(data);
           });
         }).catch((err) => {
@@ -293,7 +293,7 @@ module.exports = {
 
       cancelarMovimento(movimentoAntigoId).then(() => {
         criarMovimento(movimentoNovo).then(() => {
-          pegarMovimentosServicosTotal(cnpj, mes, ano, true).then((data) => {
+          pegarMovimentosServicosTotal(cnpj, { mes, ano }, true).then((data) => {
             res.send(data);
           });
         });

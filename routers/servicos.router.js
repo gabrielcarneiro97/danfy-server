@@ -82,7 +82,7 @@ module.exports = {
         const date = new Date(infos.servicoCompetencia);
         const mes = date.getMonth() + 1;
         const ano = date.getFullYear();
-        pegarMovimentosServicosTotal(cnpj, mes, ano, true).then((data) => {
+        pegarMovimentosServicosTotal(cnpj, { mes, ano }, true).then((data) => {
           res.send(data);
         }).catch((err) => {
           console.error(err);

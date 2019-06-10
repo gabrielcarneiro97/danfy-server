@@ -27,7 +27,7 @@ const {
   Icms,
   Retencao,
 } = require('./models');
-const { TotalPool, TotalMovimentoPool, TotalServicoPool } = require('./pools');
+const { TotalPool, TotalMovimentoPool, TotalServicoPool, ImpostoPool } = require('./pools');
 
 
 function criarTotais(cnpj, totais) {
@@ -87,211 +87,90 @@ function getTrimestre(mes) {
 }
 
 async function calcularTotalMes(cnpj, competencia) {
-  const [totalMovimentoPool, totalServicoPool] = await Promise.all([
+  const [{ totalMovimentoPool, movimentosPool },
+    { totalServicoPool, servicosPool }] = await Promise.all([
     new Promise(async (resolve) => {
-      const movimentosPool = await pegarMovimentosPoolMes(cnpj, competencia);
-      const totalMovimento = new TotalMovimento();
-      const imposto = new Imposto();
-      const icms = new Icms();
+      const movsPool = await pegarMovimentosPoolMes(cnpj, competencia);
+      const totalMovPool = new TotalMovimentoPool(
+        new TotalMovimento(),
+        new ImpostoPool(new Imposto(), new Icms()),
+      );
 
-      movimentosPool.forEach(({ movimento: mov, imposto: impostoMov, icms: icmsMov }) => {
-        totalMovimento.soma(mov);
-        imposto.soma(impostoMov);
-        icms.soma(icmsMov);
-      });
-      resolve(new TotalMovimentoPool(totalMovimento, imposto, icms));
+      movsPool.forEach(movimentoPool => totalMovPool.soma(movimentoPool));
+      resolve({ totalMovimentoPool: totalMovPool, movimentosPool: movsPool });
     }),
     new Promise(async (resolve) => {
-      const servicosPool = await pegarServicosPoolMes(cnpj, competencia);
-      const totalServico = new TotalServico();
-      const imposto = new Imposto();
-      const retencao = new Retencao();
+      const servsPool = await pegarServicosPoolMes(cnpj, competencia);
+      const totalServPool = new TotalServicoPool(new TotalServico(), new Imposto(), new Retencao());
 
-      servicosPool.forEach(({ servico: serv, imposto: impostoServ, retencao: retencaoServ }) => {
-        totalServico.soma(serv);
-        imposto.soma(impostoServ);
-        retencao.soma(retencaoServ);
-      });
-      resolve(new TotalServicoPool(totalServico, imposto, retencao));
+      servsPool.forEach(servicoPool => totalServPool.soma(servicoPool));
+      resolve({ totalServicoPool: totalServPool, servicosPool: servsPool });
     }),
   ]);
 
-  return TotalPool.newByPools(
+  const totalPool = await TotalPool.newByPools(
     totalMovimentoPool,
     totalServicoPool,
     cnpj,
     new Date(competencia.ano, competencia.mes - 1),
     1,
   );
+
+  return {
+    totalPool,
+    movimentosPool,
+    servicosPool,
+  };
 }
 
-function totaisTrimestrais(cnpj, competencia, recalcular) {
-  ret = new Promise((resolve, reject) => {
+async function calcularTotalTrimestre(cnpj, competencia) {
+  const trimestreData = {
+    servicosPool: [],
+    movimentosPool: [],
+  };
 
+  const meses = getTrimestre(competencia.mes);
+
+  const mesesPromise = meses.map(mes => calcularTotalMes(cnpj, { mes, ano: competencia.ano }));
+
+  const mesesPool = await Promise.all(mesesPromise);
+
+  const totalMovimentoPoolTrimestre = new TotalMovimentoPool(
+    new TotalMovimento(),
+    new ImpostoPool(new Imposto(), new Icms()),
+  );
+  const totalServicoPoolTrimestre = new TotalServicoPool(
+    new TotalServico(),
+    new Imposto(),
+    new Retencao(),
+  );
+
+  mesesPool.forEach((mesPool, index) => {
+    const mesNum = meses[index];
+    const { totalPool } = mesPool;
+    const { totalMovimentoPool, totalServicoPool } = totalPool;
+    totalMovimentoPoolTrimestre.soma(totalMovimentoPool);
+    totalServicoPoolTrimestre.soma(totalServicoPool);
+
+    trimestreData[mesNum] = totalPool;
+    trimestreData.movimentosPool = trimestreData.movimentosPool.concat(mesPool.movimentosPool);
+    trimestreData.servicosPool = trimestreData.servicosPool.concat(mesPool.servicosPool);
   });
-  return new Promise((resolve, reject) => {
-    const trimestre = {};
 
-    trimestre.totais = {
-      lucro: 0,
-      servicos: 0,
-      impostos: {
-        adicionalIr: 0,
-        pis: 0,
-        cofins: 0,
-        csll: 0,
-        irpj: 0,
-        iss: 0,
-        gnre: 0,
-        icms: {
-          proprio: 0,
-          difal: {
-            origem: 0,
-            destino: 0,
-          },
-        },
-        total: 0,
-        retencoes: {
-          iss: 0,
-          irpj: 0,
-          csll: 0,
-          pis: 0,
-          cofins: 0,
-          total: 0,
-        },
-      },
-    };
+  const totalPoolTrimestre = await TotalPool.newByPools(
+    totalMovimentoPoolTrimestre,
+    totalServicoPoolTrimestre,
+    cnpj,
+    new Date(competencia.ano, competencia.mes - 1),
+    3,
+  );
 
-    getTrimestre(competencia.mes).forEach((mes, id, arr) => {
-      const ultimoMes = arr[arr.length - 1];
-      pegarTotais(cnpj, { ano: competencia.ano, mes })
-        .then((data) => {
-          new Promise((resolve2) => {
-            if (!data || recalcular) {
-              calculaImpostosEmpresa(cnpj, {
-                mes,
-                ano: competencia.ano,
-                mesAnterior: true,
-              }).then((impostos) => {
-                trimestre[mes] = impostos;
-                trimestre.totais.servicos +=
-                  trimestre[mes].totais.servicos;
-                trimestre.totais.lucro +=
-                  trimestre[mes].totais.lucro;
+  trimestreData.trim = totalPoolTrimestre;
 
-                trimestre.totais.impostos.irpj +=
-                  trimestre[mes].totais.impostos.irpj;
-                trimestre.totais.impostos.csll +=
-                  trimestre[mes].totais.impostos.csll;
-                trimestre.totais.impostos.iss +=
-                  trimestre[mes].totais.impostos.iss;
-                trimestre.totais.impostos.pis +=
-                  trimestre[mes].totais.impostos.pis;
-                trimestre.totais.impostos.cofins +=
-                  trimestre[mes].totais.impostos.cofins;
-                trimestre.totais.impostos.total +=
-                  trimestre[mes].totais.impostos.total;
-
-                trimestre.totais.impostos.icms.proprio +=
-                  trimestre[mes].totais.impostos.icms.proprio;
-                trimestre.totais.impostos.icms.difal.origem +=
-                  trimestre[mes].totais.impostos.icms.difal.origem;
-                trimestre.totais.impostos.icms.difal.destino +=
-                  trimestre[mes].totais.impostos.icms.difal.destino;
-
-                trimestre.totais.impostos.retencoes.irpj +=
-                  trimestre[mes].totais.impostos.retencoes.irpj;
-                trimestre.totais.impostos.retencoes.iss +=
-                  trimestre[mes].totais.impostos.retencoes.iss;
-                trimestre.totais.impostos.retencoes.csll +=
-                  trimestre[mes].totais.impostos.retencoes.csll;
-                trimestre.totais.impostos.retencoes.pis +=
-                  trimestre[mes].totais.impostos.retencoes.pis;
-                trimestre.totais.impostos.retencoes.cofins +=
-                  trimestre[mes].totais.impostos.retencoes.cofins;
-                trimestre.totais.impostos.retencoes.total +=
-                  trimestre[mes].totais.impostos.retencoes.total;
-
-                gravarTotais(cnpj, impostos, { ano: competencia.ano, mes })
-                  .then(() => resolve2())
-                  .catch(err => reject(err));
-              }).catch(err => reject(err));
-            } else {
-              trimestre[mes] = data;
-
-              trimestre.totais.servicos +=
-                trimestre[mes].totais.servicos;
-              trimestre.totais.lucro +=
-                trimestre[mes].totais.lucro;
-
-              trimestre.totais.impostos.irpj +=
-                trimestre[mes].totais.impostos.irpj;
-              trimestre.totais.impostos.csll +=
-                trimestre[mes].totais.impostos.csll;
-              trimestre.totais.impostos.iss +=
-                trimestre[mes].totais.impostos.iss;
-              trimestre.totais.impostos.pis +=
-                trimestre[mes].totais.impostos.pis;
-              trimestre.totais.impostos.cofins +=
-                trimestre[mes].totais.impostos.cofins;
-              trimestre.totais.impostos.total +=
-                trimestre[mes].totais.impostos.total;
-
-              trimestre.totais.impostos.icms.proprio +=
-                trimestre[mes].totais.impostos.icms.proprio;
-              trimestre.totais.impostos.icms.difal.origem +=
-                trimestre[mes].totais.impostos.icms.difal.origem;
-              trimestre.totais.impostos.icms.difal.destino +=
-                trimestre[mes].totais.impostos.icms.difal.destino;
-
-              trimestre.totais.impostos.retencoes.irpj +=
-                trimestre[mes].totais.impostos.retencoes.irpj;
-              trimestre.totais.impostos.retencoes.iss +=
-                trimestre[mes].totais.impostos.retencoes.iss;
-              trimestre.totais.impostos.retencoes.csll +=
-                trimestre[mes].totais.impostos.retencoes.csll;
-              trimestre.totais.impostos.retencoes.pis +=
-                trimestre[mes].totais.impostos.retencoes.pis;
-              trimestre.totais.impostos.retencoes.cofins +=
-                trimestre[mes].totais.impostos.retencoes.cofins;
-              trimestre.totais.impostos.retencoes.total +=
-                trimestre[mes].totais.impostos.retencoes.total;
-              resolve2();
-            }
-          }).then(() => {
-            if (mes % 3 === 0) {
-              let adicionalIr;
-              let baseLucro;
-              let baseServico;
-              pegarEmpresaAliquota(cnpj).then((aliquotas) => {
-                if (aliquotas.irpj === 0.012) {
-                  baseLucro = trimestre.totais.lucro * 0.08;
-                } else {
-                  baseLucro = trimestre.totais.lucro * 0.32;
-                }
-                baseServico = trimestre.totais.servicos * 0.32;
-
-                if (baseLucro + baseServico > 60000) {
-                  adicionalIr = ((baseLucro + baseServico) - 60000) * 0.1;
-                } else {
-                  adicionalIr = 0;
-                }
-
-                trimestre.totais.impostos.adicionalIr = adicionalIr;
-
-                resolve(trimestre);
-              }).catch(err => reject(err));
-            } else if (mes === ultimoMes) {
-              resolve(trimestre);
-            }
-          });
-        })
-        .catch(err => reject(err));
-    });
-  });
+  return trimestreData;
 }
 
-function pegarMovimentosServicosTotal(cnpj, mes, ano, recalcular) {
+function pegarMovimentosServicosTotal(cnpj, competencia, recalcular) {
   return new Promise((resolveEnd, rejectEnd) => {
     const data = {};
     const notas = {};
@@ -299,7 +178,7 @@ function pegarMovimentosServicosTotal(cnpj, mes, ano, recalcular) {
     const promises = [];
 
     promises.push(new Promise((resolveMovs) => {
-      pegarMovimentosMes(cnpj, { mes, ano }).then((movs) => {
+      pegarMovimentosMes(cnpj, competencia).then((movs) => {
         data.movimentos = movs;
         const movsPromises = [];
         movs.forEach((m) => {
@@ -319,14 +198,14 @@ function pegarMovimentosServicosTotal(cnpj, mes, ano, recalcular) {
       }).catch(err => rejectEnd(err));
     }));
     promises.push(new Promise((resolveServs) => {
-      pegarServicosMes(cnpj, { mes, ano }).then((servs) => {
+      pegarServicosMes(cnpj, competencia).then((servs) => {
         data.servicos = servs;
         resolveServs();
       }).catch((err) => { data.err = err; });
     }));
 
     Promise.all(promises).then(() => {
-      totaisTrimestrais(cnpj, { mes, ano }, recalcular).then((trim) => {
+      totaisTrimestrais(cnpj, competencia, recalcular).then((trim) => {
         data.trimestre = trim;
         resolveEnd(data);
       }).catch(err => rejectEnd(err));
@@ -336,12 +215,12 @@ function pegarMovimentosServicosTotal(cnpj, mes, ano, recalcular) {
 
 // pegarTotalPool('06914971000123', { mes: 1, ano: 2019 }).then(a => console.log(a));
 
-calcularTotalMes('06914971000123', { mes: 1, ano: 2019 }).then(a => console.log(a));
+calcularTotalTrimestre('06914971000123', { mes: 3, ano: 2019 }).then(a => console.log(a));
 
 module.exports = {
   criarTotais,
   gravarTotais,
   pegarTotalPool,
-  totaisTrimestrais,
+  // totaisTrimestrais,
   pegarMovimentosServicosTotal,
 };
