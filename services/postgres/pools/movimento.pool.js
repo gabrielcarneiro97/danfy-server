@@ -33,13 +33,17 @@ class MovimentoPool extends Pool {
       .where('tb_movimento.nota_final_chave', notaChave)
       .andWhere('tb_meta_dados.ativo', true);
 
-    const movimento = new Movimento(movimentoPg, true);
-    const [[impostoPool], [metaDados]] = await Promise.all([
-      ImpostoPool.getById(movimento.impostoId),
-      MetaDados.getBy({ mdId: movimento.metaDadosId }),
-    ]);
+    if (movimentoPg) {
+      const movimento = new Movimento(movimentoPg, true);
+      const [[impostoPool], [metaDados]] = await Promise.all([
+        ImpostoPool.getById(movimento.impostoId),
+        MetaDados.getBy({ mdId: movimento.metaDadosId }),
+      ]);
 
-    return new MovimentoPool(movimento, metaDados, impostoPool);
+      return new MovimentoPool(movimento, metaDados, impostoPool);
+    }
+
+    return undefined;
   }
 
   async save() {
