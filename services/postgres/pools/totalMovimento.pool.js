@@ -29,9 +29,11 @@ class TotalMovimentoPool extends Pool {
 
   static async getById(id) {
     const [totalMovimento] = await TotalMovimento.getBy({ id });
-    const [impostoPool] = await ImpostoPool.getById(totalMovimento.impostoId);
-
-    return new TotalMovimentoPool(totalMovimento, impostoPool);
+    if (totalMovimento) {
+      const [impostoPool] = await ImpostoPool.getById(totalMovimento.impostoId);
+      return new TotalMovimentoPool(totalMovimento, impostoPool);
+    }
+    return undefined;
   }
 }
 

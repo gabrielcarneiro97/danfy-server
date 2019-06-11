@@ -26,7 +26,7 @@ class ImpostoPool extends Pool {
     const [imposto] = await Imposto.getBy({ id });
     const [icms] = await Icms.getBy('id', imposto.icmsId);
 
-    return new ImpostoPool(imposto, icms);
+    return [new ImpostoPool(imposto, icms)];
   }
 }
 

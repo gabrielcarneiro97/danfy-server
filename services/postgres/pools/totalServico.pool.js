@@ -33,16 +33,20 @@ class TotalServicoPool extends Pool {
 
   static async getById(id) {
     const [totalServico] = await TotalServico.getBy({ id });
-    return new Promise((resolve, reject) => {
-      Promise.all([
-        Imposto.getBy('id', totalServico.impostoId),
-        Retencao.getBy('id', totalServico.retencaoId),
-      ]).then(([
-        [imposto],
-        [retencao],
-      ]) => resolve(new TotalServicoPool(totalServico, imposto, retencao)))
-        .catch(reject);
-    });
+    if (totalServico) {
+      return new Promise((resolve, reject) => {
+        Promise.all([
+          Imposto.getBy('id', totalServico.impostoId),
+          Retencao.getBy('id', totalServico.retencaoId),
+        ]).then(([
+          [imposto],
+          [retencao],
+        ]) => resolve(new TotalServicoPool(totalServico, imposto, retencao)))
+          .catch(reject);
+      });
+    }
+
+    return undefined;
   }
 }
 

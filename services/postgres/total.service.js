@@ -1,112 +1,68 @@
-const { Pessoa } = require('../../models');
-
 const {
   pegarMovimentosPoolMes,
 } = require('./movimento.service');
-
-const {
-  pegarNotaChave,
-} = require('./nota.service');
 
 const {
   pegarServicosPoolMes,
 } = require('./servico.service');
 
 const {
-  pegarEmpresaAliquota,
-} = require('./aliquota.service');
-
-const {
-  calculaImpostosEmpresa,
-} = require('../impostos.service');
-
-const {
+  Nota,
+  NotaServico,
   TotalMovimento,
   TotalServico,
   Imposto,
   Icms,
   Retencao,
 } = require('./models');
-const { TotalPool, TotalMovimentoPool, TotalServicoPool, ImpostoPool } = require('./pools');
 
+const {
+  TotalPool,
+  TotalMovimentoPool,
+  TotalServicoPool,
+  ImpostoPool,
+} = require('./pools');
 
-function criarTotais(cnpj, totais) {
-  return new Promise((resolve, reject) => {
-    Pessoa.findById(cnpj).select('Totais').then((pessoaParam) => {
-      const pessoa = pessoaParam;
-      pessoa.Totais = pessoa.Totais.concat(totais);
-      pessoa.save().then(() => resolve()).catch(err => reject(err));
-    });
-  });
-}
-
-function gravarTotais(cnpj, dados, compObj) {
-  const mes = parseInt(compObj.mes, 10) - 1;
-  const ano = parseInt(compObj.ano, 10);
-
-  const competencia = new Date(ano, mes, 1);
-
-  const totais = { ...dados, competencia };
-
-  return new Promise((resolve, reject) => {
-    Pessoa.findById(cnpj)
-      .select('Totais')
-      .then((pessoaParam) => {
-        const pessoa = pessoaParam;
-        const totaisArray = pessoa.Totais;
-
-        const checkComp = totaisArray.findIndex((el) => {
-          const elComp = el.competencia;
-          const elMes = elComp.getMonth();
-          const elAno = elComp.getFullYear();
-
-          return mes === elMes && ano === elAno;
-        });
-
-        if (checkComp !== -1) {
-          pessoa.Totais[checkComp] = totais;
-        } else {
-          pessoa.Totais.push(totais);
-        }
-
-
-        pessoa.save().then(() => resolve()).catch(err => reject(err));
-      }).catch(err => reject(err));
-  });
-}
-
-function pegarTotalPool(cnpj, competencia) {
-  return TotalPool.getByCnpjComp(cnpj, competencia, 1);
-}
-
-function getTrimestre(mes) {
+function trim(mes) {
   mes = parseInt(mes, 10);
   if ((mes - 1) % 3 === 0) return [mes];
   else if ((mes - 2) % 3 === 0) return [mes - 1, mes];
   return [mes - 2, mes - 1, mes];
 }
 
-async function calcularTotalMes(cnpj, competencia) {
-  const [{ totalMovimentoPool, movimentosPool },
-    { totalServicoPool, servicosPool }] = await Promise.all([
-    new Promise(async (resolve) => {
-      const movsPool = await pegarMovimentosPoolMes(cnpj, competencia);
-      const totalMovPool = new TotalMovimentoPool(
-        new TotalMovimento(),
-        new ImpostoPool(new Imposto(), new Icms()),
-      );
+function gravarTotalPool(totalPool) {
+  return totalPool.save();
+}
 
-      movsPool.forEach(movimentoPool => totalMovPool.soma(movimentoPool));
-      resolve({ totalMovimentoPool: totalMovPool, movimentosPool: movsPool });
-    }),
-    new Promise(async (resolve) => {
-      const servsPool = await pegarServicosPoolMes(cnpj, competencia);
-      const totalServPool = new TotalServicoPool(new TotalServico(), new Imposto(), new Retencao());
-
-      servsPool.forEach(servicoPool => totalServPool.soma(servicoPool));
-      resolve({ totalServicoPool: totalServPool, servicosPool: servsPool });
-    }),
+async function pegarMovimentosServicosMes(cnpj, competencia) {
+  const [movimentosPool, servicosPool] = await Promise.all([
+    pegarMovimentosPoolMes(cnpj, competencia),
+    pegarServicosPoolMes(cnpj, competencia),
   ]);
+
+  return {
+    movimentosPool,
+    servicosPool,
+  };
+}
+
+function pegarMesTotalPool(cnpj, competencia) {
+  return TotalPool.getByCnpjComp(cnpj, competencia, 1);
+}
+
+async function calcularMes(cnpj, competencia) {
+  const { movimentosPool, servicosPool } = await pegarMovimentosServicosMes(cnpj, competencia);
+
+  const totalMovimentoPool = new TotalMovimentoPool(
+    new TotalMovimento(),
+    new ImpostoPool(new Imposto(), new Icms()),
+  );
+
+  movimentosPool.forEach(movimentoPool => totalMovimentoPool.soma(movimentoPool));
+
+  const totalServicoPool = new TotalServicoPool(new TotalServico(), new Imposto(), new Retencao());
+
+  servicosPool.forEach(servicoPool => totalServicoPool.soma(servicoPool));
 
   const totalPool = await TotalPool.newByPools(
     totalMovimentoPool,
@@ -123,15 +79,34 @@ async function calcularTotalMes(cnpj, competencia) {
   };
 }
 
-async function calcularTotalTrimestre(cnpj, competencia) {
+async function pegarMes(cnpj, competencia) {
+  const totalPool = await pegarMesTotalPool(cnpj, competencia);
+
+  if (!totalPool) {
+    return calcularMes(cnpj, competencia);
+  }
+  const { movimentosPool, servicosPool } = await pegarMovimentosServicosMes(cnpj, competencia);
+
+  return {
+    totalPool,
+    movimentosPool,
+    servicosPool,
+  };
+}
+
+function pegarTrimestreTotalPool(cnpj, competencia) {
+  return TotalPool.getByCnpjComp(cnpj, competencia, 3);
+}
+
+async function calcularTrimestre(cnpj, competencia) {
   const trimestreData = {
     servicosPool: [],
     movimentosPool: [],
   };
 
-  const meses = getTrimestre(competencia.mes);
+  const meses = trim(competencia.mes);
 
-  const mesesPromise = meses.map(mes => calcularTotalMes(cnpj, { mes, ano: competencia.ano }));
+  const mesesPromise = meses.map(mes => calcularMes(cnpj, { mes, ano: competencia.ano }));
 
   const mesesPool = await Promise.all(mesesPromise);
 
@@ -170,57 +145,80 @@ async function calcularTotalTrimestre(cnpj, competencia) {
   return trimestreData;
 }
 
-function pegarMovimentosServicosTotal(cnpj, competencia, recalcular) {
-  return new Promise((resolveEnd, rejectEnd) => {
-    const data = {};
-    const notas = {};
+async function pegarTrimestre(cnpj, competencia) {
+  const trimestreTotalPool = await pegarTrimestreTotalPool(cnpj, competencia);
 
-    const promises = [];
+  if (!trimestreTotalPool) {
+    const trimestreData = await calcularTrimestre(cnpj, competencia);
+    return trimestreData;
+  }
+  const trimestreData = {
+    servicosPool: [],
+    movimentosPool: [],
+    trim: trimestreTotalPool,
+  };
 
-    promises.push(new Promise((resolveMovs) => {
-      pegarMovimentosMes(cnpj, competencia).then((movs) => {
-        data.movimentos = movs;
-        const movsPromises = [];
-        movs.forEach((m) => {
-          movsPromises.push(new Promise((resolveMov) => {
-            pegarNotaChave(m.notaInicial).then((n1) => {
-              pegarNotaChave(m.notaFinal).then((n2) => {
-                notas[n1.chave] = n1;
-                notas[n2.chave] = n2;
-                data.notas = notas;
-                resolveMov();
-              }).catch(err => rejectEnd(err));
-            }).catch(err => rejectEnd(err));
-          }));
-        });
+  const meses = trim(competencia.mes);
 
-        Promise.all(movsPromises).then(() => resolveMovs());
-      }).catch(err => rejectEnd(err));
-    }));
-    promises.push(new Promise((resolveServs) => {
-      pegarServicosMes(cnpj, competencia).then((servs) => {
-        data.servicos = servs;
-        resolveServs();
-      }).catch((err) => { data.err = err; });
-    }));
+  const mesesPromise = meses.map(mes => pegarMes(cnpj, { mes, ano: competencia.ano }));
 
-    Promise.all(promises).then(() => {
-      totaisTrimestrais(cnpj, competencia, recalcular).then((trim) => {
-        data.trimestre = trim;
-        resolveEnd(data);
-      }).catch(err => rejectEnd(err));
-    }).catch(err => rejectEnd(err));
+  const mesesPool = await Promise.all(mesesPromise);
+
+  mesesPool.forEach((mesPool, index) => {
+    const mesNum = meses[index];
+    const { totalPool } = mesPool;
+    trimestreData[mesNum] = totalPool;
+    trimestreData.movimentosPool = trimestreData.movimentosPool.concat(mesPool.movimentosPool);
+    trimestreData.servicosPool = trimestreData.servicosPool.concat(mesPool.servicosPool);
   });
+
+  return trimestreData;
 }
 
-// pegarTotalPool('06914971000123', { mes: 1, ano: 2019 }).then(a => console.log(a));
+async function pegarTrimestreComNotas(cnpj, competencia) {
+  const trimestreData = await pegarTrimestre(cnpj, competencia);
+  const { movimentosPool, servicosPool } = trimestreData;
 
-calcularTotalTrimestre('06914971000123', { mes: 3, ano: 2019 }).then(a => console.log(a));
+  const [notasPool, notasServicoPool] = await Promise.all([
+    new Promise(async (resolve) => {
+      const [notasIniciais, notasFinais] = await Promise.all([
+        Promise.all(movimentosPool.map(async (movimentoPool) => {
+          const { notaInicialChave: chave } = movimentoPool.movimento;
+          const [nota] = await Nota.getBy({ chave });
+          return nota;
+        })),
+        Promise.all(movimentosPool.map(async (movimentoPool) => {
+          const { notaFinalChave: chave } = movimentoPool.movimento;
+          const [nota] = await Nota.getBy({ chave });
+          return nota;
+        })),
+      ]);
+
+      resolve(notasIniciais.concat(notasFinais));
+    }),
+    new Promise(async (resolve) => {
+      const notasServico = await Promise.all(servicosPool.map(async (servicoPool) => {
+        const { notaChave: chave } = servicoPool.servico;
+        const [nota] = await NotaServico.getBy({ chave });
+        return nota;
+      }));
+
+      resolve(notasServico);
+    }),
+  ]);
+
+  return {
+    trimestreData,
+    notasPool,
+    notasServicoPool,
+  };
+}
 
 module.exports = {
-  criarTotais,
-  gravarTotais,
-  pegarTotalPool,
-  // totaisTrimestrais,
-  pegarMovimentosServicosTotal,
+  gravarTotalPool,
+  pegarMes,
+  calcularMes,
+  pegarTrimestre,
+  calcularTrimestre,
+  pegarTrimestreComNotas,
 };

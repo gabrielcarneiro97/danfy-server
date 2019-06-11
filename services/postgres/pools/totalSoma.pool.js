@@ -30,20 +30,24 @@ class TotalSomaPool extends Pool {
 
   static async getById(id) {
     const [totalSoma] = await TotalSoma.getBy({ id });
-    return new Promise((resolve, reject) => {
-      Promise.all([
-        ImpostoPool.getById(totalSoma.impostoId),
-        Retencao.getBy('id', totalSoma.retencaoId),
-        Acumulado.getBy('id', totalSoma.acumuladoId),
-      ]).then(([
-        [impostoPool],
-        [retencao],
-        [acumulado],
-      ]) => {
-        resolve(new TotalSomaPool(totalSoma, impostoPool, retencao, acumulado));
-      })
-        .catch(reject);
-    });
+    if (totalSoma) {
+      return new Promise((resolve, reject) => {
+        Promise.all([
+          ImpostoPool.getById(totalSoma.impostoId),
+          Retencao.getBy('id', totalSoma.retencaoId),
+          Acumulado.getBy('id', totalSoma.acumuladoId),
+        ]).then(([
+          [impostoPool],
+          [retencao],
+          [acumulado],
+        ]) => {
+          resolve(new TotalSomaPool(totalSoma, impostoPool, retencao, acumulado));
+        })
+          .catch(reject);
+      });
+    }
+
+    return undefined;
   }
 }
 
