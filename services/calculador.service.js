@@ -89,10 +89,18 @@ function mesInicioFim(competencia) {
   };
 }
 
+function trim(mes) {
+  mes = parseInt(mes, 10);
+  if ((mes - 1) % 3 === 0) return [mes];
+  else if ((mes - 2) % 3 === 0) return [mes - 1, mes];
+  return [mes - 2, mes - 1, mes];
+}
+
 module.exports = {
   validarMovimento,
   dtof,
   mesInicioFim,
+  trim,
   cfopCompra,
   cfopDevolucao,
   cfopDevolucaoCompra,
