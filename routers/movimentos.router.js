@@ -8,7 +8,7 @@ const {
   cancelarMovimento,
   pegarMovimentoId,
   pegarMovimentosServicosTotal,
-} = require('../services/postgres.service');
+} = require('../services/postgres');
 
 const {
   validarMovimento,

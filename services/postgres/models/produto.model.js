@@ -28,7 +28,13 @@ class Produto extends Table {
     return Table.getBy(column, value, Produto);
   }
 
-  save() {
+  async save() {
+    if (!this.id) {
+      const [check] = await Produto.getBy({ notaChave: this.notaChave, nome: this.nome });
+      if (check) {
+        this.id = check.id;
+      }
+    }
     return Table.save(this, Produto);
   }
 }

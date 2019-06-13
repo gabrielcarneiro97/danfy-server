@@ -1,6 +1,6 @@
 const {
   pegarMovimentosServicosTotal,
-} = require('../services/postgres.service');
+} = require('../services/postgres');
 
 module.exports = {
   get: {

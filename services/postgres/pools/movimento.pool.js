@@ -1,8 +1,6 @@
 const Pool = require('./pool');
 const { pg } = require('../../pg.service');
-const {
-  ImpostoPool,
-} = require('./');
+const ImpostoPool = require('./imposto.pool');
 const {
   Movimento,
   MetaDados,
@@ -18,7 +16,6 @@ class MovimentoPool extends Pool {
 
   static async getById(id) {
     const [movimento] = await Movimento.getBy({ id });
-
     const [[impostoPool], [metaDados]] = await Promise.all([
       ImpostoPool.getById(movimento.impostoId),
       MetaDados.getBy({ mdId: movimento.metaDadosId }),
@@ -55,7 +52,5 @@ class MovimentoPool extends Pool {
     return this.movimento.save();
   }
 }
-
-MovimentoPool.getById(1).then(a => console.log(a));
 
 module.exports = MovimentoPool;

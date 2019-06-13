@@ -1,7 +1,7 @@
 const {
   pegarEmpresaAliquota,
   criarAliquota,
-} = require('../services/postgres.service');
+} = require('../services/postgres');
 
 module.exports = {
   post: {

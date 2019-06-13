@@ -1,4 +1,4 @@
-const { pegarPessoaId } = require('../services/postgres.service');
+const { pegarPessoaId } = require('../services/postgres');
 
 module.exports = {
   get: {

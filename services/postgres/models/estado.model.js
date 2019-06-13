@@ -25,6 +25,11 @@ class Estado extends Table {
     return Table.getBy(column, value, Estado);
   }
 
+  static async getIdBySigla(sigla) {
+    const { id } = (await Estado.getBy({ sigla }))[0];
+    return id;
+  }
+
   save() {
     return Table.save(this, Estado);
   }

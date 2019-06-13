@@ -5,7 +5,7 @@ const {
   pushServico,
   pegarMovimentosServicosTotal,
   excluirServico,
-} = require('../services/postgres.service');
+} = require('../services/postgres');
 
 const {
   calcularImpostosServico,

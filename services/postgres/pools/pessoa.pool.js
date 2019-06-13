@@ -1,5 +1,7 @@
 const Pool = require('./pool');
 
+const { Pessoa } = require('../models');
+
 class PessoaPool extends Pool {
   constructor(pessoa, endereco) {
     super([pessoa, endereco]);
@@ -9,6 +11,11 @@ class PessoaPool extends Pool {
   }
 
   async save() {
+    const [pessoaPg] = await Pessoa.getBy({ cpfcnpj: this.pessoa.cpfcnpj });
+    if (pessoaPg) {
+      this.endereco.id = pessoaPg.enderecoId;
+    }
+
     const enderecoId = await this.endereco.save();
 
     this.pessoa.enderecoId = enderecoId;

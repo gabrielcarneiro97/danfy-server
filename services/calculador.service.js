@@ -96,11 +96,16 @@ function trim(mes) {
   return [mes - 2, mes - 1, mes];
 }
 
+function objParseFloat(obj) {
+  Object.keys(obj).forEach((k) => { obj[k] = parseFloat(obj[k]); });
+}
+
 module.exports = {
   validarMovimento,
   dtof,
   mesInicioFim,
   trim,
+  objParseFloat,
   cfopCompra,
   cfopDevolucao,
   cfopDevolucaoCompra,

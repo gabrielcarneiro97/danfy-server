@@ -2,7 +2,7 @@ const {
   pegarUsuarioId,
   pegarDominioId,
   adicionarEmpresa,
-} = require('../services/postgres.service');
+} = require('../services/postgres');
 
 module.exports = {
   get: {

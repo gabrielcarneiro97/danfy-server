@@ -1,9 +1,9 @@
 const { xml2js } = require('xml-js');
 const {
-  criarPessoa,
-  criarNota,
-  criarNotaServico,
-} = require('../services/postgres.service');
+  notaPessoaToPool,
+  notaToPool,
+  notaServicoToPool,
+} = require('../services/postgres');
 const {
   lerNfe,
   lerNfse,
@@ -11,52 +11,52 @@ const {
 
 module.exports = {
   post: {
-    root(req, res) {
+    async root(req, res) {
       const { file } = req;
       const xml = file.buffer.toString('utf-8');
       const obj = xml2js(xml, { compact: true });
-
       let final = {};
 
       if (obj.CompNfse) {
-        lerNfse(obj, (nota, emitente, destinatario) => {
-          final = {
-            tipo: 'nfse',
-            pessoas: { [nota.emitente]: emitente, [nota.destinatario]: destinatario },
-            nota,
-          };
+        lerNfse(obj, async (notaParam, emitente, destinatario) => {
+          try {
+            const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
+              notaPessoaToPool(notaParam.emitente, emitente),
+              notaPessoaToPool(notaParam.destinatario, destinatario),
+            ]);
 
-          const promises = [
-            criarPessoa(nota.emitente, emitente),
-            criarPessoa(nota.destinatario, destinatario),
-            criarNotaServico(nota),
-          ];
+            const notaPool = await notaServicoToPool(notaParam);
 
-          Promise.all(promises).then(() => {
+            final = {
+              tipo: 'nfse',
+              pessoas: [emitentePessoaPool, destinatarioPessoaPool],
+              notaPool,
+            };
+
             res.send(final);
-          }).catch((err) => {
-            res.status(400).send({ ...final, err });
-          });
+          } catch (err) {
+            res.status(400).send(err);
+          }
         });
       } else if (obj.nfeProc) {
-        lerNfe(obj, (nota, emitente, destinatario) => {
-          final = {
-            tipo: 'nfe',
-            pessoas: { [nota.emitente]: emitente, [nota.destinatario]: destinatario },
-            nota,
-          };
+        lerNfe(obj, async (nota, emitente, destinatario) => {
+          try {
+            const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
+              notaPessoaToPool(nota.emitente, emitente),
+              notaPessoaToPool(nota.destinatario, destinatario),
+            ]);
 
-          const promises = [
-            criarPessoa(nota.emitente, emitente),
-            criarPessoa(nota.destinatario, destinatario),
-            criarNota(nota.chave, nota),
-          ];
+            const notaPool = await notaToPool(nota);
 
-          Promise.all(promises).then(() => {
+            final = {
+              tipo: 'nfe',
+              pessoas: [emitentePessoaPool, destinatarioPessoaPool],
+              notaPool,
+            };
             res.send(final);
-          }).catch((err) => {
-            res.status(400).send({ ...final, err });
-          });
+          } catch (err) {
+            res.status(400).send(err);
+          }
         });
       } else {
         res.sendStatus(400);
