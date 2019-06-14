@@ -19,6 +19,7 @@ class Aliquota extends Table {
       'cofins',
       'pis',
       'csll',
+      'irpj',
       'icms_aliquota',
       'icms_reducao',
       'forma_pagamento',

@@ -40,17 +40,13 @@ function compararCFOP(notaInicial, notaFinal) {
   return false;
 }
 
-function compararProduto(notaInicial, notaFinal) {
+function compararProduto(notaInicialPool, notaFinalPool) {
   let retorno = false;
 
-  Object.keys(notaInicial.produtos).forEach((nomeProdutoInicial) => {
-    Object.keys(notaFinal.produtos).forEach((nomeProdutoFinal) => {
-      if (nomeProdutoFinal === nomeProdutoInicial) {
-        retorno = true;
-      } else if (notaInicial.produtos[nomeProdutoInicial].descricao ===
-        notaFinal.produtos[nomeProdutoFinal].descricao) {
-        retorno = true;
-      }
+  notaInicialPool.produtos.forEach((produtoInicial) => {
+    notaFinalPool.produtos.forEach((produtoFinal) => {
+      if (produtoFinal.nome === produtoInicial.nome) retorno = true;
+      else if (produtoFinal.descricao === produtoInicial.descricao) retorno = true;
     });
   });
 
@@ -67,13 +63,15 @@ function compararData(notaInicial, notaFinal) {
   return false;
 }
 
-function validarMovimento(notaInicial, notaFinal) {
+function validarMovimento(notaInicialPool, notaFinalPool) {
+  const notaInicial = notaInicialPool.nota;
+  const notaFinal = notaFinalPool.nota;
   if (notaInicial.chave === notaFinal.chave) {
     return { isValid: false, error: new Error('A nota Inicial e Final são iguais!') };
   }
   if (!compararCFOP(notaInicial, notaFinal)) {
     return { isValid: false, error: new Error(`O CFOP da Nota Inicial ${notaInicial.numero} ${notaInicial.cfop} não é valido para o CFOP da Nota Final ${notaFinal.numero} ${notaFinal.cfop}`) };
-  } else if (!compararProduto(notaInicial, notaFinal)) {
+  } else if (!compararProduto(notaInicialPool, notaFinalPool)) {
     return { isValid: false, error: new Error(`O produto da Nota Final ${notaFinal.numero} não foi localizado na Nota Inicial ${notaInicial.numero}!`) };
   } else if (!compararData(notaInicial, notaFinal)) {
     return { isValid: false, error: new Error(`A data da Nota Final ${notaFinal.numero} é anterior a data da Nota Inicial ${notaInicial.numero}!`) };

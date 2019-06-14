@@ -8,14 +8,14 @@ class NotaPool extends Pool {
       super([nota].concat(produtos));
       this.produtos = produtos;
     } else {
-      super(nota);
+      super([nota]);
     }
     this.nota = nota;
   }
 
   static async getByChave(chave) {
-    const [nota] = Nota.getBy({ chave });
-    const produtos = Produto.getBy('nota_chave', chave);
+    const [nota] = await Nota.getBy({ chave });
+    const produtos = await Produto.getBy('nota_chave', chave);
 
     return new NotaPool(nota, produtos);
   }

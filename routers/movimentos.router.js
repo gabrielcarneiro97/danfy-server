@@ -30,26 +30,28 @@ movimentoRouter.post('/calcular', bodyParser.json(), async (req, res) => {
   const { notasFinaisChave, usuario } = req.body;
   const notasIniciais = [];
 
-  const promises = notasFinaisChave.map(notaFinalChave => new Promise(async (resolve, reject) => {
+  const promises = notasFinaisChave.map(async (notaFinalChave) => {
     let movimento;
     try {
       const notaFinalPool = await NotaPool.getByChave(notaFinalChave);
       const { nota: notaFinal, produtos } = notaFinalPool;
 
-      const prodPromises = produtos.map(produto => new Promise(async (resolveProd, rejectProd) => {
+      const prodPromises = produtos.map(async (produto) => {
         const { nome } = produto;
         try {
           const notasProd = await pegarNotasPoolProdutoEmitente(nome, notaFinal.emitenteCpfcnpj);
-          resolveProd(notasProd);
+          return notasProd;
         } catch (err) {
-          rejectProd(err);
+          throw err;
         }
-      }));
+      });
 
-      const notasPool = [...(await Promise.all(prodPromises))];
+      const promisesRes = await Promise.all(prodPromises);
+
+      const notasPool = [].concat(...promisesRes);
 
       const notaInicialPool = notasPool
-        .find(notaPool => validarMovimento(notaPool.nota, notaFinalPool.nota).isValid);
+        .find(notaPool => validarMovimento(notaPool, notaFinalPool).isValid);
 
       if (notaInicialPool) {
         notasIniciais.push(notaInicialPool);
@@ -58,11 +60,11 @@ movimentoRouter.post('/calcular', bodyParser.json(), async (req, res) => {
         movimento = await calcularMovimentoPool(null, notaFinalChave);
       }
       movimento.metaDados.email = usuario.email;
-      resolve(movimento);
+      return movimento;
     } catch (err) {
-      reject(err);
+      throw err;
     }
-  }));
+  });
 
   const movimentos = await Promise.all(promises);
   res.send({ movimentos, notasIniciais });
@@ -117,8 +119,8 @@ movimentoRouter.get('/slim', async (req, res) => {
   try {
     const notaInicialPool = await criarNotaPoolSlim(valorInicial, cnpj);
     const { chave: notaInicialChave } = notaInicialPool.nota;
-    const movimento = await calcularMovimentoPool(notaInicialChave, notaFinalChave);
-    res.send(movimento);
+    const movimentoPool = await calcularMovimentoPool(notaInicialChave, notaFinalChave);
+    res.send({ movimentoPool, notaInicialPool });
   } catch (err) {
     console.log(err);
     res.status(500).send(err);

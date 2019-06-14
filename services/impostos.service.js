@@ -291,7 +291,7 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
 
   if (notaFinal.estadoGeradorId !== 11) throw new Error('Estado informado não suportado!');
 
-  const [notaInicial] = notaInicialChave ? await Nota.getBy({ chave: notaInicialChave }) : null;
+  const [notaInicial] = notaInicialChave ? await Nota.getBy({ chave: notaInicialChave }) : [null];
 
   const movimento = new Movimento();
   const metaDados = new MetaDados();
@@ -307,6 +307,9 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
   metaDados.ativo = true;
   metaDados.tipo = 'PRIM';
 
+  movimento.notaFinalChave = notaFinalChave;
+  movimento.notaInicialChave = notaInicialChave;
+  movimento.dataHora = notaFinal.dataHora;
   movimento.conferido = true;
   movimento.valorSaida = notaFinal.valor;
   movimento.donoCpfcnpj = notaFinal.emitenteCpfcnpj;
