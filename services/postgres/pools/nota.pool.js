@@ -4,9 +4,13 @@ const { Nota, Produto } = require('../models');
 
 class NotaPool extends Pool {
   constructor(nota, produtos) {
-    super([nota].concat(produtos));
+    if (produtos) {
+      super([nota].concat(produtos));
+      this.produtos = produtos;
+    } else {
+      super(nota);
+    }
     this.nota = nota;
-    this.produtos = produtos;
   }
 
   static async getByChave(chave) {
@@ -18,7 +22,7 @@ class NotaPool extends Pool {
 
   async save() {
     const notaId = await this.nota.save();
-    this.produtos.forEach(async produto => produto.save());
+    if (this.produtos) this.produtos.forEach(produto => produto.save());
     return notaId;
   }
 }

@@ -5,10 +5,21 @@ const { NotaPool } = require('./pools');
 
 async function criarNota(chave, notaParam) {
   const nota = new Nota({ ...chave, notaParam });
-  return nota.save();
+  await nota.save();
+  return nota;
 }
 
-async function criarNotaSlim(notaParam) {
+async function criarNotaPoolSlim(valor, destinatario) {
+  const nota = new Nota();
+  nota.emitente = 'INTERNO';
+  nota.dataHora = new Date();
+  nota.cfop = 'INTERNO';
+  nota.status = 'INTERNO';
+  nota.tipo = 'INTERNO';
+  nota.naturezaOperacao = 'INTERNO';
+  nota.destinatario = destinatario;
+  nota.valor = valor;
+
   let chave;
   let notasPg;
 
@@ -18,20 +29,26 @@ async function criarNotaSlim(notaParam) {
     notasPg = await Nota.getBy({ chave });
   } while (notasPg.length !== 0);
 
-  return criarNota(chave, notaParam);
+  nota.chave = chave;
+
+  const notaPool = new NotaPool(nota);
+
+  await notaPool.save();
+
+  return notaPool;
 }
 
-function pegarNotasProdutoEmitente(nome, cnpj) {
+function pegarNotasPoolProdutoEmitente(nome, cnpj) {
   return new Promise((resolve, reject) => {
     if (nome === 'INTERNO') {
       reject(new Error('Id inválido (INTERNO)'));
     } else {
-      pg.select('nota.*')
+      pg.select('nota.chave')
         .from('tb_produto as prod')
         .innerJoin('tb_nota as nota', 'prod.nota_chave', 'nota.chave')
         .where('prod.nome', nome)
         .andWhere('nota.emitente_cpfcnpj', cnpj)
-        .then(notasPg => resolve(notasPg.map(o => new Nota(o, true))))
+        .then(notasPg => resolve(notasPg.map(o => NotaPool.getByChave(o.chave))))
         .catch(reject);
     }
   });
@@ -104,8 +121,8 @@ async function notaToPool(notaObj) {
 
 module.exports = {
   criarNota,
-  pegarNotasProdutoEmitente,
+  pegarNotasPoolProdutoEmitente,
   pegarNotaChave,
-  criarNotaSlim,
+  criarNotaPoolSlim,
   notaToPool,
 };

@@ -68,6 +68,9 @@ function compararData(notaInicial, notaFinal) {
 }
 
 function validarMovimento(notaInicial, notaFinal) {
+  if (notaInicial.chave === notaFinal.chave) {
+    return { isValid: false, error: new Error('A nota Inicial e Final são iguais!') };
+  }
   if (!compararCFOP(notaInicial, notaFinal)) {
     return { isValid: false, error: new Error(`O CFOP da Nota Inicial ${notaInicial.numero} ${notaInicial.cfop} não é valido para o CFOP da Nota Final ${notaFinal.numero} ${notaFinal.cfop}`) };
   } else if (!compararProduto(notaInicial, notaFinal)) {

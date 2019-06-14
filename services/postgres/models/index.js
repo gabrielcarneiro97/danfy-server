@@ -20,6 +20,7 @@ const Total = require('./total.model');
 const TotalMovimento = require('./totalMovimento.model');
 const TotalServico = require('./totalServico.model');
 const TotalSoma = require('./totalSoma.model');
+const Usuario = require('./usuario.model');
 
 module.exports = {
   Acumulado,
@@ -44,4 +45,5 @@ module.exports = {
   TotalMovimento,
   TotalServico,
   TotalSoma,
+  Usuario,
 };

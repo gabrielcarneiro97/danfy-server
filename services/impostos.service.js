@@ -291,7 +291,7 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
 
   if (notaFinal.estadoGeradorId !== 11) throw new Error('Estado informado não suportado!');
 
-  const [notaInicial] = await Nota.getBy({ chave: notaInicialChave });
+  const [notaInicial] = notaInicialChave ? await Nota.getBy({ chave: notaInicialChave }) : null;
 
   const movimento = new Movimento();
   const metaDados = new MetaDados();
@@ -303,10 +303,14 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
     metaDados,
     new ImpostoPool(imposto, icms),
   );
+  metaDados.mdDataHora = new Date();
+  metaDados.ativo = true;
+  metaDados.tipo = 'PRIM';
 
+  movimento.conferido = true;
   movimento.valorSaida = notaFinal.valor;
   movimento.donoCpfcnpj = notaFinal.emitenteCpfcnpj;
-  movimento.lucro = notaFinal.valor - notaInicial.valor;
+  movimento.lucro = notaInicial ? notaFinal.valor - notaInicial.valor : notaFinal.valor;
 
   if (movimento.lucro < 0 && !eMovimentoInterno(notaFinal)) {
     movimento.lucro = 0;
@@ -317,7 +321,7 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
     return movimentoPool;
   }
 
-  if (eDevolucao(notaFinal)) {
+  if (eDevolucao(notaFinal) && notaInicial) {
     const movimentoAnterior = await MovimentoPool.getByNotaFinal(notaInicialChave);
     movimento.lucro = movimentoAnterior ? (-1) * movimentoAnterior.lucro : 0;
     movimento.valorSaida = 0;
@@ -373,6 +377,7 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
 
 module.exports = {
   pegarTrimestreComNotas,
+  calcularTrimestre,
   calcularServicoPool,
   calcularMovimentoPool,
 };

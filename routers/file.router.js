@@ -1,4 +1,7 @@
 const { xml2js } = require('xml-js');
+const express = require('express');
+const multer = require('multer');
+
 const {
   notaPessoaToPool,
   notaToPool,
@@ -9,58 +12,59 @@ const {
   lerNfse,
 } = require('../services/xml.service');
 
-module.exports = {
-  post: {
-    async root(req, res) {
-      const { file } = req;
-      const xml = file.buffer.toString('utf-8');
-      const obj = xml2js(xml, { compact: true });
-      let final = {};
+const fileRouter = express();
+const upload = multer();
 
-      if (obj.CompNfse) {
-        lerNfse(obj, async (notaParam, emitente, destinatario) => {
-          try {
-            const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
-              notaPessoaToPool(notaParam.emitente, emitente),
-              notaPessoaToPool(notaParam.destinatario, destinatario),
-            ]);
+fileRouter.post('/', upload.single('file'), async (req, res) => {
+  const { file } = req;
+  const xml = file.buffer.toString('utf-8');
+  const obj = xml2js(xml, { compact: true });
+  let final = {};
 
-            const notaPool = await notaServicoToPool(notaParam);
+  if (obj.CompNfse) {
+    lerNfse(obj, async (notaParam, emitente, destinatario) => {
+      try {
+        const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
+          notaPessoaToPool(notaParam.emitente, emitente),
+          notaPessoaToPool(notaParam.destinatario, destinatario),
+        ]);
 
-            final = {
-              tipo: 'nfse',
-              pessoas: [emitentePessoaPool, destinatarioPessoaPool],
-              notaPool,
-            };
+        const notaPool = await notaServicoToPool(notaParam);
 
-            res.send(final);
-          } catch (err) {
-            res.status(400).send(err);
-          }
-        });
-      } else if (obj.nfeProc) {
-        lerNfe(obj, async (nota, emitente, destinatario) => {
-          try {
-            const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
-              notaPessoaToPool(nota.emitente, emitente),
-              notaPessoaToPool(nota.destinatario, destinatario),
-            ]);
+        final = {
+          tipo: 'nfse',
+          pessoas: [emitentePessoaPool, destinatarioPessoaPool],
+          notaPool,
+        };
 
-            const notaPool = await notaToPool(nota);
-
-            final = {
-              tipo: 'nfe',
-              pessoas: [emitentePessoaPool, destinatarioPessoaPool],
-              notaPool,
-            };
-            res.send(final);
-          } catch (err) {
-            res.status(400).send(err);
-          }
-        });
-      } else {
-        res.sendStatus(400);
+        res.send(final);
+      } catch (err) {
+        res.status(400).send(err);
       }
-    },
-  },
-};
+    });
+  } else if (obj.nfeProc) {
+    lerNfe(obj, async (nota, emitente, destinatario) => {
+      try {
+        const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
+          notaPessoaToPool(nota.emitente, emitente),
+          notaPessoaToPool(nota.destinatario, destinatario),
+        ]);
+
+        const notaPool = await notaToPool(nota);
+
+        final = {
+          tipo: 'nfe',
+          pessoas: [emitentePessoaPool, destinatarioPessoaPool],
+          notaPool,
+        };
+        res.send(final);
+      } catch (err) {
+        res.status(400).send(err);
+      }
+    });
+  } else {
+    res.sendStatus(400);
+  }
+});
+
+module.exports = fileRouter;

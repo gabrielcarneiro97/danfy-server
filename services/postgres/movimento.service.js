@@ -89,6 +89,13 @@ async function pegarMetaDados(movId) {
 
   return metaDados;
 }
+async function movimentoPoolFromObj(obj) {
+  return new MovimentoPool(
+    obj.movimento,
+    obj.metaDados,
+    new ImpostoPool(obj.impostoPool.imposto, obj.impostoPool.icms),
+  );
+}
 
 async function cancelarMovimento(id) {
   const metaDados = pegarMetaDados(id);
@@ -101,5 +108,6 @@ module.exports = {
   pegarMovimentoPoolNotaFinal,
   pegarMovimentosPoolMes,
   pegarMovimentoPoolId,
+  movimentoPoolFromObj,
   cancelarMovimento,
 };

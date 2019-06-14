@@ -13,7 +13,7 @@
     "xml-js": "^1.6.4"
   },
   "scripts": {
-    "dev": "node dev.js",
+    "dev": "npx nodemon dev.js",
     "ssl": "node dev.js ssl",
     "start": "node server.js"
   },

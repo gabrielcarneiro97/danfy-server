@@ -1,13 +1,13 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+
 const {
-  criarNotaSlim,
-  criarMovimento,
-  pegarNotasProdutoEmitente,
-  pegarNotaChave,
-  pegarEmpresaAliquota,
-  pegarMovimentoNotaFinal,
+  criarNotaPoolSlim,
+  pegarNotasPoolProdutoEmitente,
+  pegarMovimentoPoolNotaFinal,
   cancelarMovimento,
-  pegarMovimentoId,
-  pegarMovimentosServicosTotal,
+  pegarMovimentoPoolId,
+  movimentoPoolFromObj,
 } = require('../services/postgres');
 
 const {
@@ -15,289 +15,173 @@ const {
 } = require('../services/calculador.service');
 
 const {
-  calcularImpostosMovimento,
+  calcularMovimentoPool,
+  calcularTrimestre,
+  pegarTrimestreComNotas,
 } = require('../services/impostos.service');
 
-module.exports = {
-  post: {
-    calcular(req, res) {
-      const { notasFinais, usuario } = req.body;
-      const promises = [];
-      const notasIniciais = [];
+const {
+  NotaPool,
+} = require('../services/postgres/pools');
 
-      notasFinais.forEach((chave) => {
-        const p = new Promise((resolve) => {
-          pegarNotaChave(chave).then((nota) => {
-            const movimento = {
-              notaFinal: chave,
-              notaInicial: null,
-              data: nota.geral.dataHora,
-              conferido: false,
-              dominio: usuario.dominio,
-              valores: {},
-              metaDados: {
-                criadoPor: usuario.email,
-                dataCriacao: new Date().toISOString(),
-                status: 'ATIVO',
-                tipo: 'PRIM',
-                movimentoRef: '',
-              },
-            };
+const movimentoRouter = express();
 
-            let notas = [];
-            const produtos = Object.keys(nota.produtos);
+movimentoRouter.post('/calcular', bodyParser.json(), async (req, res) => {
+  const { notasFinaisChave, usuario } = req.body;
+  const notasIniciais = [];
 
-            const promisesProdutos = [];
+  const promises = notasFinaisChave.map(notaFinalChave => new Promise(async (resolve, reject) => {
+    let movimento;
+    try {
+      const notaFinalPool = await NotaPool.getByChave(notaFinalChave);
+      const { nota: notaFinal, produtos } = notaFinalPool;
 
-            produtos.forEach((produto) => {
-              const promiseProd = new Promise((resolveProd) => {
-                pegarNotasProdutoEmitente(produto, nota.emitente)
-                  .then((notasProd) => {
-                    notas = notas.concat(notasProd);
-                    resolveProd();
-                  });
-              });
-
-              promisesProdutos.push(promiseProd);
-            });
-
-            Promise.all(promisesProdutos).then(() => {
-              let includes = false;
-              Object.keys(notas).forEach((notaIndex) => {
-                const chaveNota = notas[notaIndex].chave;
-                if (chaveNota !== nota.chave && validarMovimento(notas[notaIndex], nota).isValid) {
-                  includes = true;
-                  movimento.notaInicial = chaveNota;
-                  pegarEmpresaAliquota(nota.emitente).then((aliquotas) => {
-                    calcularImpostosMovimento(notas[notaIndex], nota, aliquotas)
-                      .then((valores) => {
-                        movimento.valores = valores;
-                        movimento.conferido = true;
-                        notasIniciais.push(notas[notaIndex]);
-                        resolve(movimento);
-                      });
-                  });
-                }
-              });
-
-              if (!includes) {
-                pegarEmpresaAliquota(nota.emitente).then((aliquotas) => {
-                  calcularImpostosMovimento(null, nota, aliquotas).then((valores) => {
-                    movimento.valores = valores;
-                    resolve(movimento);
-                  });
-                });
-              }
-            });
-          });
-        });
-        promises.push(p);
-      });
-
-      Promise.all(promises).then((movimentos) => {
-        res.send({ movimentos, notasIniciais });
-      }).catch(err => console.error(err));
-    },
-    push(req, res) {
-      const { movimento, cnpj } = req.body;
-      let { valorInicial } = req.body;
-      pegarMovimentoNotaFinal(movimento.notaFinal).then((movimentoExiste) => {
-        if (movimentoExiste) {
-          res.status(409).send({ error: `Nota já registrada em outro serviço! ID: ${movimentoExiste._id}` });
-        } else if (movimento.notaInicial) {
-          criarMovimento(movimento).then(() => {
-            res.sendStatus(201);
-          }).catch((err) => {
-            console.error(err);
-            res.sendStatus(500);
-          });
-        } else {
-          valorInicial = parseFloat(valorInicial.toString().replace(',', '.'));
-
-          pegarNotaChave(movimento.notaFinal).then((notaFinalObj) => {
-            const notaInicial = {
-              emitente: 'INTERNO',
-              destinatario: notaFinalObj.emitente,
-              geral: {
-                dataHora: new Date().toISOString(),
-                cfop: 'INTERNO',
-                naturezaOperacao: 'INTERNO',
-                numero: 'INTERNO',
-                status: 'INTERNO',
-                tipo: 'INTERNO',
-              },
-              produtos: {
-                INTERNO: {
-                  descricao: 'INTERNO',
-                  quantidade: {
-                    numero: '1',
-                    tipo: 'UN',
-                  },
-                  valor: {
-                    total: valorInicial,
-                  },
-                },
-              },
-              valor: {
-                total: valorInicial,
-              },
-            };
-            criarNotaSlim(notaInicial).then((notaInicialCompleta) => {
-              pegarEmpresaAliquota(cnpj).then((aliquotas) => {
-                calcularImpostosMovimento(notaInicialCompleta, notaFinalObj, aliquotas)
-                  .then((movimentoSlim) => {
-                    criarMovimento(movimentoSlim).then(() => {
-                      res.sendStatus(201);
-                    }).catch((err) => {
-                      console.error(err);
-                      res.sendStatus(500);
-                    });
-                  }).catch((err) => {
-                    console.error(err);
-                    res.sendStatus(500);
-                  });
-              }).catch((err) => {
-                console.error(err);
-                res.sendStatus(500);
-              });
-            }).catch((err) => {
-              console.error(err);
-              res.sendStatus(500);
-            });
-          });
+      const prodPromises = produtos.map(produto => new Promise(async (resolveProd, rejectProd) => {
+        const { nome } = produto;
+        try {
+          const notasProd = await pegarNotasPoolProdutoEmitente(nome, notaFinal.emitenteCpfcnpj);
+          resolveProd(notasProd);
+        } catch (err) {
+          rejectProd(err);
         }
-      });
-    },
-  },
-  get: {
-    valor(req, res) {
-      const { notaInicialChave, notaFinalChave, cnpj } = req.query;
-      if (!notaInicialChave) module.exports.get.slim(req, res);
-      else {
-        pegarEmpresaAliquota(cnpj).then((aliquotas) => {
-          pegarNotaChave(notaInicialChave).then((notaInicialObj) => {
-            pegarNotaChave(notaFinalChave).then((notaFinalObj) => {
-              calcularImpostosMovimento(notaInicialObj, notaFinalObj, aliquotas)
-                .then((movimento) => {
-                  res.send(movimento);
-                }).catch((err) => {
-                  console.error(err);
-                  res.sendStatus(500);
-                });
-            }).catch((err) => {
-              console.error(err);
-              res.sendStatus(500);
-            });
-          }).catch((err) => {
-            console.error(err);
-            res.sendStatus(500);
-          });
-        }).catch((err) => {
-          console.error(err);
-          res.sendStatus(500);
-        });
-      }
-    },
-    slim(req, res) {
-      const { notaFinalChave, cnpj } = req.query;
-      let { valorInicial } = req.query;
+      }));
 
+      const notasPool = [...(await Promise.all(prodPromises))];
+
+      const notaInicialPool = notasPool
+        .find(notaPool => validarMovimento(notaPool.nota, notaFinalPool.nota).isValid);
+
+      if (notaInicialPool) {
+        notasIniciais.push(notaInicialPool);
+        movimento = await calcularMovimentoPool(notaInicialPool.nota.chave, notaFinalChave);
+      } else {
+        movimento = await calcularMovimentoPool(null, notaFinalChave);
+      }
+      movimento.metaDados.email = usuario.email;
+      resolve(movimento);
+    } catch (err) {
+      reject(err);
+    }
+  }));
+
+  const movimentos = await Promise.all(promises);
+  res.send({ movimentos, notasIniciais });
+});
+movimentoRouter.post('/push', bodyParser.json(), async (req, res) => {
+  const { movimentoPool: movPoolFlat, cnpj } = req.body;
+  let { valorInicial } = req.body;
+
+  const movimentoPool = movimentoPoolFromObj(movPoolFlat);
+  const { movimento } = movimentoPool;
+
+  try {
+    const movimentoExiste =
+      await pegarMovimentoPoolNotaFinal(movimento.notaFinalChave);
+
+    if (movimentoExiste) {
+      res.status(409).send({ error: `Nota já registrada em outro serviço! ID: ${movimentoExiste.movimento.id}` });
+    } else if (movimento.notaInicialChave) {
+      await movimentoPool.save();
+      res.sendStatus(201);
+    } else {
       valorInicial = parseFloat(valorInicial.toString().replace(',', '.'));
 
-      pegarNotaChave(notaFinalChave).then((notaFinalObj) => {
-        const notaInicial = {
-          emitente: 'INTERNO',
-          destinatario: notaFinalObj.emitente,
-          geral: {
-            dataHora: new Date().toISOString(),
-            cfop: 'INTERNO',
-            naturezaOperacao: 'INTERNO',
-            numero: 'INTERNO',
-            status: 'INTERNO',
-            tipo: 'INTERNO',
-          },
-          produtos: {
-            INTERNO: {
-              descricao: 'INTERNO',
-              quantidade: {
-                numero: '1',
-                tipo: 'UN',
-              },
-              valor: {
-                total: valorInicial,
-              },
-            },
-          },
-          valor: {
-            total: valorInicial,
-          },
-        };
+      const notaInicialPool = await criarNotaPoolSlim(valorInicial, cnpj);
+      const { chave: notaInicialChave } = notaInicialPool.nota;
+      const { notaFinalChave } = movimento;
 
-        criarNotaSlim(notaInicial).then((notaInicialCompleta) => {
-          pegarEmpresaAliquota(cnpj).then((aliquotas) => {
-            calcularImpostosMovimento(notaInicialCompleta, notaFinalObj, aliquotas)
-              .then((movimento) => {
-                res.send({ valores: movimento, notaInicial: notaInicialCompleta });
-              }).catch((err) => {
-                console.error(err);
-                res.sendStatus(500);
-              });
-          }).catch((err) => {
-            console.error(err);
-            res.sendStatus(500);
-          });
-        }).catch((err) => {
-          console.error(err);
-          res.sendStatus(500);
-        });
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
-      });
-    },
-    notaFinal(req, res) {
-      const { notaFinalChave } = req.query;
-      pegarMovimentoNotaFinal(notaFinalChave).then((movimento) => {
-        res.send(movimento);
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
-      });
-    },
-  },
-  put: {
-    cancelar(req, res) {
-      const { cnpj, movimentoId } = req.query;
+      (await calcularMovimentoPool(notaInicialChave, notaFinalChave)).save();
+      res.sendStatus(201);
+    }
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
 
-      pegarMovimentoId(movimentoId).then(({ movimento }) => {
-        const mes = (movimento.data.getMonth() + 1).toString();
-        const ano = movimento.data.getFullYear().toString();
-        cancelarMovimento(movimentoId).then(() => {
-          pegarMovimentosServicosTotal(cnpj, { mes, ano }, true).then((data) => {
-            res.send(data);
-          });
-        }).catch((err) => {
-          console.error(err);
-          res.sendStatus(500);
-        });
-      });
-    },
-    editar(req, res) {
-      const { cnpj, movimentoAntigoId } = req.query;
-      const { movimentoNovo } = req.body;
+movimentoRouter.get('/valor', async (req, res) => {
+  const { notaInicialChave, notaFinalChave } = req.query;
+  try {
+    const movimentoPool = await calcularMovimentoPool(notaInicialChave, notaFinalChave);
+    res.send(movimentoPool);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+movimentoRouter.get('/slim', async (req, res) => {
+  const { notaFinalChave, cnpj } = req.query;
+  let { valorInicial } = req.query;
 
-      const movimentoData = new Date(movimentoNovo.data);
+  valorInicial = parseFloat(valorInicial.toString().replace(',', '.'));
 
-      const mes = (movimentoData.getMonth() + 1).toString();
-      const ano = movimentoData.getFullYear().toString();
+  try {
+    const notaInicialPool = await criarNotaPoolSlim(valorInicial, cnpj);
+    const { chave: notaInicialChave } = notaInicialPool.nota;
+    const movimento = await calcularMovimentoPool(notaInicialChave, notaFinalChave);
+    res.send(movimento);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+movimentoRouter.get('/notaFinal', async (req, res) => {
+  const { notaFinalChave } = req.query;
+  try {
+    const movimento = await pegarMovimentoPoolNotaFinal(notaFinalChave);
+    res.send(movimento);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
 
-      cancelarMovimento(movimentoAntigoId).then(() => {
-        criarMovimento(movimentoNovo).then(() => {
-          pegarMovimentosServicosTotal(cnpj, { mes, ano }, true).then((data) => {
-            res.send(data);
-          });
-        });
-      });
-    },
-  },
-};
+movimentoRouter.put('/cancelar', async (req, res) => {
+  const { cnpj, movimentoId } = req.query;
+
+  try {
+    await cancelarMovimento(movimentoId);
+    const movimentoPool = await pegarMovimentoPoolId(movimentoId);
+
+    const { movimento } = movimentoPool;
+
+    const mes = (movimento.dataHora.getMonth() + 1);
+    const ano = movimento.dataHora.getFullYear();
+
+    await calcularTrimestre(cnpj, { mes, ano });
+
+    const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
+
+    res.send(trim);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+movimentoRouter.put('/editar', async (req, res) => {
+  const { cnpj, movimentoAntigoId } = req.query;
+  const { movimentoNovoObj } = req.body;
+
+  const movimentoData = new Date(movimentoNovoObj.movimento.dataHora);
+
+  const mes = (movimentoData.getMonth() + 1);
+  const ano = movimentoData.getFullYear();
+
+  try {
+    const movimentoPoolNovo = await movimentoPoolFromObj(movimentoNovoObj);
+
+    await cancelarMovimento(movimentoAntigoId);
+    await movimentoPoolNovo.save();
+
+    await calcularTrimestre(cnpj, { mes, ano });
+
+    const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
+
+    res.send(trim);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+module.exports = movimentoRouter;

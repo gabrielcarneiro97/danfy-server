@@ -1,10 +1,16 @@
 const { Dominio } = require('./models');
 
-function pegarDominioId(codigo) {
-  return Dominio.getBy({ codigo });
+async function pegarDominioCodigo(codigo) {
+  const dominio = (await Dominio.getBy({ codigo })).map(o => ({
+    numero: o.numero,
+    id: o.id,
+    cnpj: o.cnpj,
+  }));
+
+  return dominio;
 }
 
-function adicionarEmpresa(codigo, numero, cnpj) {
+async function adicionarEmpresa(codigo, numero, cnpj) {
   return new Dominio({
     codigo,
     numero,
@@ -13,6 +19,6 @@ function adicionarEmpresa(codigo, numero, cnpj) {
 }
 
 module.exports = {
-  pegarDominioId,
+  pegarDominioCodigo,
   adicionarEmpresa,
 };
