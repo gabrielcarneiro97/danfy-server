@@ -21,6 +21,12 @@ class TotalServicoPool extends Pool {
     return this.totalServico.save();
   }
 
+  async del() {
+    await this.imposto.del();
+    await this.retencao.del();
+    return this.totalServico.del();
+  }
+
   soma(pool) {
     if (pool instanceof ServicoPool) {
       this.totalServico.soma(pool.servico);

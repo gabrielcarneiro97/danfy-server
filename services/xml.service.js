@@ -12,7 +12,7 @@ function lerNfse(obj, callback) {
 
   const valor = {
     servico: valorBruto.ValorServicos['_text'],
-    baseDeCalculo: valorBruto.BaseCalculo['_text'],
+    baseCalculo: valorBruto.BaseCalculo['_text'],
     iss: {
       valor: valorBruto.ValorIss ? valorBruto.ValorIss['_text'] : '0.0',
       aliquota: valorBruto.Aliquota ? valorBruto.Aliquota['_text'] : '0.0',

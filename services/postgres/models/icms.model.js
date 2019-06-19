@@ -45,6 +45,10 @@ class Icms extends Table {
   save() {
     return Table.save(this, Icms);
   }
+
+  del() {
+    return Table.del(this, Icms);
+  }
 }
 
 module.exports = Icms;

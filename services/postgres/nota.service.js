@@ -66,7 +66,7 @@ async function pegarNotaChave(chave) {
   }
 }
 
-async function notaToPool(notaObj) {
+async function notaXmlToPool(notaObj) {
   const notaFlat = {
     ...notaObj,
     ...notaObj.geral,
@@ -128,5 +128,5 @@ module.exports = {
   pegarNotasPoolProdutoEmitente,
   pegarNotaChave,
   criarNotaPoolSlim,
-  notaToPool,
+  notaXmlToPool,
 };

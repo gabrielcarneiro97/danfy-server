@@ -49,6 +49,13 @@ class TotalSomaPool extends Pool {
 
     return undefined;
   }
+
+  async del() {
+    await this.impostoPool.del();
+    await this.retencao.del();
+    await this.acumulado.del();
+    return this.totalSoma.del();
+  }
 }
 
 module.exports = TotalSomaPool;

@@ -48,12 +48,16 @@ class Retencao extends Table {
     this.total += total;
   }
 
+  totalize() {
+    this.total = this.iss + this.cofins + this.csll + this.irpj + this.pis + this.inss;
+  }
+
   save() {
     return Table.save(this, Retencao);
   }
 
   del() {
-    return Table.delete(this, Retencao);
+    return Table.del(this, Retencao);
   }
 }
 

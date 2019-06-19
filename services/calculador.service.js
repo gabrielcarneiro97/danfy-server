@@ -101,12 +101,27 @@ function objParseFloat(obj) {
   Object.keys(obj).forEach((k) => { obj[k] = parseFloat(obj[k]); });
 }
 
+function getMesTrim(mesParam) {
+  const mes = parseInt(mesParam, 10);
+  const meses = {
+    1: [1, 2, 3],
+    4: [4, 5, 6],
+    7: [7, 8, 9],
+    10: [10, 11, 12],
+  };
+  if (meses[1].includes(mes)) return 1;
+  else if (meses[4].includes(mes)) return 4;
+  else if (meses[7].includes(mes)) return 7;
+  return 10;
+}
+
 module.exports = {
   validarMovimento,
   dtof,
   mesInicioFim,
   trim,
   objParseFloat,
+  getMesTrim,
   cfopCompra,
   cfopDevolucao,
   cfopDevolucaoCompra,

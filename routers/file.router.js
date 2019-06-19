@@ -4,8 +4,8 @@ const multer = require('multer');
 
 const {
   notaPessoaToPool,
-  notaToPool,
-  notaServicoToPool,
+  notaXmlToPool,
+  notaServicoXmlToPool,
 } = require('../services/postgres');
 const {
   lerNfe,
@@ -29,7 +29,7 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
           notaPessoaToPool(notaParam.destinatario, destinatario),
         ]);
 
-        const notaPool = await notaServicoToPool(notaParam);
+        const notaPool = await notaServicoXmlToPool(notaParam);
 
         final = {
           tipo: 'nfse',
@@ -39,7 +39,8 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
 
         res.send(final);
       } catch (err) {
-        res.status(400).send(err);
+        console.error(err);
+        res.status(500).send(err);
       }
     });
   } else if (obj.nfeProc) {
@@ -50,7 +51,7 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
           notaPessoaToPool(nota.destinatario, destinatario),
         ]);
 
-        const notaPool = await notaToPool(nota);
+        const notaPool = await notaXmlToPool(nota);
 
         final = {
           tipo: 'nfe',
@@ -59,7 +60,8 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
         };
         res.send(final);
       } catch (err) {
-        res.status(400).send(err);
+        console.error(err);
+        res.status(500).send(err);
       }
     });
   } else {

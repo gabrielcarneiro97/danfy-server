@@ -19,6 +19,7 @@ class Imposto extends Table {
       'cofins',
       'csll',
       'irpj',
+      'adicional_ir',
       'pis',
       'total',
       'icms_id',
@@ -50,8 +51,17 @@ class Imposto extends Table {
     this.total += total;
   }
 
+  calculaAdicional(valorMovimento, valorServico, aliquotaIr) {
+    const baseLucro = aliquotaIr === 0.012 ? valorMovimento * 0.08 : valorMovimento * 0.32;
+    const baseServico = valorServico * 0.32;
+
+    const baseCalculo = baseLucro + baseServico;
+
+    this.adicionalIr = baseCalculo > 60000 ? (baseCalculo - 60000) * 0.1 : 0;
+  }
+
   del() {
-    return Table.delete(this, Imposto);
+    return Table.del(this, Imposto);
   }
 }
 

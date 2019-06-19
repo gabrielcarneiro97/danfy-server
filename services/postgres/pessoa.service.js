@@ -39,8 +39,9 @@ async function notaPessoaToPool(cpfcnpj, pessoaObj) {
   return pessoaPool;
 }
 
-function pegarPessoaId(id) {
-  return Pessoa.getBy({ id });
+async function pegarPessoaId(cpfcnpj) {
+  const [pessoa] = await Pessoa.getBy({ cpfcnpj });
+  return pessoa;
 }
 
 module.exports = {

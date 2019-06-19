@@ -80,7 +80,8 @@ async function pegarMovimentoPoolNotaFinal(chaveNota) {
     .innerJoin('tb_meta_dados as md', 'mov.meta_dados_id', 'md.md_id')
     .where('md.ativo', true)
     .andWhere('nota_final_chave', chaveNota);
-  return pegarMovimentoPoolId(mov.id);
+  if (mov) return pegarMovimentoPoolId(mov.id);
+  return null;
 }
 
 async function pegarMetaDados(movId) {
@@ -89,11 +90,14 @@ async function pegarMetaDados(movId) {
 
   return metaDados;
 }
-async function movimentoPoolFromObj(obj) {
+function movimentoPoolFromObj(obj) {
   return new MovimentoPool(
-    obj.movimento,
-    obj.metaDados,
-    new ImpostoPool(obj.impostoPool.imposto, obj.impostoPool.icms),
+    new Movimento(obj.movimento),
+    new MetaDados(obj.metaDados),
+    new ImpostoPool(
+      new Imposto(obj.impostoPool.imposto),
+      new Icms(obj.impostoPool.icms),
+    ),
   );
 }
 

@@ -25,23 +25,21 @@ class TotalPool extends Pool {
   }
 
   async save() {
-    return new Promise((resolve, reject) => {
-      Promise.all([
-        this.totalMovimentoPool.save(),
-        this.totalServicoPool.save(),
-        this.totalSomaPool.save(),
-      ]).then(([
-        totalMovimentoId,
-        totalServicoId,
-        totalSomaId,
-      ]) => {
-        this.total.totalMovimentoId = totalMovimentoId;
-        this.total.totalServicoId = totalServicoId;
-        this.total.totalSomaId = totalSomaId;
+    const [
+      totalMovimentoId,
+      totalServicoId,
+      totalSomaId,
+    ] = await Promise.all([
+      this.totalMovimentoPool.save(),
+      this.totalServicoPool.save(),
+      this.totalSomaPool.save(),
+    ]);
 
-        this.total.save().then(resolve).catch(reject);
-      }).catch(reject);
-    });
+    this.total.totalMovimentoId = totalMovimentoId;
+    this.total.totalServicoId = totalServicoId;
+    this.total.totalSomaId = totalSomaId;
+
+    return this.total.save();
   }
 
   static async getByCnpjComp(cnpj, comp, tipo) {
@@ -63,11 +61,11 @@ class TotalPool extends Pool {
 
         case 1:
         default:
-          return select().andWhere('total.anual', false).orWhere('total.anual', null).andWhere('total.trimestral', false)
-            .orWhere('total.trimestral', null);
+          return select().andWhereRaw('(total.anual = ? or total.anual = ?) AND (total.trimestral = ? OR total.trimestral = ?)', [false, null, false, null]);
       }
     };
     const [totalPg] = await getTotal();
+    if (!totalPg) return null;
     const total = new Total(totalPg, true);
 
     return new Promise((resolve, reject) => {
@@ -81,7 +79,7 @@ class TotalPool extends Pool {
     });
   }
 
-  static newByPools(totalMovimentoPool, totalServicoPool, donoCpfCnpj, dataHora, tipo) {
+  static newByPools(totalMovimentoPool, totalServicoPool, donoCpfCnpj, dataHora, tipo, aliquotaIr) {
     const total = new Total();
     total.donoCpfcnpj = donoCpfCnpj;
     total.dataHora = dataHora;
@@ -94,6 +92,7 @@ class TotalPool extends Pool {
     const impostoTotalSoma = new Imposto();
     impostoTotalSoma.soma(totalMovimentoPool.impostoPool.imposto);
     impostoTotalSoma.soma(totalServicoPool.imposto);
+    impostoTotalSoma.calculaAdicional(totalSoma.valorMovimento, totalSoma.valorServico, aliquotaIr);
     const icmsTotalSoma = new Icms();
     icmsTotalSoma.soma(totalMovimentoPool.impostoPool.icms);
     const retencaoTotalSoma = new Retencao();
@@ -108,6 +107,13 @@ class TotalPool extends Pool {
     );
 
     return new TotalPool(total, totalMovimentoPool, totalServicoPool, totalSomaPool);
+  }
+
+  async del() {
+    await this.totalSomaPool.del();
+    await this.totalMovimentoPool.del();
+    await this.totalServicoPool.del();
+    return this.total.del();
   }
 }
 

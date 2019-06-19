@@ -20,6 +20,7 @@ class Aliquota extends Table {
       'pis',
       'csll',
       'irpj',
+      'iss',
       'icms_aliquota',
       'icms_reducao',
       'forma_pagamento',

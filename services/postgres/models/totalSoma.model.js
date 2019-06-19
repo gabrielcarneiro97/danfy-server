@@ -31,6 +31,10 @@ class TotalSoma extends Table {
   save() {
     return Table.save(this, TotalSoma);
   }
+
+  del() {
+    return Table.del(this, TotalSoma);
+  }
 }
 
 module.exports = TotalSoma;

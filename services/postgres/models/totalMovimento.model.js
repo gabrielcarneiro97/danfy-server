@@ -37,6 +37,10 @@ class TotalMovimento extends Table {
   save() {
     return Table.save(this, TotalMovimento);
   }
+
+  del() {
+    return Table.del(this, TotalMovimento);
+  }
 }
 
 module.exports = TotalMovimento;

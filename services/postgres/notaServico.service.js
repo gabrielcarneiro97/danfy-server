@@ -3,23 +3,24 @@ const { NotaServicoPool } = require('./pools');
 
 const { objParseFloat } = require('../calculador.service');
 
-function criarNotaServico(notaServicoParam) {
+async function criarNotaServico(notaServicoParam) {
   return new NotaServico({
     chave: notaServicoParam.emitente + notaServicoParam.numero,
     ...notaServicoParam,
   }).save();
 }
 
-function pegarNotaServicoChave(chave) {
+async function pegarNotaServicoChave(chave) {
   return NotaServico.getBy({ chave });
 }
 
-async function notaServicoToPool(notaObj) {
+async function notaServicoXmlToPool(notaObj) {
   const retObj = { ...notaObj.valor.retencoes };
 
   objParseFloat(retObj);
 
   const retencao = new Retencao(retObj);
+  retencao.totalize();
 
   const notaFlat = {
     chave: notaObj.chave,
@@ -42,5 +43,5 @@ async function notaServicoToPool(notaObj) {
 module.exports = {
   criarNotaServico,
   pegarNotaServicoChave,
-  notaServicoToPool,
+  notaServicoXmlToPool,
 };

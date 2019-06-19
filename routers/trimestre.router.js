@@ -1,23 +1,51 @@
+const express = require('express');
+
 const {
-  pegarMovimentosServicosTotal,
-} = require('../services/postgres');
+  calcularTrimestre,
+  pegarTrimestreComNotas,
+  recalcularTrimestre,
+} = require('../services/impostos.service');
 
-module.exports = {
-  get: {
-    root(req, res) {
-      const {
-        cnpj,
-        mes,
-        ano,
-        recalcular,
-      } = req.query;
+const trimestreRouter = express();
 
-      pegarMovimentosServicosTotal(cnpj, { mes, ano }, true).then((data) => {
-        res.send(data);
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(404);
-      });
-    },
-  },
-};
+trimestreRouter.get('/', async (req, res) => {
+  const {
+    cnpj,
+    mes,
+    ano,
+  } = req.query;
+
+  try {
+    const calcTrim = await calcularTrimestre(cnpj, { mes, ano });
+    const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
+
+    if (!trim.trimestreData.trim.total.id) {
+      await calcTrim.trim.save();
+      trim.trimestreData.trim = calcTrim.trim;
+    }
+    res.send(trim);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+trimestreRouter.put('/', async (req, res) => {
+  const {
+    cnpj,
+    mes,
+    ano,
+  } = req.query;
+
+  try {
+    await recalcularTrimestre(cnpj, { mes, ano });
+    const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
+
+    res.send(trim);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+module.exports = trimestreRouter;

@@ -1,40 +1,40 @@
 const { Aliquota } = require('./models');
 
-function criarAliquota(cpfcnpj, aliquotasParam) {
-  const aliquotas = new Aliquota({
+async function criarAliquota(aliquotasParam) {
+  const aliquota = new Aliquota({
     ...aliquotasParam,
-    donoCpfcnpj: cpfcnpj,
     ativo: true,
   });
-  return new Promise((resolve, reject) => {
-    Aliquota.getBy({
-      donoCpfcnpj: cpfcnpj,
+
+  try {
+    const [aliquotaAntiga] = await Aliquota.getBy({
+      donoCpfcnpj: aliquota.donoCpfcnpj,
       ativo: true,
-    }).then(([aliquotaAntiga]) => {
-      const promiseAntiga = new Promise((resolveAntiga, rejectAntiga) => {
-        if (aliquotaAntiga) {
-          aliquotaAntiga.ativo = false;
-          aliquotaAntiga.validade = new Date();
-
-          aliquotaAntiga.save().then(resolveAntiga).catch(rejectAntiga);
-        } else resolveAntiga();
-      });
-
-      promiseAntiga.then(() => {
-        aliquotas.save().then(resolve).catch(reject);
-      });
     });
-  });
+
+    if (aliquotaAntiga) {
+      aliquotaAntiga.ativo = false;
+      aliquotaAntiga.validade = new Date();
+
+      await aliquotaAntiga.save();
+    }
+    return aliquota.save();
+  } catch (err) {
+    throw err;
+  }
 }
 
-function pegarEmpresaAliquota(cpfcnpj) {
-  return new Promise((resolve, reject) => {
-    Aliquota.getBy({
+async function pegarEmpresaAliquota(cpfcnpj) {
+  try {
+    const [aliquota] = await Aliquota.getBy({
       donoCpfcnpj: cpfcnpj,
       ativo: true,
-    }).then(([aliquota]) => resolve(aliquota))
-      .catch(reject);
-  });
+    });
+
+    return aliquota;
+  } catch (err) {
+    throw err;
+  }
 }
 
 module.exports = {

@@ -14,7 +14,7 @@ class TotalMovimentoPool extends Pool {
   soma(pool) {
     if (pool instanceof MovimentoPool) {
       this.totalMovimento.soma(pool.movimento);
-    } else if (pool instanceof TotalMovimento) {
+    } else if (pool instanceof TotalMovimentoPool) {
       this.totalMovimento.soma(pool.totalMovimento);
     }
     this.impostoPool.soma(pool.impostoPool);
@@ -25,6 +25,11 @@ class TotalMovimentoPool extends Pool {
     this.totalMovimento.impostoId = impostoId;
 
     return this.totalMovimento.save();
+  }
+
+  async del() {
+    await this.impostoPool.del();
+    return this.totalMovimento.del();
   }
 
   static async getById(id) {

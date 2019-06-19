@@ -22,6 +22,11 @@ class ImpostoPool extends Pool {
     this.icms.soma(impostoPool.icms);
   }
 
+  async del() {
+    await this.icms.del();
+    return this.imposto.del();
+  }
+
   static async getById(id) {
     const [imposto] = await Imposto.getBy({ id });
     const [icms] = await Icms.getBy('id', imposto.icmsId);

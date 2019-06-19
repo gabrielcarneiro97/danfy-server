@@ -33,6 +33,10 @@ class TotalServico extends Table {
   save() {
     return Table.save(this, TotalServico);
   }
+
+  del() {
+    return Table.del(this, TotalServico);
+  }
 }
 
 module.exports = TotalServico;

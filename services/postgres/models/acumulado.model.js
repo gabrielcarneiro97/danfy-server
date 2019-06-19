@@ -28,6 +28,10 @@ class Acumulado extends Table {
   save() {
     return Table.save(this, Acumulado);
   }
+
+  del() {
+    return Table.del(this, Acumulado);
+  }
 }
 
 module.exports = Acumulado;

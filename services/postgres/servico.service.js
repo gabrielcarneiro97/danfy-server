@@ -81,6 +81,15 @@ async function excluirServico(servicoId) {
   return servicoPool.del();
 }
 
+function servicoPoolFromObj(obj) {
+  return new ServicoPool(
+    new Servico(obj.servico),
+    new MetaDados(obj.metaDados),
+    new Imposto(obj.imposto),
+    new Retencao(obj.retencao),
+  );
+}
+
 module.exports = {
   criarServico,
   criarServicos,
@@ -88,4 +97,5 @@ module.exports = {
   pegarServicoPoolId,
   pegarServicoPoolNota,
   excluirServico,
+  servicoPoolFromObj,
 };

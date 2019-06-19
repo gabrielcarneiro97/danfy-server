@@ -33,6 +33,10 @@ class Total extends Table {
   save() {
     return Table.save(this, Total);
   }
+
+  del() {
+    return Table.del(this, Total);
+  }
 }
 
 module.exports = Total;

@@ -36,7 +36,7 @@ class Servico extends Table {
   }
 
   del() {
-    return Table.delete(this, Servico);
+    return Table.del(this, Servico);
   }
 }
 

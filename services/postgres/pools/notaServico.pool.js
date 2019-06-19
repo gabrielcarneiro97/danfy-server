@@ -1,4 +1,5 @@
 const Pool = require('./pool');
+const { NotaServico, Retencao } = require('../models');
 
 class NotaServicoPool extends Pool {
   constructor(notaServico, retencao) {
@@ -12,6 +13,13 @@ class NotaServicoPool extends Pool {
     this.notaServico.retencaoId = retencaoId;
 
     return this.notaServico.save();
+  }
+
+  static async getByChave(chave) {
+    const [notaServico] = await NotaServico.getBy({ chave });
+    const [retencao] = await Retencao.getBy('id', notaServico.retencaoId);
+
+    return new NotaServicoPool(notaServico, retencao);
   }
 }
 

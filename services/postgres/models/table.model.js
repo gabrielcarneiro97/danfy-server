@@ -105,42 +105,44 @@ class Table {
     return obj;
   }
 
-  static save(obj, Cl) {
-    return new Promise((resolve, reject) => {
-      const update = () => {
-        pg.table(Cl.tbName())
+  static async save(obj, Cl) {
+    const update = async () => {
+      try {
+        const [uk] = await pg.table(Cl.tbName())
           .update(obj.snakeObj(), Cl.tbUK())
-          .where({ [Cl.tbUK()]: obj[Cl.tbUK()] })
-          .then(([uk]) => resolve(uk))
-          .catch(reject);
-      };
-
-      const insert = () => {
-        pg.table(Cl.tbName())
-          .insert(obj.snakeObj(), Cl.tbUK())
-          .then(([uk]) => {
-            obj[Cl.tbUK()] = uk;
-            resolve(uk);
-          })
-          .catch(reject);
-      };
-
-      if (obj[Cl.tbUK()]) {
-        pg.select(Cl.tbUK())
-          .from(Cl.tbName())
-          .where({ [Cl.tbUK()]: obj[Cl.tbUK()] })
-          .then(([pgObj]) => {
-            if (pgObj) {
-              update();
-            } else {
-              insert();
-            }
-          })
-          .catch(reject);
-      } else {
-        insert();
+          .where({ [Cl.tbUK()]: obj[Cl.tbUK()] });
+        return uk;
+      } catch (err) {
+        throw err;
       }
-    });
+    };
+
+    const insert = async () => {
+      try {
+        if (obj[this.toCamel(Cl.tbUK())] === null) delete obj[this.toCamel(Cl.tbUK())];
+        const [uk] = await pg.table(Cl.tbName()).insert(obj.snakeObj(), Cl.tbUK());
+        obj[this.toCamel(Cl.tbUK())] = uk;
+        return uk;
+      } catch (err) {
+        throw err;
+      }
+    };
+
+    if (obj[Cl.tbUK()]) {
+      try {
+        const [pgObj] = await pg.select(Cl.tbUK())
+          .from(Cl.tbName())
+          .where({ [Cl.tbUK()]: obj[Cl.tbUK()] });
+        if (pgObj) {
+          return update();
+        }
+        return insert();
+      } catch (err) {
+        throw err;
+      }
+    } else {
+      return insert();
+    }
   }
 
   static async del(obj, Cl) {

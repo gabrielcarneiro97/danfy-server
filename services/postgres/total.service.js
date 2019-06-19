@@ -2,6 +2,8 @@ const {
   TotalPool,
 } = require('./pools');
 
+const { getMesTrim } = require('../calculador.service');
+
 async function gravarTotalPool(totalPool) {
   return totalPool.save();
 }
@@ -11,7 +13,8 @@ async function pegarMesTotalPool(cnpj, competencia) {
 }
 
 async function pegarTrimestreTotalPool(cnpj, competencia) {
-  return TotalPool.getByCnpjComp(cnpj, competencia, 3);
+  const mes = getMesTrim(competencia.mes);
+  return TotalPool.getByCnpjComp(cnpj, { ...competencia, mes }, 3);
 }
 
 module.exports = {

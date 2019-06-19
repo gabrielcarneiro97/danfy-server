@@ -70,15 +70,14 @@ movimentoRouter.post('/calcular', bodyParser.json(), async (req, res) => {
   res.send({ movimentos, notasIniciais });
 });
 movimentoRouter.post('/push', bodyParser.json(), async (req, res) => {
-  const { movimentoPool: movPoolFlat, cnpj } = req.body;
+  const { movimentoPool: movPoolFlat, donoCpfcnpj } = req.body;
   let { valorInicial } = req.body;
 
   const movimentoPool = movimentoPoolFromObj(movPoolFlat);
   const { movimento } = movimentoPool;
 
   try {
-    const movimentoExiste =
-      await pegarMovimentoPoolNotaFinal(movimento.notaFinalChave);
+    const movimentoExiste = await pegarMovimentoPoolNotaFinal(movimento.notaFinalChave);
 
     if (movimentoExiste) {
       res.status(409).send({ error: `Nota já registrada em outro serviço! ID: ${movimentoExiste.movimento.id}` });
@@ -88,14 +87,15 @@ movimentoRouter.post('/push', bodyParser.json(), async (req, res) => {
     } else {
       valorInicial = parseFloat(valorInicial.toString().replace(',', '.'));
 
-      const notaInicialPool = await criarNotaPoolSlim(valorInicial, cnpj);
+      const notaInicialPool = await criarNotaPoolSlim(valorInicial, donoCpfcnpj);
       const { chave: notaInicialChave } = notaInicialPool.nota;
       const { notaFinalChave } = movimento;
 
-      (await calcularMovimentoPool(notaInicialChave, notaFinalChave)).save();
+      await (await calcularMovimentoPool(notaInicialChave, notaFinalChave)).save();
       res.sendStatus(201);
     }
   } catch (err) {
+    console.error(err);
     res.status(500).send(err);
   }
 });
