@@ -18,7 +18,7 @@ dominioRouter.get('/', async (req, res) => {
     const dominio = await pegarDominioCodigo(codigo);
     res.send(dominio);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).send(err);
   }
 });
@@ -29,6 +29,7 @@ dominioRouter.get('/id', async (req, res) => {
     const dominioCodigo = user ? user.dominioCodigo : DOMINIO_PADRAO;
     res.send(dominioCodigo);
   } catch (err) {
+    console.error(err);
     res.status(500).send(err);
   }
 });

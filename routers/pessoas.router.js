@@ -5,7 +5,6 @@ const pessoasRouter = express();
 
 pessoasRouter.get('/flat', async (req, res) => {
   const { pessoaId } = req.query;
-
   try {
     const pessoa = await pegarPessoaId(pessoaId);
     res.send(pessoa);

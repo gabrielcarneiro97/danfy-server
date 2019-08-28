@@ -122,7 +122,7 @@ movimentoRouter.get('/slim', async (req, res) => {
     const movimentoPool = await calcularMovimentoPool(notaInicialChave, notaFinalChave);
     res.send({ movimentoPool, notaInicialPool });
   } catch (err) {
-    console.log(err);
+    console.err(err);
     res.status(500).send(err);
   }
 });
@@ -132,7 +132,7 @@ movimentoRouter.get('/notaFinal', async (req, res) => {
     const movimento = await pegarMovimentoPoolNotaFinal(notaFinalChave);
     res.send(movimento);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).send(err);
   }
 });
@@ -155,7 +155,7 @@ movimentoRouter.put('/cancelar', async (req, res) => {
 
     res.send(trim);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).send(err);
   }
 });
@@ -181,7 +181,7 @@ movimentoRouter.put('/editar', async (req, res) => {
 
     res.send(trim);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).send(err);
   }
 });
