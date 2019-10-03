@@ -19,7 +19,7 @@ async function criarMovimento(movPool) {
 async function pegarMovimentosPoolMes(donoCpfcnpj, competencia) {
   const mes = mesInicioFim(competencia);
 
-  const select = str => pg.select(str)
+  const select = (str) => pg.select(str)
     .from('tb_movimento as mov')
     .where('mov.dono_cpfcnpj', donoCpfcnpj)
     .andWhere('md.ativo', true)
@@ -43,15 +43,15 @@ async function pegarMovimentosPoolMes(donoCpfcnpj, competencia) {
       impPromise,
       icmsPromise,
     ]).then(([movsPg, metaDadosPg, impostosPg, icmsPg]) => {
-      const movimentosArr = movsPg.map(o => new Movimento(o, true));
-      const metaDadosArr = metaDadosPg.map(o => new MetaDados(o, true));
-      const impostoArr = impostosPg.map(o => new Imposto(o, true));
-      const icmsArr = icmsPg.map(o => new Icms(o, true));
+      const movimentosArr = movsPg.map((o) => new Movimento(o, true));
+      const metaDadosArr = metaDadosPg.map((o) => new MetaDados(o, true));
+      const impostoArr = impostosPg.map((o) => new Imposto(o, true));
+      const icmsArr = icmsPg.map((o) => new Icms(o, true));
 
       const endArr = movimentosArr.map((movimento) => {
-        const metaDados = metaDadosArr.find(o => o.mdId === movimento.metaDadosId);
-        const imposto = impostoArr.find(o => o.id === movimento.impostoId);
-        const icms = icmsArr.find(o => o.id === imposto.icmsId);
+        const metaDados = metaDadosArr.find((o) => o.mdId === movimento.metaDadosId);
+        const imposto = impostoArr.find((o) => o.id === movimento.impostoId);
+        const icms = icmsArr.find((o) => o.id === imposto.icmsId);
 
         return new MovimentoPool(
           movimento,

@@ -14,27 +14,27 @@ function compararCFOP(notaInicial, notaFinal) {
 
   if (cfopCompra.includes(cfopInicial) && cfopVenda.includes(cfopFinal)) {
     return true;
-  } else if (cfopCompraConsignacao.includes(cfopInicial) &&
-    cfopVendaConsignacao.includes(cfopFinal)) {
+  } if (cfopCompraConsignacao.includes(cfopInicial)
+    && cfopVendaConsignacao.includes(cfopFinal)) {
     return true;
-  } else if (cfopConsignacao.includes(cfopInicial) &&
-    cfopCompraConsignacao.includes(cfopFinal)) {
+  } if (cfopConsignacao.includes(cfopInicial)
+    && cfopCompraConsignacao.includes(cfopFinal)) {
     return true;
-  } else if (cfopConsignacao.includes(cfopInicial) &&
-    cfopDevolucaoConsignacao.includes(cfopFinal)) {
+  } if (cfopConsignacao.includes(cfopInicial)
+    && cfopDevolucaoConsignacao.includes(cfopFinal)) {
     return true;
-  } else if (cfopVenda.includes(cfopInicial) &&
-    cfopDevolucao.includes(cfopFinal)) {
+  } if (cfopVenda.includes(cfopInicial)
+    && cfopDevolucao.includes(cfopFinal)) {
     return true;
-  } else if (cfopDevolucao.includes(cfopInicial) &&
-    cfopVenda.includes(cfopFinal)) {
+  } if (cfopDevolucao.includes(cfopInicial)
+    && cfopVenda.includes(cfopFinal)) {
     return true;
-  } else if (cfopCompra.includes(cfopInicial) &&
-    cfopDevolucaoCompra.includes(cfopFinal)) {
+  } if (cfopCompra.includes(cfopInicial)
+    && cfopDevolucaoCompra.includes(cfopFinal)) {
     return true;
-  } else if ((cfopVenda.includes(cfopInicial) &&
-    cfopVenda.includes(cfopFinal)) &&
-    (notaFinal.emitente !== notaInicial.emitente)) {
+  } if ((cfopVenda.includes(cfopInicial)
+    && cfopVenda.includes(cfopFinal))
+    && (notaFinal.emitente !== notaInicial.emitente)) {
     return true;
   }
   return false;
@@ -71,9 +71,9 @@ function validarMovimento(notaInicialPool, notaFinalPool) {
   }
   if (!compararCFOP(notaInicial, notaFinal)) {
     return { isValid: false, error: new Error(`O CFOP da Nota Inicial ${notaInicial.numero} ${notaInicial.cfop} não é valido para o CFOP da Nota Final ${notaFinal.numero} ${notaFinal.cfop}`) };
-  } else if (!compararProduto(notaInicialPool, notaFinalPool)) {
+  } if (!compararProduto(notaInicialPool, notaFinalPool)) {
     return { isValid: false, error: new Error(`O produto da Nota Final ${notaFinal.numero} não foi localizado na Nota Inicial ${notaInicial.numero}!`) };
-  } else if (!compararData(notaInicial, notaFinal)) {
+  } if (!compararData(notaInicial, notaFinal)) {
     return { isValid: false, error: new Error(`A data da Nota Final ${notaFinal.numero} é anterior a data da Nota Inicial ${notaInicial.numero}!`) };
   }
   return { isValid: true, error: null };
@@ -90,10 +90,16 @@ function mesInicioFim(competencia) {
   };
 }
 
-function trim(mes) {
-  mes = parseInt(mes, 10);
+function stringToDate(string) {
+  const [dia, mes, ano] = string.split('-');
+
+  return new Date(ano, parseInt(mes, 10) - 1, dia);
+}
+
+function trim(mesParam) {
+  const mes = parseInt(mesParam, 10);
   if ((mes - 1) % 3 === 0) return [mes];
-  else if ((mes - 2) % 3 === 0) return [mes - 1, mes];
+  if ((mes - 2) % 3 === 0) return [mes - 1, mes];
   return [mes - 2, mes - 1, mes];
 }
 
@@ -110,8 +116,8 @@ function getMesTrim(mesParam) {
     10: [10, 11, 12],
   };
   if (meses[1].includes(mes)) return 1;
-  else if (meses[4].includes(mes)) return 4;
-  else if (meses[7].includes(mes)) return 7;
+  if (meses[4].includes(mes)) return 4;
+  if (meses[7].includes(mes)) return 7;
   return 10;
 }
 
@@ -119,6 +125,7 @@ module.exports = {
   validarMovimento,
   dtof,
   mesInicioFim,
+  stringToDate,
   trim,
   objParseFloat,
   getMesTrim,

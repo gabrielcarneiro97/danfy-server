@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { pg } = require('../');
 const { Nota, Estado, Produto } = require('./models');
 const { NotaPool } = require('./pools');
+const { stringToDate } = require('../calculador.service');
 
 async function criarNota(chave, notaParam) {
   const nota = new Nota({ ...chave, notaParam });
@@ -41,29 +42,87 @@ async function pegarNotasPoolProdutoEmitente(nome, cnpj) {
   if (nome === 'INTERNO') {
     throw new Error('Id inválido (INTERNO)');
   } else {
-    try {
-      const notasPg = await pg.select('nota.chave')
-        .from('tb_produto as prod')
-        .innerJoin('tb_nota as nota', 'prod.nota_chave', 'nota.chave')
-        .where('prod.nome', nome)
-        .andWhere('nota.emitente_cpfcnpj', cnpj);
+    const notasPg = await pg.select('nota.chave')
+      .from('tb_produto as prod')
+      .innerJoin('tb_nota as nota', 'prod.nota_chave', 'nota.chave')
+      .where('prod.nome', nome)
+      .andWhere('nota.emitente_cpfcnpj', cnpj);
 
-      const notas = await Promise.all(notasPg.map(async o => NotaPool.getByChave(o.chave)));
-
-      return notas;
-    } catch (err) {
-      throw err;
-    }
+    const notas = await Promise.all(notasPg.map(async (o) => NotaPool.getByChave(o.chave)));
+    return notas;
   }
 }
 
 async function pegarNotaChave(chave) {
-  try {
-    const notaPg = await Nota.getBy({ chave });
-    return new Nota(notaPg, true);
-  } catch (err) {
-    throw err;
+  const notaPg = await Nota.getBy({ chave });
+  return new Nota(notaPg, true);
+}
+
+async function pegarNotasChaveEmitentePeriodo(emitenteCpfcnpj, periodo) {
+  let notasPg;
+
+  if (!periodo) {
+    notasPg = await pg.select('nota.chave')
+      .from('tb_nota as nota')
+      .where('nota.emitente_cpfcnpj', emitenteCpfcnpj);
+  } else {
+    const { inicio: inicioString, fim: fimString } = periodo;
+
+    const inicio = stringToDate(inicioString);
+    const fim = stringToDate(fimString);
+
+    notasPg = await pg.select('nota.chave')
+      .from('tb_nota as nota')
+      .where('nota.emitente_cpfcnpj', emitenteCpfcnpj)
+      .andWhere('mov.data_hora', '<=', fim)
+      .andWhere('mov.data_hora', '>=', inicio);
   }
+
+  return notasPg;
+}
+
+async function pegarNotasPoolEmitentePeriodo(emitenteCpfcnpj, periodo) {
+  const notasPg = await pegarNotasChaveEmitentePeriodo(emitenteCpfcnpj, periodo);
+  return Promise.all(notasPg.map(async (o) => NotaPool.getByChave(o.chave)));
+}
+
+async function pegarNotasPoolEntradaEmitentePeriodo(cpfcnpj, periodo) {
+  let notasPg;
+
+  if (!periodo) {
+    notasPg = await Promise.all([
+      pg.select('nota.chave')
+        .from('tb_nota as nota')
+        .where('nota.emitente_cpfcnpj', cpfcnpj)
+        .andWhere('nota.tipo', '0'),
+      pg.select('nota.chave')
+        .from('tb_nota as nota')
+        .where('nota.destinatario_cpfcnpj', cpfcnpj)
+        .andWhere('nota.tipo', '1'),
+    ]);
+  } else {
+    const { inicio: inicioString, fim: fimString } = periodo;
+
+    const inicio = stringToDate(inicioString);
+    const fim = stringToDate(fimString);
+
+    notasPg = await Promise.all([
+      pg.select('nota.chave')
+        .from('tb_nota as nota')
+        .where('nota.emitente_cpfcnpj', cpfcnpj)
+        .andWhere('nota.tipo', '0')
+        .andWhere('mov.data_hora', '<=', fim)
+        .andWhere('mov.data_hora', '>=', inicio),
+      pg.select('nota.chave')
+        .from('tb_nota as nota')
+        .where('nota.destinatario_cpfcnpj', cpfcnpj)
+        .andWhere('nota.tipo', '1')
+        .andWhere('mov.data_hora', '<=', fim)
+        .andWhere('mov.data_hora', '>=', inicio),
+    ]);
+  }
+
+  return Promise.all(notasPg.flat().map(async (o) => NotaPool.getByChave(o.chave)));
 }
 
 async function notaXmlToPool(notaObj) {
@@ -128,5 +187,7 @@ module.exports = {
   pegarNotasPoolProdutoEmitente,
   pegarNotaChave,
   criarNotaPoolSlim,
+  pegarNotasPoolEmitentePeriodo,
+  pegarNotasPoolEntradaEmitentePeriodo,
   notaXmlToPool,
 };
