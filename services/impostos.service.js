@@ -149,6 +149,10 @@ function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
         };
 
         const icmsEstados = {
+          AM: {
+            externo: 0.00,
+            interno: 0.00,
+          },
           SC: {
             externo: 0.12,
             interno: 0.12,
