@@ -22,7 +22,7 @@ class NotaPool extends Pool {
 
   async save() {
     const notaId = await this.nota.save();
-    if (this.produtos) this.produtos.forEach(produto => produto.save());
+    if (this.produtos) this.produtos.forEach((produto) => produto.save());
     return notaId;
   }
 }

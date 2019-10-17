@@ -35,11 +35,17 @@ class ProdutoEstoqueModel extends Table {
   }
 
   static async getByDonoAte(cpfcnpj, fimString) {
-    const fim = stringToDate(fimString);
-    const pgData = await pg.select('*').from('tb_estoque_produto')
-      .where('dono_cpfcnpj', cpfcnpj)
-      .andWhere('data_saida', '<=', fim);
+    let pgData;
 
+    if (fimString) {
+      const fim = stringToDate(fimString);
+      pgData = await pg.select('*').from(ProdutoEstoqueModel.tbName())
+        .where('dono_cpfcnpj', cpfcnpj)
+        .andWhere('data_entrada', '<=', fim);
+    } else {
+      pgData = await pg.select('*').from(ProdutoEstoqueModel.tbName())
+        .where('dono_cpfcnpj', cpfcnpj);
+    }
     return pgData.map((o) => new ProdutoEstoqueModel(o, true));
   }
 

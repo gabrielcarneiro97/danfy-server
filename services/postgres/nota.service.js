@@ -101,24 +101,21 @@ async function pegarNotasPoolEntradaEmitentePeriodo(cpfcnpj, periodo) {
         .andWhere('nota.tipo', '1'),
     ]);
   } else {
-    const { inicio: inicioString, fim: fimString } = periodo;
-
-    const inicio = stringToDate(inicioString);
-    const fim = stringToDate(fimString);
+    const { inicio, fim } = periodo;
 
     notasPg = await Promise.all([
       pg.select('nota.chave')
         .from('tb_nota as nota')
         .where('nota.emitente_cpfcnpj', cpfcnpj)
         .andWhere('nota.tipo', '0')
-        .andWhere('mov.data_hora', '<=', fim)
-        .andWhere('mov.data_hora', '>=', inicio),
+        .andWhere('nota.data_hora', '<=', fim)
+        .andWhere('nota.data_hora', '>=', inicio),
       pg.select('nota.chave')
         .from('tb_nota as nota')
         .where('nota.destinatario_cpfcnpj', cpfcnpj)
         .andWhere('nota.tipo', '1')
-        .andWhere('mov.data_hora', '<=', fim)
-        .andWhere('mov.data_hora', '>=', inicio),
+        .andWhere('nota.data_hora', '<=', fim)
+        .andWhere('nota.data_hora', '>=', inicio),
     ]);
   }
 

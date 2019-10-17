@@ -84,6 +84,16 @@ async function pegarMovimentoPoolNotaFinal(chaveNota) {
   return null;
 }
 
+async function pegarMovimentoPoolNotaInicial(chaveNota) {
+  const [mov] = await pg.select('mov.id')
+    .from('tb_movimento as mov')
+    .innerJoin('tb_meta_dados as md', 'mov.meta_dados_id', 'md.md_id')
+    .where('md.ativo', true)
+    .andWhere('nota_inicial_chave', chaveNota);
+  if (mov) return pegarMovimentoPoolId(mov.id);
+  return null;
+}
+
 async function pegarMetaDados(movId) {
   const [movimento] = await Movimento.getBy({ id: movId });
   const [metaDados] = await MetaDados.getBy({ mdId: movimento.metaDadosId });
@@ -110,6 +120,7 @@ async function cancelarMovimento(id) {
 module.exports = {
   criarMovimento,
   pegarMovimentoPoolNotaFinal,
+  pegarMovimentoPoolNotaInicial,
   pegarMovimentosPoolMes,
   pegarMovimentoPoolId,
   movimentoPoolFromObj,

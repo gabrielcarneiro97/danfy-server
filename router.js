@@ -7,6 +7,7 @@ const servicosRouter = require('./routers/servicos.router');
 const dominioRouter = require('./routers/dominio.router');
 const aliquotasRouter = require('./routers/aliquotas.router');
 const pessoasRouter = require('./routers/pessoas.router');
+const estoqueRouter = require('./routers/estoque.router');
 const versionRouter = require('./routers/version.router');
 
 const app = express();
@@ -24,6 +25,8 @@ app.use('/dominio', dominioRouter);
 app.use('/aliquotas', aliquotasRouter);
 
 app.use('/pessoas', pessoasRouter);
+
+app.use('/estoque', estoqueRouter);
 
 app.use('/version', versionRouter);
 

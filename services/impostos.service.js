@@ -59,11 +59,11 @@ async function calcularMes(cnpj, competencia) {
     new ImpostoPool(new Imposto(), new Icms()),
   );
 
-  movimentosPool.forEach(movimentoPool => totalMovimentoPool.soma(movimentoPool));
+  movimentosPool.forEach((movimentoPool) => totalMovimentoPool.soma(movimentoPool));
 
   const totalServicoPool = new TotalServicoPool(new TotalServico(), new Imposto(), new Retencao());
 
-  servicosPool.forEach(servicoPool => totalServicoPool.soma(servicoPool));
+  servicosPool.forEach((servicoPool) => totalServicoPool.soma(servicoPool));
 
   const [{ irpj: aliquotaIr }] = await Aliquota.getBy('dono_cpfcnpj', cnpj);
 
@@ -108,7 +108,7 @@ async function calcularTrimestre(cnpj, competencia) {
 
   const meses = trim(competencia.mes);
 
-  const mesesPromise = meses.map(mes => calcularMes(cnpj, { mes, ano: competencia.ano }));
+  const mesesPromise = meses.map((mes) => calcularMes(cnpj, { mes, ano: competencia.ano }));
 
   const mesesPool = await Promise.all(mesesPromise);
 
@@ -168,7 +168,7 @@ async function pegarTrimestre(cnpj, competencia) {
 
   const meses = trim(competencia.mes);
 
-  const mesesPromise = meses.map(mes => pegarMes(cnpj, { mes, ano: competencia.ano }));
+  const mesesPromise = meses.map((mes) => pegarMes(cnpj, { mes, ano: competencia.ano }));
 
   const mesesPool = await Promise.all(mesesPromise);
 
@@ -188,7 +188,7 @@ async function pegarTrimestreComNotas(cnpj, competencia) {
   const { movimentosPool, servicosPool } = trimestreData;
 
   const [notasPool, notasServicoPool] = await Promise.all([
-    new Promise(async (resolve) => {
+    (async () => {
       const [notasIniciais, notasFinais] = await Promise.all([
         Promise.all(movimentosPool.map(async (movimentoPool) => {
           const { notaInicialChave: chave } = movimentoPool.movimento;
@@ -202,17 +202,17 @@ async function pegarTrimestreComNotas(cnpj, competencia) {
         })),
       ]);
 
-      resolve(notasIniciais.concat(notasFinais));
-    }),
-    new Promise(async (resolve) => {
+      return notasIniciais.concat(notasFinais);
+    })(),
+    (async () => {
       const notasServico = await Promise.all(servicosPool.map(async (servicoPool) => {
         const { notaChave: chave } = servicoPool.servico;
         const [nota] = await NotaServico.getBy({ chave });
         return nota;
       }));
 
-      resolve(notasServico);
-    }),
+      return notasServico;
+    })(),
   ]);
 
   return {
@@ -281,7 +281,7 @@ async function recalcularTrimestre(cnpj, competencia) {
   delete trimDb.movimentosPool;
   delete trimDb.servicosPool;
 
-  await Promise.all(Object.keys(trimDb).map(async key => trimDb[key].del()));
+  await Promise.all(Object.keys(trimDb).map(async (key) => trimDb[key].del()));
   await Promise.all(Object.keys(trimNovo).map(async (key) => {
     if (key !== 'movimentosPool' && key !== 'servicosPool') {
       return trimNovo[key].save();
@@ -305,8 +305,8 @@ function eDevolucao(nota) {
 }
 
 function eDevolucaoConsigOuDemo(nota) {
-  return cfopDevolucaoConsignacao.includes(nota.cfop) ||
-  cfopDevolucaoDemonstracao.includes(nota.cfop);
+  return cfopDevolucaoConsignacao.includes(nota.cfop)
+  || cfopDevolucaoDemonstracao.includes(nota.cfop);
 }
 
 async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
@@ -384,8 +384,8 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
     const estadosSemReducao = [20/* RN */, 5/* BA */, 23/* RS */, 27/* TO */];
     const composicaoBase = movimento.valorSaida;
     const baseCalculo = 0.05 * composicaoBase;
-    const baseDifal = estadosSemReducao.includes(estadoDestinoId) ?
-      composicaoBase : baseCalculo;
+    const baseDifal = estadosSemReducao.includes(estadoDestinoId)
+      ? composicaoBase : baseCalculo;
     const proprio = baseDifal * difalAliquota.externo;
     const difal = (baseDifal * difalAliquota.interno) - proprio;
 
