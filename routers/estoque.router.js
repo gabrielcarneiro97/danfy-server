@@ -27,8 +27,8 @@ estoqueRouter.put('/:cpfcnpj', async (req, res) => {
 estoqueRouter.put('/:cpfcnpj/:id', bodyParser.json(), async (req, res) => {
   const { cpfcnpj, id } = req.params;
   const estoqueProduto = req.body;
-  console.log(estoqueProduto);
-  if (id !== estoqueProduto.id && cpfcnpj === estoqueProduto.donoCpfcnpj) res.sendStatus(400);
+  if (parseInt(id, 10) !== estoqueProduto.id
+  || cpfcnpj !== estoqueProduto.donoCpfcnpj) res.sendStatus(400);
   else {
     const ret = await inserirProduto(estoqueProduto);
     res.send(ret);
@@ -39,7 +39,7 @@ estoqueRouter.post('/:cpfcnpj', bodyParser.json(), async (req, res) => {
   const { cpfcnpj } = req.params;
   const estoqueProduto = req.body;
 
-  if (cpfcnpj === estoqueProduto.donoCpfcnpj) res.sendStatus(400);
+  if (cpfcnpj !== estoqueProduto.donoCpfcnpj) res.sendStatus(400);
   else {
     const ret = await inserirProduto(estoqueProduto);
     res.send(ret);
