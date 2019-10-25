@@ -12,12 +12,12 @@
     "xml-js": "^1.6.4"
   },
   "scripts": {
-    "dev": "npx nodemon dev.js",
+    "dev": "set DEV=true&&nodemon dev.js",
     "ssl": "node dev.js ssl",
     "start": "node server.js"
   },
   "name": "danfy-server",
-  "version": "0.11.0",
+  "version": "1.1.0",
   "main": "server.js",
   "repository": "https://github.com/gabrielcarneiro97/danfy-server.git",
   "author": "Gabriel Carneiro <gabriel.carneiro97@live.com>",
@@ -26,6 +26,7 @@
     "eslint": "^6.4.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.18.2"
+    "eslint-plugin-import": "^2.18.2",
+    "nodemon": "^1.19.4"
   }
 }
