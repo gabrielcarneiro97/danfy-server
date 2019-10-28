@@ -30,7 +30,6 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
         ]);
 
         const notaPool = await notaServicoXmlToPool(notaParam);
-
         final = {
           tipo: 'nfse',
           pessoas: [emitentePessoaPool, destinatarioPessoaPool],

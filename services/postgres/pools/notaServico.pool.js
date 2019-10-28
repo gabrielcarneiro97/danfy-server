@@ -11,7 +11,6 @@ class NotaServicoPool extends Pool {
   async save() {
     const retencaoId = await this.retencao.save();
     this.notaServico.retencaoId = retencaoId;
-
     return this.notaServico.save();
   }
 

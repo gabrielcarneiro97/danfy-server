@@ -10,7 +10,7 @@ class MetaDados extends Table {
   }
 
   static tbUK() {
-    return 'id';
+    return 'md_id';
   }
 
   static columns() {

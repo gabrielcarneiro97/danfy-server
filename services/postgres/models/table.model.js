@@ -107,42 +107,30 @@ class Table {
 
   static async save(obj, Cl) {
     const update = async () => {
-      try {
-        const [uk] = await pg.table(Cl.tbName())
-          .update(obj.snakeObj(), Cl.tbUK())
-          .where({ [Cl.tbUK()]: obj[Cl.tbUK()] });
-        return uk;
-      } catch (err) {
-        throw err;
-      }
+      const [uk] = await pg.table(Cl.tbName())
+        .update(obj.snakeObj(), Cl.tbUK())
+        .where({ [Cl.tbUK()]: obj[Cl.tbUK()] });
+      return uk;
     };
 
     const insert = async () => {
-      try {
-        if (obj[this.toCamel(Cl.tbUK())] === null) delete obj[this.toCamel(Cl.tbUK())];
-        const [uk] = await pg.table(Cl.tbName()).insert(obj.snakeObj(), Cl.tbUK());
-        obj[this.toCamel(Cl.tbUK())] = uk;
-        return uk;
-      } catch (err) {
-        throw err;
-      }
+      if (obj[this.toCamel(Cl.tbUK())] === null) delete obj[this.toCamel(Cl.tbUK())];
+      const [uk] = await pg.table(Cl.tbName()).insert(obj.snakeObj(), Cl.tbUK());
+      obj[this.toCamel(Cl.tbUK())] = uk;
+      return uk;
+
     };
 
     if (obj[Cl.tbUK()]) {
-      try {
-        const [pgObj] = await pg.select(Cl.tbUK())
-          .from(Cl.tbName())
-          .where({ [Cl.tbUK()]: obj[Cl.tbUK()] });
-        if (pgObj) {
-          return update();
-        }
-        return insert();
-      } catch (err) {
-        throw err;
+      const [pgObj] = await pg.select(Cl.tbUK())
+        .from(Cl.tbName())
+        .where({ [Cl.tbUK()]: obj[Cl.tbUK()] });
+      if (pgObj) {
+        return update();
       }
-    } else {
       return insert();
     }
+    return insert();
   }
 
   static async del(obj, Cl) {

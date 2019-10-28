@@ -9,7 +9,7 @@ const isDev = process.env.DEV;
 const pg = knex({
   client: 'pg',
   connection: {
-    host: isDev ? 'ec2-13-58-192-2.us-east-2.compute.amazonaws.com' : 'localhost',
+    host: 'ec2-13-58-192-2.us-east-2.compute.amazonaws.com',
     database: 'danfy',
     user,
     password,
