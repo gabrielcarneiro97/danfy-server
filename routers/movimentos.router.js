@@ -106,7 +106,7 @@ movimentoRouter.get('/slim', async (req, res) => {
   const { notaFinalChave, cnpj } = req.query;
   let { valorInicial } = req.query;
 
-  valorInicial = parseFloat(valorInicial.toString().replace(',', '.'));
+  valorInicial = valorInicial ? parseFloat(valorInicial.toString().replace(',', '.')) : 0;
 
   try {
     const notaInicialPool = await criarNotaPoolSlim(valorInicial, cnpj);
@@ -114,7 +114,7 @@ movimentoRouter.get('/slim', async (req, res) => {
     const movimentoPool = await calcularMovimentoPool(notaInicialChave, notaFinalChave);
     res.send({ movimentoPool, notaInicialPool });
   } catch (err) {
-    console.err(err);
+    console.error(err);
     res.status(500).send(err);
   }
 });
