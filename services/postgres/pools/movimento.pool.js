@@ -25,7 +25,7 @@ class MovimentoPool extends Pool {
   }
 
   static async getByNotaFinal(notaChave) {
-    const [movimentoPg] = pg.table('tb_movimento')
+    const [movimentoPg] = await pg.table('tb_movimento')
       .innerJoin('tb_meta_dados', 'tb_movimento.meta_dados_id', 'tb_meta_dados.md_id')
       .where('tb_movimento.nota_final_chave', notaChave)
       .andWhere('tb_meta_dados.ativo', true);

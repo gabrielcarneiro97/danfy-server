@@ -4,8 +4,6 @@ const { user, password } = require('./private.json');
 
 config.types.setTypeParser(1700, parseFloat);
 
-const isDev = process.env.DEV;
-
 const pg = knex({
   client: 'pg',
   connection: {
