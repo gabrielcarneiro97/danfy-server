@@ -112,7 +112,7 @@ function movimentoPoolFromObj(obj) {
 }
 
 async function cancelarMovimento(id) {
-  const metaDados = pegarMetaDados(id);
+  const metaDados = await pegarMetaDados(id);
   metaDados.ativo = false;
   return metaDados.save();
 }

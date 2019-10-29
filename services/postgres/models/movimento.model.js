@@ -24,6 +24,7 @@ class Movimento extends Table {
       'conferido',
       'imposto_id',
       'meta_dados_id',
+      'dono_cpfcnpj',
     ];
   }
 

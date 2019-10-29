@@ -32,38 +32,30 @@ movimentoRouter.post('/calcular', bodyParser.json(), async (req, res) => {
 
   const promises = notasFinaisChave.map(async (notaFinalChave) => {
     let movimento;
-    try {
-      const notaFinalPool = await NotaPool.getByChave(notaFinalChave);
-      const { nota: notaFinal, produtos } = notaFinalPool;
+    const notaFinalPool = await NotaPool.getByChave(notaFinalChave);
+    const { nota: notaFinal, produtos } = notaFinalPool;
 
-      const prodPromises = produtos.map(async (produto) => {
-        const { nome } = produto;
-        try {
-          const notasProd = await pegarNotasPoolProdutoEmitente(nome, notaFinal.emitenteCpfcnpj);
-          return notasProd;
-        } catch (err) {
-          throw err;
-        }
-      });
+    const prodPromises = produtos.map(async (produto) => {
+      const { nome } = produto;
+      const notasProd = await pegarNotasPoolProdutoEmitente(nome, notaFinal.emitenteCpfcnpj);
+      return notasProd;
+    });
 
-      const promisesRes = await Promise.all(prodPromises);
+    const promisesRes = await Promise.all(prodPromises);
 
-      const notasPool = [].concat(...promisesRes);
+    const notasPool = [].concat(...promisesRes);
 
-      const notaInicialPool = notasPool
-        .find(notaPool => validarMovimento(notaPool, notaFinalPool).isValid);
+    const notaInicialPool = notasPool
+      .find((notaPool) => validarMovimento(notaPool, notaFinalPool).isValid);
 
-      if (notaInicialPool) {
-        notasIniciais.push(notaInicialPool);
-        movimento = await calcularMovimentoPool(notaInicialPool.nota.chave, notaFinalChave);
-      } else {
-        movimento = await calcularMovimentoPool(null, notaFinalChave);
-      }
-      movimento.metaDados.email = usuario.email;
-      return movimento;
-    } catch (err) {
-      throw err;
+    if (notaInicialPool) {
+      notasIniciais.push(notaInicialPool);
+      movimento = await calcularMovimentoPool(notaInicialPool.nota.chave, notaFinalChave);
+    } else {
+      movimento = await calcularMovimentoPool(null, notaFinalChave);
     }
+    movimento.metaDados.email = usuario.email;
+    return movimento;
   });
 
   const movimentos = await Promise.all(promises);

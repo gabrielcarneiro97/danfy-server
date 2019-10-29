@@ -109,7 +109,7 @@ class Table {
     const update = async () => {
       const [uk] = await pg.table(Cl.tbName())
         .update(obj.snakeObj(), Cl.tbUK())
-        .where({ [Cl.tbUK()]: obj[Cl.tbUK()] });
+        .where({ [Cl.tbUK()]: obj[this.toCamel(Cl.tbUK())] });
       return uk;
     };
 
@@ -118,13 +118,12 @@ class Table {
       const [uk] = await pg.table(Cl.tbName()).insert(obj.snakeObj(), Cl.tbUK());
       obj[this.toCamel(Cl.tbUK())] = uk;
       return uk;
-
     };
 
-    if (obj[Cl.tbUK()]) {
+    if (obj[this.toCamel(Cl.tbUK())]) {
       const [pgObj] = await pg.select(Cl.tbUK())
         .from(Cl.tbName())
-        .where({ [Cl.tbUK()]: obj[Cl.tbUK()] });
+        .where({ [Cl.tbUK()]: obj[this.toCamel(Cl.tbUK())] });
       if (pgObj) {
         return update();
       }
@@ -134,7 +133,7 @@ class Table {
   }
 
   static async del(obj, Cl) {
-    return pg.table(Cl.tbName()).where({ [Cl.tbUK()]: obj[Cl.tbUK()] }).del();
+    return pg.table(Cl.tbName()).where({ [Cl.tbUK()]: obj[this.toCamel(Cl.tbUK())] }).del();
   }
 }
 
