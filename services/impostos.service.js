@@ -108,7 +108,7 @@ async function calcularTrimestre(cnpj, competencia) {
 
   const meses = trim(competencia.mes);
 
-  const mesesPromise = meses.map((mes) => calcularMes(cnpj, { mes, ano: competencia.ano }));
+  const mesesPromise = meses.map(async (mes) => calcularMes(cnpj, { mes, ano: competencia.ano }));
 
   const mesesPool = await Promise.all(mesesPromise);
 

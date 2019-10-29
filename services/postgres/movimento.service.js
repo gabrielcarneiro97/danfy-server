@@ -96,7 +96,7 @@ async function pegarMovimentoPoolNotaInicial(chaveNota) {
 
 async function pegarMetaDados(movId) {
   const [movimento] = await Movimento.getBy({ id: movId });
-  const [metaDados] = await MetaDados.getBy({ mdId: movimento.metaDadosId });
+  const [metaDados] = await MetaDados.getBy('md_id', movimento.metaDadosId);
 
   return metaDados;
 }

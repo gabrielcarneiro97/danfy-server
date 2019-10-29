@@ -152,9 +152,11 @@ movimentoRouter.put('/cancelar', async (req, res) => {
   }
 });
 
-movimentoRouter.put('/editar', async (req, res) => {
+movimentoRouter.put('/editar', bodyParser.json(), async (req, res) => {
   const { cnpj, movimentoAntigoId } = req.query;
   const { movimentoNovoObj } = req.body;
+
+  console.log(cnpj);
 
   const movimentoData = new Date(movimentoNovoObj.movimento.dataHora);
 
@@ -163,7 +165,6 @@ movimentoRouter.put('/editar', async (req, res) => {
 
   try {
     const movimentoPoolNovo = await movimentoPoolFromObj(movimentoNovoObj);
-
     await cancelarMovimento(movimentoAntigoId);
     await movimentoPoolNovo.save();
 
