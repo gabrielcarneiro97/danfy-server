@@ -31,9 +31,6 @@ class ServicoPool extends Pool {
   }
 
   async del() {
-    await this.retencao.del();
-    await this.imposto.del();
-    if (this.metaDados) await this.metaDados.del();
     return this.servico.del();
   }
 

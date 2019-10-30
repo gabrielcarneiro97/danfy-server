@@ -237,6 +237,7 @@ async function calcularServicoPool(chaveNotaServico) {
   servico.notaChave = chaveNotaServico;
   servico.dataHora = dataHora;
   servico.valor = valor;
+  servico.conferido = true;
 
   if (status === 'CANCELADA') {
     return new ServicoPool(servico, new MetaDados(), new Imposto(), new Retencao());
@@ -265,6 +266,8 @@ async function calcularServicoPool(chaveNotaServico) {
     imposto[impostoNome] = val;
     imposto.total += val;
   });
+
+  imposto.iss = nota.iss || imposto.iss;
 
   const [retencao] = await Retencao.getBy({ id: nota.retencaoId });
   servicoPool.retencao = retencao;
