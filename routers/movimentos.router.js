@@ -3,8 +3,8 @@ const bodyParser = require('body-parser');
 const moment = require('moment');
 require('moment-timezone');
 
-console.log(moment(new Date()).tz('America/Sao_Paulo').toDate());
-console.log(new Date());
+console.log(moment('01-01-2019', 'DD-MM-YYYY').tz('America/Sao_Paulo').toDate());
+console.log(new Date(2019, 0, 1));
 
 const {
   criarNotaPoolSlim,
