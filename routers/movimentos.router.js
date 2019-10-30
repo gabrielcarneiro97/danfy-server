@@ -1,22 +1,5 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const moment = require('moment');
-require('moment-timezone');
-
-const Movimento = require('../services/postgres/models/movimento.model');
-
-const { pegarMovimentosPoolMes } = require('../services/postgres/movimento.service');
-
-
-Movimento.getBy('id', 86307).then(([mov]) => {
-  console.log(mov.dataHora);
-  console.log(moment(mov.dataHora).tz('America/Sao_Paulo').toDate());
-  console.log(new Date(mov.dataHora));
-})
-
-pegarMovimentosPoolMes('31975010000176', { mes: '10', ano: '2019' }).then((movs) => {
-  console.log(movs.length);
-})
 
 const {
   criarNotaPoolSlim,

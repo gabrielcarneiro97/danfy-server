@@ -19,6 +19,8 @@ trimestreRouter.get('/', async (req, res) => {
     const calcTrim = await calcularTrimestre(cnpj, { mes, ano });
     const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
 
+    console.log(trim.trimestreData.movimentosPool.length);
+
     if (!trim.trimestreData.trim.total.id) {
       await calcTrim.trim.save();
       trim.trimestreData.trim = calcTrim.trim;
