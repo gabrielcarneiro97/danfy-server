@@ -1,3 +1,6 @@
+const moment = require('moment');
+require('moment-timezone');
+
 const cfopCompra = ['1102', '2102'];
 const cfopDevolucao = ['1202', '2202'];
 const cfopDevolucaoCompra = ['5202'];
@@ -96,6 +99,8 @@ function stringToDate(string) {
   return new Date(ano, parseInt(mes, 10) - 1, dia);
 }
 
+const stringToDate2 = (string) => moment(string, 'DD-MM-YYYY').tz('America/Bahia').toDate();
+
 function trim(mesParam) {
   const mes = parseInt(mesParam, 10);
   if ((mes - 1) % 3 === 0) return [mes];
@@ -126,6 +131,7 @@ module.exports = {
   dtof,
   mesInicioFim,
   stringToDate,
+  stringToDate2,
   trim,
   objParseFloat,
   getMesTrim,

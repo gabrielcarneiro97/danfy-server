@@ -1,11 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const moment = require('moment');
-require('moment-timezone');
+const { stringToDate, stringToDate2 } = require('../services/calculador.service');
 
-console.log(moment().tz('America/Bahia').toLocaleString());
-console.log(moment().tz('America/Sao_Paulo').toLocaleString());
-console.log(moment().toLocaleString());
+console.log(stringToDate('01-01-2019'));
+console.log(stringToDate2('01-01-2019'));
 
 const {
   criarNotaPoolSlim,
