@@ -7,6 +7,7 @@ const Movimento = require('../services/postgres/models/movimento.model');
 
 
 Movimento.getBy('id', 86307).then(([mov]) => {
+  console.log(mov.dataHora);
   console.log(moment(mov.dataHora).tz('America/Sao_Paulo').toDate());
   console.log(new Date(mov.dataHora));
 })
