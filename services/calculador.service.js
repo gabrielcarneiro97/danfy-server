@@ -99,7 +99,7 @@ function stringToDate(string) {
   return new Date(ano, parseInt(mes, 10) - 1, dia);
 }
 
-const stringToDate2 = (string) => new Date(moment(string, 'DD-MM-YYYY').tz('America/Bahia').format());
+const stringToDate2 = (string) => moment(string, 'DD-MM-YYYY').tz('America/Bahia').format();
 
 function trim(mesParam) {
   const mes = parseInt(mesParam, 10);

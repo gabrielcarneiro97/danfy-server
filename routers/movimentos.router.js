@@ -1,9 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { stringToDate, stringToDate2 } = require('../services/calculador.service');
+const moment = require('moment');
+require('moment-timezone');
 
-console.log(stringToDate('01-01-2019'));
-console.log(stringToDate2('01-01-2019'));
+const Movimento = require('../services/postgres/models/movimento.model');
+
+
+Movimento.getBy('id', 86307).then(([mov]) => {
+  console.log(moment(mov.dataHora).tz('America/Sao_Paulo').toDate());
+  console.log(new Date(mov.dataHora));
+})
 
 const {
   criarNotaPoolSlim,
