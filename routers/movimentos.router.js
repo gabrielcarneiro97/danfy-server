@@ -16,6 +16,7 @@ const {
 
 const {
   calcularMovimentoPool,
+  recalcularTrimestre,
   calcularTrimestre,
   pegarTrimestreComNotas,
 } = require('../services/impostos.service');
@@ -141,7 +142,7 @@ movimentoRouter.put('/cancelar', async (req, res) => {
     const mes = (movimento.dataHora.getMonth() + 1);
     const ano = movimento.dataHora.getFullYear();
 
-    await calcularTrimestre(cnpj, { mes, ano });
+    await recalcularTrimestre(cnpj, { mes, ano });
 
     const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
 
@@ -166,7 +167,7 @@ movimentoRouter.put('/editar', bodyParser.json(), async (req, res) => {
     await cancelarMovimento(movimentoAntigoId);
     await movimentoPoolNovo.save();
 
-    await calcularTrimestre(cnpj, { mes, ano });
+    await recalcularTrimestre(cnpj, { mes, ano });
 
     const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
 
