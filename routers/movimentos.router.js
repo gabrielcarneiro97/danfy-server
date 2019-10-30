@@ -1,5 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const moment = require('moment');
+require('moment-timezone');
+
+console.log(moment(new Date()).tz('America/Sao_Paulo').toDate());
+console.log(new Date());
 
 const {
   criarNotaPoolSlim,
@@ -155,8 +160,6 @@ movimentoRouter.put('/cancelar', async (req, res) => {
 movimentoRouter.put('/editar', bodyParser.json(), async (req, res) => {
   const { cnpj, movimentoAntigoId } = req.query;
   const { movimentoNovoObj } = req.body;
-
-  console.log(cnpj);
 
   const movimentoData = new Date(movimentoNovoObj.movimento.dataHora);
 

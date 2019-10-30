@@ -55,8 +55,6 @@ servicosRouter.post('/push', bodyParser.json(), async (req, res) => {
     const servicoPool = servicoPoolFromObj(servObj);
     const existe = await ServicoPool.getByNotaChave(servicoPool.servico.notaChave);
 
-    console.log(existe);
-
     if (existe) res.status(409).send(new Error(`Nota já registrada em outro serviço! ID: ${existe.id}`));
     else {
       await servicoPool.save();
