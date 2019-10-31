@@ -7,7 +7,7 @@ const {
 
 const {
   calcularServicoPool,
-  calcularTrimestre,
+  recalcularTrimestre,
   pegarTrimestreComNotas,
 } = require('../services/impostos.service');
 
@@ -78,7 +78,7 @@ servicosRouter.delete('/id', async (req, res) => {
 
     await servicoPool.del();
 
-    await calcularTrimestre(cnpj, { mes, ano });
+    await recalcularTrimestre(cnpj, { mes, ano });
     const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
     res.send(trim);
   } catch (err) {

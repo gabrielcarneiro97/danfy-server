@@ -17,7 +17,6 @@ const {
 const {
   calcularMovimentoPool,
   recalcularTrimestre,
-  calcularTrimestre,
   pegarTrimestreComNotas,
 } = require('../services/impostos.service');
 
@@ -62,6 +61,8 @@ movimentoRouter.post('/calcular', bodyParser.json(), async (req, res) => {
   const movimentos = await Promise.all(promises);
   res.send({ movimentos, notasIniciais });
 });
+
+
 movimentoRouter.post('/push', bodyParser.json(), async (req, res) => {
   const { movimentoPool: movPoolFlat, donoCpfcnpj } = req.body;
   let { valorInicial } = req.body;
@@ -113,6 +114,7 @@ movimentoRouter.get('/slim', async (req, res) => {
     const notaInicialPool = await criarNotaPoolSlim(valorInicial, cnpj);
     const { chave: notaInicialChave } = notaInicialPool.nota;
     const movimentoPool = await calcularMovimentoPool(notaInicialChave, notaFinalChave);
+
     res.send({ movimentoPool, notaInicialPool });
   } catch (err) {
     console.error(err);

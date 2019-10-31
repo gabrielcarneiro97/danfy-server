@@ -19,7 +19,7 @@
     "start": "node server.js"
   },
   "name": "danfy-server",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "main": "server.js",
   "repository": "https://github.com/gabrielcarneiro97/danfy-server.git",
   "author": "Gabriel Carneiro <gabriel.carneiro97@live.com>",

@@ -54,8 +54,8 @@ function compararProduto(notaInicialPool, notaFinalPool) {
 }
 
 function compararData(notaInicial, notaFinal) {
-  const dataInicial = new Date(notaInicial.data_hora).getTime();
-  const dataFinal = new Date(notaFinal.data_hora).getTime();
+  const dataInicial = new Date(notaInicial.dataHora).getTime();
+  const dataFinal = new Date(notaFinal.dataHora).getTime();
 
   if (dataInicial <= dataFinal) {
     return true;
@@ -66,6 +66,7 @@ function compararData(notaInicial, notaFinal) {
 function validarMovimento(notaInicialPool, notaFinalPool) {
   const notaInicial = notaInicialPool.nota;
   const notaFinal = notaFinalPool.nota;
+
   if (notaInicial.chave === notaFinal.chave) {
     return { isValid: false, error: new Error('A nota Inicial e Final são iguais!') };
   }

@@ -36,7 +36,6 @@ dominioRouter.get('/id', async (req, res) => {
 
 dominioRouter.post('/empresa', bodyParser.json(), async (req, res) => {
   const { numero, cnpj, dominioId } = req.body;
-
   try {
     await adicionarEmpresa(dominioId, numero, cnpj);
     res.sendStatus(201);
