@@ -14,7 +14,8 @@ async function criarPessoa(pessoaParam) {
 }
 
 async function notaPessoaToPool(cpfcnpj, pessoaObj) {
-  const pessoa = new Pessoa({
+  const [pessoaPg] = await Pessoa.getBy('cpfcnpj', cpfcnpj);
+  const pessoa = pessoaPg || new Pessoa({
     nome: pessoaObj.nome,
     cpfcnpj,
   });
