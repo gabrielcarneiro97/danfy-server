@@ -22,6 +22,7 @@ dominioRouter.get('/', async (req, res) => {
     res.status(500).send(err);
   }
 });
+
 dominioRouter.get('/id', async (req, res) => {
   const { uid } = req.query;
   try {

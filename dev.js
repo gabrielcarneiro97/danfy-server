@@ -10,7 +10,6 @@ app.options('*', cors());
 app.use(cors());
 app.use('/api', danfy);
 
-
 if (process.argv[2] === 'ssl') {
   https.createServer(SSL, app).listen(8080, () => {
     console.log('SSL server listening 8080 port');

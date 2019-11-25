@@ -20,6 +20,7 @@ estoqueRouter.get('/:cpfcnpj', async (req, res) => {
 estoqueRouter.put('/:cpfcnpj', async (req, res) => {
   const { cpfcnpj } = req.params;
   const { data } = req.query;
+
   const estoque = await atualizarEstoque(cpfcnpj, data);
   res.send(estoque);
 });
