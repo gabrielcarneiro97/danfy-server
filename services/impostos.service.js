@@ -368,7 +368,7 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
   const interno = eMovimentoInterno(notaFinal);
 
   const { estadoDestinoId } = notaFinal;
-  const [difalAliquota] = !interno && await DifalAliquota.getBy({ estadoId: estadoDestinoId });
+  const [difalAliquota] = await DifalAliquota.getBy({ estadoId: estadoDestinoId });
 
   if (interno || !difalAliquota) {
     icms.baseCalculo = movimento.lucro * aliquota.icmsReducao;
