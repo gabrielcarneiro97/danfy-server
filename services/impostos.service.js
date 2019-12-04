@@ -365,18 +365,18 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
     imposto.total += valor;
   });
 
-  if (eMovimentoInterno(notaFinal)) {
+  const interno = eMovimentoInterno(notaFinal);
+
+  const { estadoDestinoId } = notaFinal;
+  const [difalAliquota] = !interno && await DifalAliquota.getBy({ estadoId: estadoDestinoId });
+
+  if (interno || !difalAliquota) {
     icms.baseCalculo = movimento.lucro * aliquota.icmsReducao;
     icms.proprio = movimento.lucro * aliquota.icmsReducao * aliquota.icmsAliquota;
     imposto.total += icms.proprio;
     return movimentoPool;
   }
 
-  const { estadoDestinoId } = notaFinal;
-
-  const [difalAliquota] = await DifalAliquota.getBy({ estadoId: estadoDestinoId });
-
-  if (!difalAliquota) throw new Error('Estado não suportado!');
 
   if (eDestinatarioContribuinte(notaFinal)) {
     icms.baseCalculo = 0.05 * movimento.valorSaida;
