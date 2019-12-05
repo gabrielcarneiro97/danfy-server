@@ -48,7 +48,7 @@ class ServicoPool extends Pool {
 
   static async getByNotaChave(notaChave) {
     const servicos = await Servico.getBy({ notaChave });
-    const servicosPool = await Promise.all(servicos.map(async o => ServicoPool.getById(o.id)));
+    const servicosPool = await Promise.all(servicos.map(async (o) => ServicoPool.getById(o.id)));
     let servicoPool;
 
     if (servicosPool.length === 1) {

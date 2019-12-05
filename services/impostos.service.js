@@ -236,12 +236,14 @@ async function calcularServicoPool(chaveNotaServico) {
   servico.donoCpfcnpj = emitenteCpfcnpj;
   servico.notaChave = chaveNotaServico;
   servico.dataHora = dataHora;
-  servico.valor = valor;
+  servico.valor = 0;
   servico.conferido = true;
 
   if (status === 'CANCELADA') {
     return new ServicoPool(servico, new MetaDados(), new Imposto(), new Retencao());
   }
+
+  servico.valor = valor;
 
   const servicoPool = new ServicoPool(
     servico,
