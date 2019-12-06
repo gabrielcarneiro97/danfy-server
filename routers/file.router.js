@@ -6,9 +6,6 @@ const {
   notaXmlToPool,
   notaServicoXmlToPool,
 } = require('../services/postgres');
-const {
-  lerNfe,
-} = require('../services/xml.service');
 
 const {
   xmlToObj,
@@ -25,26 +22,25 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
   let final = {};
 
   if (danfe.eDanfe(obj)) {
-    lerNfe(obj, async (nota, emitente, destinatario) => {
-      try {
-        const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
-          notaPessoaToPool(nota.emitente, emitente),
-          notaPessoaToPool(nota.destinatario, destinatario),
-        ]);
+    const { nota, emitente, destinatario } = danfe.leitor(obj);
+    try {
+      const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
+        notaPessoaToPool(nota.emitente, emitente),
+        notaPessoaToPool(nota.destinatario, destinatario),
+      ]);
 
-        const notaPool = await notaXmlToPool(nota);
+      const notaPool = await notaXmlToPool(nota);
 
-        final = {
-          tipo: 'nfe',
-          pessoas: [emitentePessoaPool, destinatarioPessoaPool],
-          notaPool,
-        };
-        res.send(final);
-      } catch (err) {
-        console.error(err);
-        res.status(500).send(err);
-      }
-    });
+      final = {
+        tipo: 'nfe',
+        pessoas: [emitentePessoaPool, destinatarioPessoaPool],
+        notaPool,
+      };
+      res.send(final);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send(err);
+    }
   } else {
     const {
       notaServico,
@@ -52,11 +48,6 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
       destinatario,
       desconhecida,
     } = servico.localizador.qualCidade(obj)(obj);
-
-    console.log(notaServico,
-      emitente,
-      destinatario,
-      desconhecida);
 
     if (desconhecida) {
       res.status(500).send();
