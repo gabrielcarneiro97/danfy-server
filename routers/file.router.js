@@ -1,4 +1,3 @@
-const { xml2js } = require('xml-js');
 const express = require('express');
 const multer = require('multer');
 
@@ -9,40 +8,23 @@ const {
 } = require('../services/postgres');
 const {
   lerNfe,
-  lerNfse,
 } = require('../services/xml.service');
+
+const {
+  xmlToObj,
+  servico,
+  danfe,
+} = require('../services/xml');
 
 const fileRouter = express();
 const upload = multer();
 
 fileRouter.post('/', upload.single('file'), async (req, res) => {
   const { file } = req;
-  const xml = file.buffer.toString('utf-8');
-  const obj = xml2js(xml, { compact: true });
+  const obj = xmlToObj(file);
   let final = {};
 
-  if (obj.CompNfse) {
-    lerNfse(obj, async (notaParam, emitente, destinatario) => {
-      try {
-        const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
-          notaPessoaToPool(notaParam.emitente, emitente),
-          notaPessoaToPool(notaParam.destinatario, destinatario),
-        ]);
-
-        const notaPool = await notaServicoXmlToPool(notaParam);
-        final = {
-          tipo: 'nfse',
-          pessoas: [emitentePessoaPool, destinatarioPessoaPool],
-          notaPool,
-        };
-
-        res.send(final);
-      } catch (err) {
-        console.error(err);
-        res.status(500).send(err);
-      }
-    });
-  } else if (obj.nfeProc) {
+  if (danfe.eDanfe(obj)) {
     lerNfe(obj, async (nota, emitente, destinatario) => {
       try {
         const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
@@ -64,7 +46,40 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
       }
     });
   } else {
-    res.sendStatus(400);
+    const {
+      notaServico,
+      emitente,
+      destinatario,
+      desconhecida,
+    } = servico.localizador.qualCidade(obj)(obj);
+
+    console.log(notaServico,
+      emitente,
+      destinatario,
+      desconhecida);
+
+    if (desconhecida) {
+      res.status(500).send();
+    } else {
+      try {
+        const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
+          notaPessoaToPool(notaServico.emitente, emitente),
+          notaPessoaToPool(notaServico.destinatario, destinatario),
+        ]);
+
+        const notaPool = await notaServicoXmlToPool(notaServico);
+        final = {
+          tipo: 'nfse',
+          pessoas: [emitentePessoaPool, destinatarioPessoaPool],
+          notaPool,
+        };
+
+        res.send(final);
+      } catch (err) {
+        console.error(err);
+        res.status(500).send(err);
+      }
+    }
   }
 });
 

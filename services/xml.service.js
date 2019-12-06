@@ -1,91 +1,5 @@
 /* eslint dot-notation: 0 */
 
-function lerNfse(obj, callback) {
-  if (!obj.CompNfse.Nfse.Signature) {
-    return 0;
-  }
-
-  const info = obj.CompNfse.Nfse.InfNfse;
-  const valorBruto = info.Servico.Valores;
-
-  const notaServico = {};
-
-  const valor = {
-    servico: valorBruto.ValorServicos['_text'],
-    baseCalculo: valorBruto.BaseCalculo['_text'],
-    iss: {
-      valor: valorBruto.ValorIss ? valorBruto.ValorIss['_text'] : '0.0',
-      aliquota: valorBruto.Aliquota ? valorBruto.Aliquota['_text'] : '0.0',
-    },
-    retencoes: {
-      iss: valorBruto.ValorIssRetido ? valorBruto.ValorIssRetido['_text'] : '0.0',
-      irpj: valorBruto.ValorIr ? valorBruto.ValorIr['_text'] : '0.0',
-      csll: valorBruto.ValorCsll ? valorBruto.ValorCsll['_text'] : '0.0',
-      cofins: valorBruto.ValorCofins ? valorBruto.ValorCofins['_text'] : '0.0',
-      pis: valorBruto.ValorPis ? valorBruto.ValorPis['_text'] : '0.0',
-      inss: valorBruto.ValorInss ? valorBruto.ValorInss['_text'] : '0.0',
-    },
-  };
-
-  notaServico.valor = valor;
-
-  const emitenteBruto = info.PrestadorServico;
-
-  notaServico.emitente = emitenteBruto.IdentificacaoPrestador.Cnpj['_text'];
-
-  const emitente = {
-    nome: emitenteBruto.RazaoSocial['_text'],
-    endereco: {
-      logradouro: emitenteBruto.Endereco.Endereco['_text'],
-      numero: emitenteBruto.Endereco.Numero['_text'],
-      complemento: emitenteBruto.Endereco.Complemento ? emitenteBruto.Endereco.Complemento['_text'] : null,
-      bairro: emitenteBruto.Endereco.Bairro,
-      municipio: {
-        codigo: emitenteBruto.Endereco.CodigoMunicipio['_text'],
-      },
-      estado: emitenteBruto.Endereco.Uf['_text'],
-      pais: {
-        nome: 'Brasil',
-        codigo: '1058',
-      },
-      cep: emitenteBruto.Endereco.Cep['_text'],
-    },
-  };
-
-  const destinatarioBruto = info.TomadorServico;
-
-  notaServico.destinatario = destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cpf ? destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cpf['_text'] : destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cnpj['_text'];
-
-  const destinatario = {
-    nome: destinatarioBruto.RazaoSocial['_text'],
-    endereco: {
-      logradouro: destinatarioBruto.Endereco.Endereco['_text'],
-      numero: destinatarioBruto.Endereco.Numero['_text'],
-      complemento: destinatarioBruto.Endereco.Complemento ? destinatarioBruto.Endereco.Complemento['_text'] : null,
-      bairro: destinatarioBruto.Endereco.Bairro,
-      municipio: {
-        codigo: destinatarioBruto.Endereco.CodigoMunicipio['_text'],
-      },
-      estado: destinatarioBruto.Endereco.Uf['_text'],
-      pais: {
-        nome: 'Brasil',
-        codigo: '1058',
-      },
-      cep: destinatarioBruto.Endereco.Cep['_text'],
-    },
-  };
-
-  notaServico.geral = {
-    numero: info.Numero['_text'],
-    dataHora: info.Competencia['_text'],
-    status: obj.CompNfse.NfseCancelamento ? 'CANCELADA' : 'NORMAL',
-  };
-
-  notaServico.chave = notaServico.emitente + notaServico.geral.numero;
-
-  return callback(notaServico, emitente, destinatario);
-}
-
 function lerNfe(obj, callback) {
   // if (obj.nfeProc) {
   //   if (!obj.nfeProc.NFe) {
@@ -232,6 +146,92 @@ function lerNfe(obj, callback) {
   }
 
   return callback(nota, emitente, destinatario);
+}
+
+function lerNfse(obj, callback) {
+  if (!obj.CompNfse.Nfse.Signature) {
+    return 0;
+  }
+
+  const info = obj.CompNfse.Nfse.InfNfse;
+  const valorBruto = info.Servico.Valores;
+
+  const notaServico = {};
+
+  const valor = {
+    servico: valorBruto.ValorServicos['_text'],
+    baseCalculo: valorBruto.BaseCalculo['_text'],
+    iss: {
+      valor: valorBruto.ValorIss ? valorBruto.ValorIss['_text'] : '0.0',
+      aliquota: valorBruto.Aliquota ? valorBruto.Aliquota['_text'] : '0.0',
+    },
+    retencoes: {
+      iss: valorBruto.ValorIssRetido ? valorBruto.ValorIssRetido['_text'] : '0.0',
+      irpj: valorBruto.ValorIr ? valorBruto.ValorIr['_text'] : '0.0',
+      csll: valorBruto.ValorCsll ? valorBruto.ValorCsll['_text'] : '0.0',
+      cofins: valorBruto.ValorCofins ? valorBruto.ValorCofins['_text'] : '0.0',
+      pis: valorBruto.ValorPis ? valorBruto.ValorPis['_text'] : '0.0',
+      inss: valorBruto.ValorInss ? valorBruto.ValorInss['_text'] : '0.0',
+    },
+  };
+
+  notaServico.valor = valor;
+
+  const emitenteBruto = info.PrestadorServico;
+
+  notaServico.emitente = emitenteBruto.IdentificacaoPrestador.Cnpj['_text'];
+
+  const emitente = {
+    nome: emitenteBruto.RazaoSocial['_text'],
+    endereco: {
+      logradouro: emitenteBruto.Endereco.Endereco['_text'],
+      numero: emitenteBruto.Endereco.Numero['_text'],
+      complemento: emitenteBruto.Endereco.Complemento ? emitenteBruto.Endereco.Complemento['_text'] : null,
+      bairro: emitenteBruto.Endereco.Bairro,
+      municipio: {
+        codigo: emitenteBruto.Endereco.CodigoMunicipio['_text'],
+      },
+      estado: emitenteBruto.Endereco.Uf['_text'],
+      pais: {
+        nome: 'Brasil',
+        codigo: '1058',
+      },
+      cep: emitenteBruto.Endereco.Cep['_text'],
+    },
+  };
+
+  const destinatarioBruto = info.TomadorServico;
+
+  notaServico.destinatario = destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cpf ? destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cpf['_text'] : destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cnpj['_text'];
+
+  const destinatario = {
+    nome: destinatarioBruto.RazaoSocial['_text'],
+    endereco: {
+      logradouro: destinatarioBruto.Endereco.Endereco['_text'],
+      numero: destinatarioBruto.Endereco.Numero['_text'],
+      complemento: destinatarioBruto.Endereco.Complemento ? destinatarioBruto.Endereco.Complemento['_text'] : null,
+      bairro: destinatarioBruto.Endereco.Bairro,
+      municipio: {
+        codigo: destinatarioBruto.Endereco.CodigoMunicipio['_text'],
+      },
+      estado: destinatarioBruto.Endereco.Uf['_text'],
+      pais: {
+        nome: 'Brasil',
+        codigo: '1058',
+      },
+      cep: destinatarioBruto.Endereco.Cep['_text'],
+    },
+  };
+
+  notaServico.geral = {
+    numero: info.Numero['_text'],
+    dataHora: info.Competencia['_text'],
+    status: obj.CompNfse.NfseCancelamento ? 'CANCELADA' : 'NORMAL',
+  };
+
+  notaServico.chave = notaServico.emitente + notaServico.geral.numero;
+
+  return callback(notaServico, emitente, destinatario);
 }
 
 module.exports = {

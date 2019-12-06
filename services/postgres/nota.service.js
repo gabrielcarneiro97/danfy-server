@@ -153,7 +153,6 @@ async function notaXmlToPool(notaObj) {
   };
 
   delete notaFlat.produtos;
-  delete notaFlat.produtosCodigo;
 
   const nota = new Nota(notaFlat);
 
