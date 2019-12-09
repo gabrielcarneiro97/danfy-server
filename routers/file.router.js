@@ -19,58 +19,55 @@ const upload = multer();
 fileRouter.post('/', upload.single('file'), async (req, res) => {
   const { file } = req;
   const obj = xmlToObj(file);
-  let final = {};
 
   if (danfe.eDanfe(obj)) {
     const { nota, emitente, destinatario } = danfe.leitor(obj);
     try {
-      const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
+      const pessoas = await Promise.all([
         notaPessoaToPool(nota.emitente, emitente),
         notaPessoaToPool(nota.destinatario, destinatario),
       ]);
 
       const notaPool = await notaXmlToPool(nota);
 
-      final = {
+      return res.send({
         tipo: 'nfe',
-        pessoas: [emitentePessoaPool, destinatarioPessoaPool],
+        pessoas,
         notaPool,
-      };
-      res.send(final);
+      });
     } catch (err) {
       console.error(err);
-      res.status(500).send(err);
+      return res.status(500).send(err);
     }
-  } else {
-    const {
-      notaServico,
-      emitente,
-      destinatario,
-      desconhecida,
-    } = servico.localizador.qualCidade(obj)(obj);
+  }
 
-    if (desconhecida) {
-      res.status(500).send();
-    } else {
-      try {
-        const [emitentePessoaPool, destinatarioPessoaPool] = await Promise.all([
-          notaPessoaToPool(notaServico.emitente, emitente),
-          notaPessoaToPool(notaServico.destinatario, destinatario),
-        ]);
+  const {
+    notaServico,
+    emitente,
+    destinatario,
+    desconhecida,
+  } = servico.localizador.qualCidade(obj)(obj);
 
-        const notaPool = await notaServicoXmlToPool(notaServico);
-        final = {
-          tipo: 'nfse',
-          pessoas: [emitentePessoaPool, destinatarioPessoaPool],
-          notaPool,
-        };
+  if (desconhecida) {
+    return res.status(500).send('Cidade não suportada!');
+  }
 
-        res.send(final);
-      } catch (err) {
-        console.error(err);
-        res.status(500).send(err);
-      }
-    }
+  try {
+    const pessoas = await Promise.all([
+      notaPessoaToPool(notaServico.emitente, emitente),
+      notaPessoaToPool(notaServico.destinatario, destinatario),
+    ]);
+
+    const notaPool = await notaServicoXmlToPool(notaServico);
+
+    return res.send({
+      tipo: 'nfse',
+      pessoas,
+      notaPool,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send(err);
   }
 });
 

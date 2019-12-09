@@ -85,6 +85,7 @@ const getInfosGerais = (obj) => {
     numero: info.Numero['_text'],
     dataHora: info.Competencia['_text'],
     status: obj.CompNfse.NfseCancelamento ? 'CANCELADA' : 'NORMAL',
+    descricao: info.Servico.Discriminacao['_text'].replace(/\|/g, '\n'),
   };
 };
 

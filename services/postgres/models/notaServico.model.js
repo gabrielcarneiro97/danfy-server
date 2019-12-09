@@ -24,6 +24,7 @@ class NotaServico extends Table {
       'retencao_id',
       'valor',
       'iss',
+      'descricao',
     ];
   }
 
