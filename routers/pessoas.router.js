@@ -1,15 +1,18 @@
-const { pegarPessoaFlat } = require('../services/mongoose.service');
+const express = require('express');
+const { pegarPessoaId } = require('../services/postgres/pessoa.service');
 
-module.exports = {
-  get: {
-    flat(req, res) {
-      const { pessoaId } = req.query;
-      pegarPessoaFlat(pessoaId)
-        .then(pessoa => res.send({ pessoa }))
-        .catch((err) => {
-          console.error(err);
-          res.sendStatus(500);
-        });
-    },
-  },
-};
+const pessoasRouter = express();
+
+pessoasRouter.get('/flat', async (req, res) => {
+  const { pessoaId } = req.query;
+  try {
+    const pessoa = await pegarPessoaId(pessoaId);
+    res.send(pessoa);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+
+module.exports = pessoasRouter;

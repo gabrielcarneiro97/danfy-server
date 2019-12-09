@@ -1,31 +1,33 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+
 const {
-  pegarEmpresaAliquotas,
+  pegarEmpresaAliquota,
   criarAliquota,
-} = require('../services/mongoose.service');
+} = require('../services/postgres/aliquota.service');
 
-module.exports = {
-  post: {
-    root(req, res) {
-      const { cnpj, aliquotas } = req.body;
+const aliquotasRouter = express();
 
-      criarAliquota(cnpj, aliquotas).then(() => {
-        res.sendStatus(201);
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
-      });
-    },
-  },
-  get: {
-    root(req, res) {
-      const { cnpj } = req.query;
+aliquotasRouter.post('/', bodyParser.json(), async (req, res) => {
+  const { aliquota } = req.body;
+  try {
+    await criarAliquota(aliquota);
+    res.sendStatus(201);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
 
-      pegarEmpresaAliquotas(cnpj).then((aliquotas) => {
-        res.send(aliquotas);
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
-      });
-    },
-  },
-};
+aliquotasRouter.get('/', async (req, res) => {
+  const { cnpj } = req.query;
+  try {
+    const aliquota = await pegarEmpresaAliquota(cnpj);
+    res.send(aliquota);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+module.exports = aliquotasRouter;

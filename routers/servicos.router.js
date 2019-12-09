@@ -1,97 +1,90 @@
-const {
-  pegarNotaServicoChave,
-  pegarServico,
-  pegarServicoNota,
-  pushServico,
-  pegarMovimentosServicosTotal,
-  excluirServico,
-} = require('../services/mongoose.service');
+const express = require('express');
+const bodyParser = require('body-parser');
 
 const {
-  calcularImpostosServico,
+  servicoPoolFromObj,
+} = require('../services/postgres/servico.service');
+
+const {
+  calcularServicoPool,
+  recalcularTrimestre,
+  pegarTrimestreComNotas,
 } = require('../services/impostos.service');
 
-module.exports = {
-  get: {
-    calcular(req, res) {
-      const { notaServico } = req.query;
-      let { dominioId, email } = req.query;
-      dominioId = decodeURI(dominioId);
-      email = decodeURI(email);
-      pegarNotaServicoChave(notaServico).then((notaServicoObj) => {
-        calcularImpostosServico(notaServicoObj).then((valores) => {
-          const servico = {
-            nota: notaServico,
-            dominio: dominioId,
-            conferido: true,
-            valores,
-            metaDados: {
-              criadoPor: email,
-              dataCriacao: new Date().toISOString(),
-            },
-            data: notaServicoObj.geral.dataHora,
-            notaStatus: notaServicoObj.geral.status,
-          };
-          res.send(servico);
-        }).catch((err) => {
-          console.error(err);
-          res.sendStatus(500);
-        });
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
-      });
-    },
-    id(req, res) {
-      const { servicoId, cnpj } = req.query;
-      pegarServico(cnpj, servicoId).then((servico) => {
-        res.send(servico);
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
-      });
-    },
-    nota(req, res) {
-      const { notaChave, cnpj } = req.query;
-      pegarServicoNota(cnpj, notaChave).then((servico) => {
-        res.send(servico);
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
-      });
-    },
-  },
-  post: {
-    push(req, res) {
-      const { servico, cnpj } = req.body;
-      pegarServicoNota(cnpj, servico.nota).then(({ servicoExiste }) => {
-        if (servicoExiste) {
-          res.status(409).send(new Error(`Nota já registrada em outro serviço! ID: ${servicoExiste._id}`));
-        } else {
-          pushServico(cnpj, servico).then(() => {
-            res.sendStatus(200);
-          });
-        }
-      });
-    },
-  },
-  delete: {
-    id(req, res) {
-      const { servicoId, cnpj } = req.query;
-      excluirServico(cnpj, servicoId).then((infos) => {
-        const date = new Date(infos.servicoCompetencia);
-        const mes = date.getMonth() + 1;
-        const ano = date.getFullYear();
-        pegarMovimentosServicosTotal(cnpj, mes, ano, true).then((data) => {
-          res.send(data);
-        }).catch((err) => {
-          console.error(err);
-          res.sendStatus(500);
-        });
-      }).catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
-      });
-    },
-  },
-};
+const { ServicoPool } = require('../services/postgres/pools');
+
+const servicosRouter = express();
+
+servicosRouter.get('/calcular', async (req, res) => {
+  let { notaServicoChave } = req.query;
+  notaServicoChave = decodeURI(notaServicoChave);
+  try {
+    const servicoPool = await calcularServicoPool(notaServicoChave);
+    res.send(servicoPool);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+servicosRouter.get('/id', async (req, res) => {
+  try {
+    const { servicoId } = req.query;
+    const servicoPool = await ServicoPool.getById(servicoId);
+    res.send(servicoPool);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+servicosRouter.get('/nota', async (req, res) => {
+  const { notaChave } = req.query;
+  try {
+    const servicoPool = await ServicoPool.getByNotaChave(notaChave);
+    res.send(servicoPool);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+servicosRouter.post('/push', bodyParser.json(), async (req, res) => {
+  const { servicoPool: servObj } = req.body;
+  try {
+    const servicoPool = servicoPoolFromObj(servObj);
+    const existe = await ServicoPool.getByNotaChave(servicoPool.servico.notaChave);
+
+    if (existe) res.status(409).send(new Error(`Nota já registrada em outro serviço! ID: ${existe.id}`));
+    else {
+      await servicoPool.save();
+      res.sendStatus(201);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+servicosRouter.delete('/id', async (req, res) => {
+  const { servicoId, cnpj } = req.query;
+
+  try {
+    const servicoPool = await ServicoPool.getById(servicoId);
+
+    const data = new Date(servicoPool.servico.dataHora);
+    const mes = data.getMonth() + 1;
+    const ano = data.getFullYear();
+
+    await servicoPool.del();
+
+    await recalcularTrimestre(cnpj, { mes, ano });
+    const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
+    res.send(trim);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+module.exports = servicosRouter;

@@ -1,514 +1,415 @@
 const {
-  pegarEmpresaAliquotas,
-} = require('./mongoose/aliquota.service');
-
-
-const {
-  pegarMovimentoNotaFinal,
-  pegarMovimentosMes,
-} = require('./mongoose/movimento.service');
+  cfopDevolucao,
+  cfopDevolucaoConsignacao,
+  cfopDevolucaoDemonstracao,
+} = require('.');
 
 const {
-  pegarServicosMes,
-} = require('./mongoose/servico.service');
+  TotalMovimento,
+  Imposto,
+  Icms,
+  Retencao,
+  TotalServico,
+  Nota,
+  NotaServico,
+  Aliquota,
+  Movimento,
+  Servico,
+  MetaDados,
+  DifalAliquota,
+} = require('./postgres/models');
 
+const {
+  TotalPool,
+  TotalMovimentoPool,
+  ImpostoPool,
+  TotalServicoPool,
+  MovimentoPool,
+  ServicoPool,
+} = require('./postgres/pools');
 
-function calcularImpostosServico(notaServico) {
-  return new Promise((resolve, reject) => {
-    pegarEmpresaAliquotas(notaServico.emitente).then((aliquotas) => {
-      const { valor } = notaServico;
-      const { retencoes } = valor;
-      const { status } = notaServico.geral;
+const { pegarMovimentosPoolMes } = require('./postgres/movimento.service');
 
-      if (aliquotas.tributacao !== 'SN') {
-        const valores = {};
+const { pegarServicosPoolMes } = require('./postgres/servico.service');
 
-        valores.servico = status === 'NORMAL' ? valor.servico : 0;
+const { pegarTrimestreTotalPool, pegarMesTotalPool } = require('./postgres/total.service');
 
-        const baseDeCalculo = status === 'NORMAL' ? valor.baseDeCalculo : 0;
+const {
+  trim,
+  getMesTrim,
+} = require('.');
 
+async function pegarMovimentosServicosMes(cnpj, competencia) {
+  const [movimentosPool, servicosPool] = await Promise.all([
+    pegarMovimentosPoolMes(cnpj, competencia),
+    pegarServicosPoolMes(cnpj, competencia),
+  ]);
 
-        const iss = valor.iss ?
-          valor.iss.valor :
-          (baseDeCalculo * aliquotas.iss);
-        const aliquotaIr = 0.048;
-        const aliquotaCsll = 0.0288;
-
-        valores.impostos = {
-          baseDeCalculo,
-          retencoes: {
-            iss: status === 'NORMAL' ? retencoes.iss : 0,
-            pis: status === 'NORMAL' ? retencoes.pis : 0,
-            cofins: status === 'NORMAL' ? retencoes.cofins : 0,
-            csll: status === 'NORMAL' ? retencoes.csll : 0,
-            irpj: status === 'NORMAL' ? retencoes.irpj : 0,
-            total: status === 'NORMAL' ? (parseFloat(retencoes.iss) + parseFloat(retencoes.pis) + parseFloat(retencoes.cofins) + parseFloat(retencoes.csll) + parseFloat(retencoes.irpj)) : 0,
-          },
-          iss: status === 'NORMAL' ? iss : 0,
-          pis: (baseDeCalculo * aliquotas.pis),
-          cofins: (baseDeCalculo * aliquotas.cofins),
-          csll: (baseDeCalculo * aliquotaCsll),
-          irpj: (baseDeCalculo * aliquotaIr),
-          total: status === 'NORMAL' ? (parseFloat(iss) + (baseDeCalculo * aliquotaIr) + (baseDeCalculo * aliquotas.pis) + (baseDeCalculo * aliquotas.cofins) + (baseDeCalculo * aliquotaCsll)) : 0,
-        };
-
-        resolve(valores);
-      } else {
-        const valores = {};
-
-        valores.servico = status === 'NORMAL' ? valor.servico : 0;
-
-        const baseDeCalculo = status === 'NORMAL' ? valor.baseDeCalculo : 0;
-
-        const aliquotaIss = valor.iss ? (valor.iss.aliquota ? parseFloat(valor.iss.aliquota) : aliquotas.iss) : aliquotas.iss; // eslint-disable-line
-        const iss = valor.iss ? (valor.iss.valor ? valor.iss.valor : 0) : (baseDeCalculo * aliquotaIss); // eslint-disable-line
-
-        valores.impostos = {
-          baseDeCalculo,
-          retencoes: {
-            iss: status === 'NORMAL' ? retencoes.iss : 0,
-            pis: status === 'NORMAL' ? retencoes.pis : 0,
-            cofins: status === 'NORMAL' ? retencoes.cofins : 0,
-            csll: status === 'NORMAL' ? retencoes.csll : 0,
-            irpj: status === 'NORMAL' ? retencoes.irpj : 0,
-            total: status === 'NORMAL' ? (parseFloat(retencoes.iss) + parseFloat(retencoes.pis) + parseFloat(retencoes.cofins) + parseFloat(retencoes.csll) + parseFloat(retencoes.irpj)) : 0,
-          },
-          iss: status === 'NORMAL' ? iss : 0,
-          pis: 0,
-          cofins: 0,
-          csll: 0,
-          irpj: 0,
-          total: status === 'NORMAL' ? iss : 0,
-        };
-        resolve(valores);
-      }
-    }).catch(err => reject(err));
-  });
+  return {
+    movimentosPool,
+    servicosPool,
+  };
 }
 
-function calcularImpostosMovimento(notaInicial, notaFinal, aliquotas) {
-  return new Promise((resolve, reject) => {
-    let valorSaida = parseFloat(notaFinal.valor.total);
-    let lucro = parseFloat(notaFinal.valor.total)
-      - parseFloat(notaInicial ? notaInicial.valor.total : 0);
-    const {
-      estadoGerador,
-      estadoDestino,
-      destinatarioContribuinte,
-    } = notaFinal.informacoesEstaduais;
+async function calcularMes(cnpj, competencia) {
+  const { movimentosPool, servicosPool } = await pegarMovimentosServicosMes(cnpj, competencia);
 
-    const { cfop: cfopFinal } = notaFinal.geral;
+  const totalMovimentoPool = new TotalMovimentoPool(
+    new TotalMovimento(),
+    new ImpostoPool(new Imposto(), new Icms()),
+  );
 
-    if (estadoGerador !== 'MG') {
-      reject(new Error(`Estado informado não suportado! Estado: ${estadoGerador}`));
-    }
+  movimentosPool.forEach((movimentoPool) => totalMovimentoPool.soma(movimentoPool));
 
-    if (lucro < 0 && estadoGerador !== estadoDestino) {
-      lucro = 0;
-    }
-    if ((lucro < 0 && cfopFinal !== '1202' && cfopFinal !== '2202') || (cfopFinal === '6918' || cfopFinal === '5918') || (cfopFinal === '6913' || cfopFinal === '5913')) {
-      resolve({
-        lucro: 0,
-        valorSaida,
-        impostos: {
-          pis: 0,
-          cofins: 0,
-          csll: 0,
-          irpj: 0,
-          icms: {
-            baseDeCalculo: 0,
-            proprio: 0,
-          },
-          total: 0,
-        },
-      });
-    } else {
-      const proximoPasso = () => {
-        const valores = {
-          lucro,
-          valorSaida,
-          impostos: {
-            pis: (lucro * aliquotas.pis),
-            cofins: (lucro * aliquotas.cofins),
-            csll: (lucro * aliquotas.csll),
-            irpj: (lucro * aliquotas.irpj),
-            icms: {
-              composicaoDaBase: 0,
-              difal: {
-                destino: 0,
-                origem: 0,
-              },
-              baseDeCalculo: 0,
-              proprio: 0,
-            },
-            total: ((lucro * aliquotas.irpj)
-              + (lucro * aliquotas.pis)
-              + (lucro * aliquotas.cofins)
-              + (lucro * aliquotas.csll)),
-          },
-        };
+  const totalServicoPool = new TotalServicoPool(new TotalServico(), new Imposto(), new Retencao());
 
-        const icmsEstados = {
-          AM: {
-            externo: 0.00,
-            interno: 0.00,
-          },
-          SC: {
-            externo: 0.12,
-            interno: 0.12,
-          },
-          DF: {
-            externo: 0.07,
-            interno: 0.12,
-          },
-          MS: {
-            externo: 0.07,
-            interno: 0.17,
-          },
-          MT: {
-            externo: 0.07,
-            interno: 0.17,
-          },
-          SP: {
-            externo: 0.12,
-            interno: 0.18,
-          },
-          RJ: {
-            externo: 0.12,
-            interno: 0.18,
-          },
-          GO: {
-            externo: 0.07,
-            interno: 0.17,
-          },
-          RO: {
-            externo: 0.07,
-            interno: 0.175,
-          },
-          ES: {
-            externo: 0.07,
-            interno: 0.12,
-          },
-          AC: {
-            externo: 0.07,
-            interno: 0.17,
-          },
-          CE: {
-            externo: 0.07,
-            interno: 0.17,
-          },
-          PR: {
-            externo: 0.12,
-            interno: 0.18,
-          },
-          PI: {
-            externo: 0.07,
-            interno: 0.17,
-          },
-          PE: {
-            externo: 0.12,
-            interno: 0.18,
-          },
-          MA: {
-            externo: 0.07,
-            interno: 0.18,
-          },
-          PA: {
-            externo: 0.07,
-            interno: 0.17,
-          },
-          RN: {
-            externo: 0.07,
-            interno: 0.18,
-          },
-          BA: {
-            externo: 0.07,
-            interno: 0.18,
-          },
-          RS: {
-            externo: 0.12,
-            interno: 0.18,
-          },
-          TO: {
-            externo: 0.07,
-            interno: 0.18,
-          },
-          resto: {
-            extero: 0,
-            interno: 0,
-          },
-        };
+  servicosPool.forEach((servicoPool) => totalServicoPool.soma(servicoPool));
 
-        const estadosSemReducao = ['RN', 'BA', 'RS', 'TO'];
+  const [{ irpj: aliquotaIr }] = await Aliquota.getBy('dono_cpfcnpj', cnpj);
 
-        if (estadoGerador === estadoDestino) {
-          valores.impostos.icms = {
-            baseDeCalculo: (lucro * aliquotas.icms.reducao),
-            proprio: (lucro * aliquotas.icms.reducao * aliquotas.icms.aliquota),
-          };
-          valores.impostos.total =
-            (parseFloat(valores.impostos.total)
-              + (lucro * aliquotas.icms.reducao
-                * aliquotas.icms.aliquota));
-        } else {
-          if ((destinatarioContribuinte === '2' || destinatarioContribuinte === '9') && icmsEstados[estadoDestino]) { // eslint-disable-line
-            const composicaoDaBase = valorSaida / (1 - icmsEstados[estadoDestino].interno);
-            const baseDeCalculo = 0.05 * composicaoDaBase;
-            const baseDifal =
-              estadosSemReducao.includes(estadoDestino) ?
-                composicaoDaBase :
-                baseDeCalculo;
-            const proprio = baseDifal * icmsEstados[estadoDestino].externo;
-            const difal = (baseDifal * icmsEstados[estadoDestino].interno) - proprio;
+  const totalPool = await TotalPool.newByPools(
+    totalMovimentoPool,
+    totalServicoPool,
+    cnpj,
+    new Date(competencia.ano, competencia.mes - 1),
+    1,
+    aliquotaIr,
+  );
 
-            valores.impostos.icms = {
-              composicaoDaBase,
-              baseDeCalculo,
-              proprio,
-              difal: {
-                origem: 0,
-                destino: difal,
-              },
-            };
-
-            valores.impostos.total = parseFloat(valores.impostos.total) + difal + proprio;
-          } else if (destinatarioContribuinte === '1') {
-            const baseDeCalculo = 0.05 * valorSaida;
-            const valor = baseDeCalculo * icmsEstados[estadoDestino].externo;
-
-            valores.impostos.icms = {
-              composicaoDaBase: null,
-              difal: null,
-              baseDeCalculo,
-              proprio: valor,
-            };
-
-            valores.impostos.total = parseFloat(valores.impostos.total) + valor;
-          }
-        }
-
-        resolve(valores);
-      };
-      if (cfopFinal === '1202' || cfopFinal === '2202') {
-        pegarMovimentoNotaFinal(notaFinal.emitente, notaInicial ? notaInicial.chave : notaInicial)
-          .then((movimentoAnterior) => {
-            if (movimentoAnterior) {
-              lucro = (-1) * movimentoAnterior.valores.lucro;
-              valorSaida = 0;
-              proximoPasso();
-            } else {
-              valorSaida = 0;
-              proximoPasso();
-            }
-          });
-      } else {
-        proximoPasso();
-      }
-    }
-  });
+  return {
+    totalPool,
+    movimentosPool,
+    servicosPool,
+  };
 }
 
-function calculaImpostosEmpresa(empresaCnpj, competencia) {
-  return new Promise((resolve, reject) => {
-    const data = {
-      servicos: {
-        total: 0,
-        impostos: {
-          retencoes: {
-            iss: 0,
-            irpj: 0,
-            csll: 0,
-            pis: 0,
-            cofins: 0,
-            total: 0,
-          },
-          iss: 0,
-          irpj: 0,
-          csll: 0,
-          pis: 0,
-          cofins: 0,
-          total: 0,
-        },
-      },
-      movimentos: {
-        totalSaida: 0,
-        lucro: 0,
-        impostos: {
-          cofins: 0,
-          pis: 0,
-          irpj: 0,
-          csll: 0,
-          icms: {
-            baseDeCalculo: 0,
-            proprio: 0,
-            difal: {
-              origem: 0,
-              destino: 0,
-            },
-          },
-          total: 0,
-        },
-      },
-      totais: {
-        lucro: 0,
-        servicos: 0,
-        impostos: {
-          pis: 0,
-          cofins: 0,
-          csll: 0,
-          irpj: 0,
-          iss: 0,
-          gnre: 0,
-          icms: {
-            proprio: 0,
-            difal: {
-              origem: 0,
-              destino: 0,
-            },
-          },
-          total: 0,
-          retencoes: {
-            iss: 0,
-            irpj: 0,
-            csll: 0,
-            pis: 0,
-            cofins: 0,
-            total: 0,
-          },
-        },
-      },
-    };
+async function pegarMes(cnpj, competencia) {
+  const totalPool = await pegarMesTotalPool(cnpj, competencia);
 
-    pegarServicosMes(empresaCnpj, competencia).then((servicos) => {
-      if (servicos) {
-        Object.keys(servicos).forEach((key) => {
-          const servico = servicos[key];
-          data.servicos.total +=
-            parseFloat(servico.valores.servico);
+  if (!totalPool) {
+    const calcMes = await calcularMes(cnpj, competencia);
+    await calcMes.totalPool.save();
+    return calcMes;
+  }
+  const { movimentosPool, servicosPool } = await pegarMovimentosServicosMes(cnpj, competencia);
 
-          data.servicos.impostos.total +=
-            parseFloat(servico.valores.impostos.total);
-          data.servicos.impostos.iss +=
-            parseFloat(servico.valores.impostos.iss);
-          data.servicos.impostos.pis +=
-            parseFloat(servico.valores.impostos.pis);
-          data.servicos.impostos.cofins +=
-            parseFloat(servico.valores.impostos.cofins);
-          data.servicos.impostos.csll +=
-            parseFloat(servico.valores.impostos.csll);
-          data.servicos.impostos.irpj +=
-            parseFloat(servico.valores.impostos.irpj);
+  return {
+    totalPool,
+    movimentosPool,
+    servicosPool,
+  };
+}
 
-          data.servicos.impostos.retencoes.total +=
-            parseFloat(servico.valores.impostos.retencoes.total);
-          data.servicos.impostos.retencoes.iss +=
-            parseFloat(servico.valores.impostos.retencoes.iss);
-          data.servicos.impostos.retencoes.pis +=
-            parseFloat(servico.valores.impostos.retencoes.pis);
-          data.servicos.impostos.retencoes.cofins +=
-            parseFloat(servico.valores.impostos.retencoes.cofins);
-          data.servicos.impostos.retencoes.csll +=
-            parseFloat(servico.valores.impostos.retencoes.csll);
-          data.servicos.impostos.retencoes.irpj +=
-            parseFloat(servico.valores.impostos.retencoes.irpj);
-        });
-      }
-      pegarMovimentosMes(empresaCnpj, competencia).then((movimentos) => {
-        Object.keys(movimentos).forEach((key) => {
-          const movimento = movimentos[key];
-          data.movimentos.lucro +=
-            parseFloat(movimento.valores.lucro);
-          data.movimentos.totalSaida +=
-            parseFloat(movimento.valores.valorSaida);
+async function calcularTrimestre(cnpj, competencia) {
+  const trimestreData = {
+    servicosPool: [],
+    movimentosPool: [],
+  };
 
-          data.movimentos.impostos.total +=
-            parseFloat(movimento.valores.impostos.total);
-          data.movimentos.impostos.pis +=
-            parseFloat(movimento.valores.impostos.pis);
-          data.movimentos.impostos.cofins +=
-            parseFloat(movimento.valores.impostos.cofins);
-          data.movimentos.impostos.csll +=
-            parseFloat(movimento.valores.impostos.csll);
+  const meses = trim(competencia.mes);
 
-          data.movimentos.impostos.irpj +=
-            parseFloat(movimento.valores.impostos.irpj);
+  const mesesPromise = meses.map(async (mes) => calcularMes(cnpj, { mes, ano: competencia.ano }));
 
-          if (movimento.valores.impostos.icms) {
-            data.movimentos.impostos.icms.baseDeCalculo +=
-              parseFloat(movimento.valores.impostos.icms.baseDeCalculo);
-            data.movimentos.impostos.icms.proprio +=
-              parseFloat(movimento.valores.impostos.icms.proprio);
-            if (movimento.valores.impostos.icms.difal) {
-              data.movimentos.impostos.icms.difal.origem +=
-                parseFloat(movimento.valores.impostos.icms.difal.origem);
-              data.movimentos.impostos.icms.difal.destino +=
-                parseFloat(movimento.valores.impostos.icms.difal.destino);
-            }
-          }
-        });
+  const mesesPool = await Promise.all(mesesPromise);
 
-        data.totais = {
-          servicos: data.servicos.total,
-          lucro: data.movimentos.lucro,
-          impostos: {
-            acumulado: {
-              pis: 0,
-              cofins: 0,
-            },
-            retencoes: data.servicos.impostos.retencoes,
-            iss: data.servicos.impostos.iss,
-            icms: data.movimentos.impostos.icms,
-            irpj: data.movimentos.impostos.irpj + data.servicos.impostos.irpj,
-            csll: data.movimentos.impostos.csll + data.servicos.impostos.csll,
-            pis: data.movimentos.impostos.pis + data.servicos.impostos.pis,
-            cofins: data.movimentos.impostos.cofins + data.servicos.impostos.cofins,
-            total: data.movimentos.impostos.total + data.servicos.impostos.total,
-          },
-        };
+  const totalMovimentoPoolTrimestre = new TotalMovimentoPool(
+    new TotalMovimento(),
+    new ImpostoPool(new Imposto(), new Icms()),
+  );
+  const totalServicoPoolTrimestre = new TotalServicoPool(
+    new TotalServico(),
+    new Imposto(),
+    new Retencao(),
+  );
 
-        if (competencia.mesAnterior) {
-          let anoAnterior = competencia.ano;
-          let mesAnterior;
-          if (parseInt(competencia.mes, 10) - 1 === 0) {
-            mesAnterior = '12';
-            anoAnterior = (parseInt(anoAnterior, 10) - 1).toString();
-          } else {
-            mesAnterior = (parseInt(competencia.mes, 10) - 1).toString();
-          }
-          calculaImpostosEmpresa(empresaCnpj, {
-            mes: mesAnterior,
-            ano: anoAnterior,
-            mesAnterior: false,
-          }).then((anterior) => {
-            let pisAnterior =
-              parseFloat(anterior.totais.impostos.pis) -
-              parseFloat(anterior.totais.impostos.retencoes.pis);
-            let cofinsAnterior =
-              parseFloat(anterior.totais.impostos.cofins) -
-              parseFloat(anterior.totais.impostos.retencoes.cofins);
+  mesesPool.forEach((mesPool, index) => {
+    const mesNum = meses[index];
+    const { totalPool } = mesPool;
+    const { totalMovimentoPool, totalServicoPool } = totalPool;
+    totalMovimentoPoolTrimestre.soma(totalMovimentoPool);
+    totalServicoPoolTrimestre.soma(totalServicoPool);
 
-            pisAnterior = parseFloat(pisAnterior.toFixed(1));
-            cofinsAnterior = parseFloat(cofinsAnterior.toFixed(1));
-
-            if (pisAnterior < 10 && pisAnterior > 0) {
-              data.totais.impostos.acumulado.pis = pisAnterior;
-            }
-            if (cofinsAnterior < 10 && cofinsAnterior > 0) {
-              data.totais.impostos.acumulado.cofins = cofinsAnterior;
-            }
-
-            resolve(data);
-          }).catch(err => reject(err));
-        } else {
-          resolve(data);
-        }
-      }).catch(err => reject(err));
-    }).catch(err => reject(err));
+    trimestreData[mesNum] = totalPool;
+    trimestreData.movimentosPool = trimestreData.movimentosPool.concat(mesPool.movimentosPool);
+    trimestreData.servicosPool = trimestreData.servicosPool.concat(mesPool.servicosPool);
   });
+
+  const [{ irpj: aliquotaIr }] = await Aliquota.getBy('dono_cpfcnpj', cnpj);
+
+  const mesTrim = getMesTrim(competencia.mes);
+
+  const totalPoolTrimestre = await TotalPool.newByPools(
+    totalMovimentoPoolTrimestre,
+    totalServicoPoolTrimestre,
+    cnpj,
+    new Date(competencia.ano, mesTrim - 1),
+    3,
+    aliquotaIr,
+  );
+
+  trimestreData.trim = totalPoolTrimestre;
+
+  return trimestreData;
+}
+
+async function pegarTrimestre(cnpj, competencia) {
+  const trimestreTotalPool = await pegarTrimestreTotalPool(cnpj, competencia);
+
+  if (!trimestreTotalPool) {
+    const trimestreData = await calcularTrimestre(cnpj, competencia);
+    await trimestreData.trim.save();
+    return trimestreData;
+  }
+  const trimestreData = {
+    servicosPool: [],
+    movimentosPool: [],
+    trim: trimestreTotalPool,
+  };
+
+  const meses = trim(competencia.mes);
+
+  const mesesPromise = meses.map((mes) => pegarMes(cnpj, { mes, ano: competencia.ano }));
+
+  const mesesPool = await Promise.all(mesesPromise);
+
+  mesesPool.forEach((mesPool, index) => {
+    const mesNum = meses[index];
+    const { totalPool } = mesPool;
+    trimestreData[mesNum] = totalPool;
+    trimestreData.movimentosPool = trimestreData.movimentosPool.concat(mesPool.movimentosPool);
+    trimestreData.servicosPool = trimestreData.servicosPool.concat(mesPool.servicosPool);
+  });
+
+  return trimestreData;
+}
+
+async function pegarTrimestreComNotas(cnpj, competencia) {
+  const trimestreData = await pegarTrimestre(cnpj, competencia);
+  const { movimentosPool, servicosPool } = trimestreData;
+
+  const [notasPool, notasServicoPool] = await Promise.all([
+    (async () => {
+      const [notasIniciais, notasFinais] = await Promise.all([
+        Promise.all(movimentosPool.map(async (movimentoPool) => {
+          const { notaInicialChave: chave } = movimentoPool.movimento;
+          const [nota] = await Nota.getBy({ chave });
+          return nota;
+        })),
+        Promise.all(movimentosPool.map(async (movimentoPool) => {
+          const { notaFinalChave: chave } = movimentoPool.movimento;
+          const [nota] = await Nota.getBy({ chave });
+          return nota;
+        })),
+      ]);
+
+      return notasIniciais.concat(notasFinais);
+    })(),
+    (async () => {
+      const notasServico = await Promise.all(servicosPool.map(async (servicoPool) => {
+        const { notaChave: chave } = servicoPool.servico;
+        const [nota] = await NotaServico.getBy({ chave });
+        return nota;
+      }));
+
+      return notasServico;
+    })(),
+  ]);
+
+  return {
+    trimestreData,
+    notasPool,
+    notasServicoPool,
+  };
+}
+
+async function calcularServicoPool(chaveNotaServico) {
+  const [nota] = await NotaServico.getBy('chave', chaveNotaServico);
+  const {
+    emitenteCpfcnpj,
+    status,
+    dataHora,
+    valor,
+  } = nota;
+
+  const servico = new Servico();
+
+  servico.donoCpfcnpj = emitenteCpfcnpj;
+  servico.notaChave = chaveNotaServico;
+  servico.dataHora = dataHora;
+  servico.valor = 0;
+  servico.conferido = true;
+
+  if (status === 'CANCELADA') {
+    return new ServicoPool(servico, new MetaDados(), new Imposto(), new Retencao());
+  }
+
+  servico.valor = valor;
+
+  const servicoPool = new ServicoPool(
+    servico,
+    new MetaDados(),
+    new Imposto(),
+    new Retencao(),
+  );
+
+  const [aliquota] = await Aliquota.getBy({ donoCpfcnpj: emitenteCpfcnpj, ativo: true });
+
+  if (aliquota.tributacao === 'SN') {
+    throw new Error('Simples Nacional não suportado!');
+  }
+
+  aliquota.irpj = 0.048;
+  aliquota.csll = 0.0288;
+
+  const impostoLista = ['iss', 'pis', 'cofins', 'irpj', 'csll'];
+  const { imposto } = servicoPool;
+  impostoLista.forEach((impostoNome) => {
+    const val = aliquota[impostoNome] * nota.valor;
+    imposto[impostoNome] = val;
+    imposto.total += val;
+  });
+
+  imposto.iss = nota.iss || imposto.iss;
+
+  const [retencao] = await Retencao.getBy({ id: nota.retencaoId });
+  servicoPool.retencao = retencao;
+
+  return servicoPool;
+}
+
+async function recalcularTrimestre(cnpj, competencia) {
+  const [trimDb, trimNovo] = await Promise.all([
+    pegarTrimestre(cnpj, competencia),
+    calcularTrimestre(cnpj, competencia),
+  ]);
+
+  delete trimDb.movimentosPool;
+  delete trimDb.servicosPool;
+
+  await Promise.all(Object.keys(trimDb).map(async (key) => trimDb[key].del()));
+  await Promise.all(Object.keys(trimNovo).map(async (key) => {
+    if (key !== 'movimentosPool' && key !== 'servicosPool') {
+      return trimNovo[key].save();
+    }
+    return true;
+  }));
+
+  return trimNovo;
+}
+
+function eMovimentoInterno(nota) {
+  return nota.estadoGeradorId === nota.estadoDestinoId;
+}
+
+function eDestinatarioContribuinte(nota) {
+  return nota.destinatario_contribuinte === '1';
+}
+
+function eDevolucao(nota) {
+  return cfopDevolucao.includes(nota.cfop);
+}
+
+function eDevolucaoConsigOuDemo(nota) {
+  return cfopDevolucaoConsignacao.includes(nota.cfop)
+  || cfopDevolucaoDemonstracao.includes(nota.cfop);
+}
+
+async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
+  const [notaFinal] = await Nota.getBy({ chave: notaFinalChave });
+
+  if (notaFinal.estadoGeradorId !== 11) throw new Error('Estado informado não suportado!');
+
+  const [notaInicial] = notaInicialChave ? await Nota.getBy({ chave: notaInicialChave }) : [null];
+
+  const movimento = new Movimento();
+  const metaDados = new MetaDados();
+  const imposto = new Imposto();
+  const icms = new Icms();
+
+  const movimentoPool = new MovimentoPool(
+    movimento,
+    metaDados,
+    new ImpostoPool(imposto, icms),
+  );
+  metaDados.mdDataHora = new Date();
+  metaDados.ativo = true;
+  metaDados.tipo = 'PRIM';
+
+  movimento.notaFinalChave = notaFinalChave;
+  movimento.notaInicialChave = notaInicialChave;
+  movimento.dataHora = notaFinal.dataHora;
+  movimento.conferido = true;
+  movimento.valorSaida = notaFinal.valor;
+  movimento.donoCpfcnpj = notaFinal.emitenteCpfcnpj;
+  movimento.lucro = notaInicial ? notaFinal.valor - notaInicial.valor : notaFinal.valor;
+
+  if (movimento.lucro < 0 && !eMovimentoInterno(notaFinal)) {
+    movimento.lucro = 0;
+  }
+
+  if ((movimento.lucro <= 0 && !eDevolucao(notaFinal)) || eDevolucaoConsigOuDemo(notaFinal)) {
+    movimento.lucro = 0;
+    return movimentoPool;
+  }
+
+  if (eDevolucao(notaFinal) && notaInicial) {
+    const movimentoAnterior = await MovimentoPool.getByNotaFinal(notaInicialChave);
+    movimento.lucro = movimentoAnterior ? (-1) * movimentoAnterior.lucro : 0;
+    movimento.valorSaida = 0;
+  }
+
+  const impostosFederais = ['pis', 'cofins', 'csll', 'irpj'];
+  const [aliquota] = await Aliquota.getBy({ donoCpfcnpj: movimento.donoCpfcnpj, ativo: true });
+
+  impostosFederais.forEach((impostoNome) => {
+    const valor = movimento.lucro * aliquota[impostoNome];
+    imposto[impostoNome] = valor;
+    imposto.total += valor;
+  });
+
+  const interno = eMovimentoInterno(notaFinal);
+
+  const { estadoDestinoId } = notaFinal;
+  const [difalAliquota] = await DifalAliquota.getBy({ estadoId: estadoDestinoId });
+
+  if (interno || !difalAliquota) {
+    icms.baseCalculo = movimento.lucro * aliquota.icmsReducao;
+    icms.proprio = movimento.lucro * aliquota.icmsReducao * aliquota.icmsAliquota;
+    imposto.total += icms.proprio;
+    return movimentoPool;
+  }
+
+
+  if (eDestinatarioContribuinte(notaFinal)) {
+    icms.baseCalculo = 0.05 * movimento.valorSaida;
+    icms.proprio = icms.baseCalculo * difalAliquota.externo;
+
+    imposto.total += icms.proprio;
+  } else {
+    const estadosSemReducao = [20/* RN */, 5/* BA */, 23/* RS */, 27/* TO */];
+    const composicaoBase = movimento.valorSaida;
+    const baseCalculo = 0.05 * composicaoBase;
+    const baseDifal = estadosSemReducao.includes(estadoDestinoId)
+      ? composicaoBase : baseCalculo;
+    const proprio = baseDifal * difalAliquota.externo;
+    const difal = (baseDifal * difalAliquota.interno) - proprio;
+
+    icms.composicaoBase = composicaoBase;
+    icms.baseCalculo = baseCalculo;
+    icms.proprio = proprio;
+    icms.difalOrigem = 0;
+    icms.difalDestino = difal;
+
+    imposto.total += difal + proprio;
+  }
+
+  return movimentoPool;
 }
 
 module.exports = {
-  calcularImpostosServico,
-  calcularImpostosMovimento,
-  calculaImpostosEmpresa,
+  pegarTrimestreComNotas,
+  calcularTrimestre,
+  calcularServicoPool,
+  calcularMovimentoPool,
+  recalcularTrimestre,
 };

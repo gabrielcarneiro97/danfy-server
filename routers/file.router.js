@@ -1,66 +1,74 @@
-const { xml2js } = require('xml-js');
+const express = require('express');
+const multer = require('multer');
+
 const {
-  criarPessoa,
-  criarNota,
-  criarNotaServico,
-} = require('../services/mongoose.service');
+  notaPessoaToPool,
+  notaXmlToPool,
+  notaServicoXmlToPool,
+} = require('../services/postgres');
+
 const {
-  lerNfe,
-  lerNfse,
-} = require('../services/xml.service');
+  xmlToObj,
+  servico,
+  danfe,
+} = require('../services/xml');
 
-module.exports = {
-  post: {
-    root(req, res) {
-      const { file } = req;
-      const xml = file.buffer.toString('utf-8');
-      const obj = xml2js(xml, { compact: true });
+const fileRouter = express();
+const upload = multer();
 
-      let final = {};
+fileRouter.post('/', upload.single('file'), async (req, res) => {
+  const { file } = req;
+  const obj = xmlToObj(file);
 
-      if (obj.CompNfse) {
-        lerNfse(obj, (nota, emitente, destinatario) => {
-          final = {
-            tipo: 'nfse',
-            pessoas: { [nota.emitente]: emitente, [nota.destinatario]: destinatario },
-            nota,
-          };
+  if (danfe.eDanfe(obj)) {
+    const { nota, emitente, destinatario } = danfe.leitor(obj);
+    try {
+      const pessoas = await Promise.all([
+        notaPessoaToPool(nota.emitente, emitente),
+        notaPessoaToPool(nota.destinatario, destinatario),
+      ]);
 
-          const promises = [
-            criarPessoa(nota.emitente, emitente),
-            criarPessoa(nota.destinatario, destinatario),
-            criarNotaServico(nota),
-          ];
+      const notaPool = await notaXmlToPool(nota);
 
-          Promise.all(promises).then(() => {
-            res.send(final);
-          }).catch((err) => {
-            res.status(400).send({ ...final, err });
-          });
-        });
-      } else if (obj.nfeProc) {
-        lerNfe(obj, (nota, emitente, destinatario) => {
-          final = {
-            tipo: 'nfe',
-            pessoas: { [nota.emitente]: emitente, [nota.destinatario]: destinatario },
-            nota,
-          };
+      return res.send({
+        tipo: 'nfe',
+        pessoas,
+        notaPool,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send(err);
+    }
+  }
 
-          const promises = [
-            criarPessoa(nota.emitente, emitente),
-            criarPessoa(nota.destinatario, destinatario),
-            criarNota(nota.chave, nota),
-          ];
+  const {
+    notaServico,
+    emitente,
+    destinatario,
+    desconhecida,
+  } = servico.localizador.qualCidade(obj)(obj);
 
-          Promise.all(promises).then(() => {
-            res.send(final);
-          }).catch((err) => {
-            res.status(400).send({ ...final, err });
-          });
-        });
-      } else {
-        res.sendStatus(400);
-      }
-    },
-  },
-};
+  if (desconhecida) {
+    return res.status(500).send('Cidade não suportada!');
+  }
+
+  try {
+    const pessoas = await Promise.all([
+      notaPessoaToPool(notaServico.emitente, emitente),
+      notaPessoaToPool(notaServico.destinatario, destinatario),
+    ]);
+
+    const notaPool = await notaServicoXmlToPool(notaServico);
+
+    return res.send({
+      tipo: 'nfse',
+      pessoas,
+      notaPool,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send(err);
+  }
+});
+
+module.exports = fileRouter;
