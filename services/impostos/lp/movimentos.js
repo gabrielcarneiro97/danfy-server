@@ -1,11 +1,9 @@
 const {
-  Nota,
   Movimento,
   MetaDados,
   Imposto,
   Icms,
   DifalAliquota,
-  Aliquota,
 } = require('../../postgres/models');
 
 const {
@@ -36,12 +34,8 @@ function eDevolucaoConsigOuDemo(nota) {
   || cfopDevolucaoDemonstracao.includes(nota.cfop);
 }
 
-async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
-  const [notaFinal] = await Nota.getBy({ chave: notaFinalChave });
-
+async function calcularMovimentoPool(notaInicial, notaFinal, aliquota) {
   if (notaFinal.estadoGeradorId !== 11) throw new Error('Estado informado não suportado!');
-
-  const [notaInicial] = notaInicialChave ? await Nota.getBy({ chave: notaInicialChave }) : [null];
 
   const movimento = new Movimento();
   const metaDados = new MetaDados();
@@ -57,8 +51,8 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
   metaDados.ativo = true;
   metaDados.tipo = 'PRIM';
 
-  movimento.notaFinalChave = notaFinalChave;
-  movimento.notaInicialChave = notaInicialChave;
+  movimento.notaFinalChave = notaFinal.chave;
+  movimento.notaInicialChave = notaInicial.chave;
   movimento.dataHora = notaFinal.dataHora;
   movimento.conferido = true;
   movimento.valorSaida = notaFinal.valor;
@@ -75,13 +69,12 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
   }
 
   if (eDevolucao(notaFinal) && notaInicial) {
-    const movimentoAnterior = await MovimentoPool.getByNotaFinal(notaInicialChave);
+    const movimentoAnterior = await MovimentoPool.getByNotaFinal(notaInicial.chave);
     movimento.lucro = movimentoAnterior ? (-1) * movimentoAnterior.lucro : 0;
     movimento.valorSaida = 0;
   }
 
   const impostosFederais = ['pis', 'cofins', 'csll', 'irpj'];
-  const [aliquota] = await Aliquota.getBy({ donoCpfcnpj: movimento.donoCpfcnpj, ativo: true });
 
   impostosFederais.forEach((impostoNome) => {
     const valor = movimento.lucro * aliquota[impostoNome];

@@ -10,7 +10,7 @@ const {
 } = require('../../postgres/pools');
 
 
-async function calcularServicoPool(notaServico, aliquota) {
+async function calcularServicoPool(notaServico) {
   const {
     emitenteCpfcnpj,
     status,
@@ -39,18 +39,9 @@ async function calcularServicoPool(notaServico, aliquota) {
     new Retencao(),
   );
 
-  aliquota.irpj = 0.048; // eslint-disable-line
-  aliquota.csll = 0.0288; // eslint-disable-line
-
-  const impostoLista = ['iss', 'pis', 'cofins', 'irpj', 'csll'];
   const { imposto } = servicoPool;
-  impostoLista.forEach((impostoNome) => {
-    const val = aliquota[impostoNome] * notaServico.valor;
-    imposto[impostoNome] = val;
-    imposto.total += val;
-  });
 
-  imposto.iss = notaServico.iss || imposto.iss;
+  imposto.iss = notaServico.iss;
 
   const [retencao] = await Retencao.getBy({ id: notaServico.retencaoId });
   servicoPool.retencao = retencao;

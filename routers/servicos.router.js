@@ -7,9 +7,12 @@ const {
 
 const {
   calcularServicoPool,
-  recalcularTrimestre,
-  pegarTrimestreComNotas,
 } = require('../services/impostos.service');
+
+const {
+  pegarTrimestreComNotas,
+  recalcularTrimestre,
+} = require('../services/trimestre.service');
 
 const { ServicoPool } = require('../services/postgres/pools');
 

@@ -16,9 +16,12 @@ const {
 
 const {
   calcularMovimentoPool,
-  recalcularTrimestre,
-  pegarTrimestreComNotas,
 } = require('../services/impostos.service');
+
+const {
+  pegarTrimestreComNotas,
+  recalcularTrimestre,
+} = require('../services/trimestre.service');
 
 const {
   NotaPool,

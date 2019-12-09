@@ -4,7 +4,7 @@ const {
   calcularTrimestre,
   pegarTrimestreComNotas,
   recalcularTrimestre,
-} = require('../services/impostos.service');
+} = require('../services/trimestre.service');
 
 const trimestreRouter = express();
 
