@@ -7,12 +7,7 @@ const isBeloHorizonte = (obj) => (
 function qualCidade(obj) {
   if (isBeloHorizonte(obj)) return cidades.beloHorizonte;
 
-  return () => ({
-    emitente: null,
-    destinatario: null,
-    notaServico: null,
-    desconhecida: true,
-  });
+  return () => [null];
 }
 
 module.exports = {

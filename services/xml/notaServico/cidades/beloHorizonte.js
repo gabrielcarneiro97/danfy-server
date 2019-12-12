@@ -107,7 +107,7 @@ function beloHorizonte(obj) {
 
   notaServico.chave = notaServico.emitente + notaServico.geral.numero;
 
-  return { notaServico, emitente, destinatario };
+  return [{ notaServico, emitente, destinatario }];
 }
 
 module.exports = beloHorizonte;

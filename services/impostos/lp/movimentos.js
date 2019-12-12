@@ -9,7 +9,7 @@ const {
 const {
   MovimentoPool,
   ImpostoPool,
-} = require('../../postgres/models');
+} = require('../../postgres/pools');
 
 const {
   cfopDevolucao,

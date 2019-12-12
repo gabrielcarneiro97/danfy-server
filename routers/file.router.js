@@ -30,45 +30,44 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
 
       const notaPool = await notaXmlToPool(nota);
 
-      return res.send({
+      return res.send([{
         tipo: 'nfe',
         pessoas,
         notaPool,
-      });
+      }]);
     } catch (err) {
       console.error(err);
       return res.status(500).send(err);
     }
   }
 
-  const {
-    notaServico,
-    emitente,
-    destinatario,
-    desconhecida,
-  } = servico.localizador.qualCidade(obj)(obj);
+  const notasServico = servico.localizador.qualCidade(obj)(obj);
 
-  if (desconhecida) {
-    return res.status(500).send('Cidade não suportada!');
-  }
+  if (notasServico[0] === null) return res.status(500).send('Cidade não suportada!');
 
-  try {
-    const pessoas = await Promise.all([
-      notaPessoaToPool(notaServico.emitente, emitente),
-      notaPessoaToPool(notaServico.destinatario, destinatario),
-    ]);
+  const responses = await Promise.all(
+    notasServico.map(async ({ notaServico, emitente, destinatario }) => {
+      try {
+        const pessoas = await Promise.all([
+          notaPessoaToPool(notaServico.emitente, emitente),
+          notaPessoaToPool(notaServico.destinatario, destinatario),
+        ]);
 
-    const notaPool = await notaServicoXmlToPool(notaServico);
+        const notaPool = await notaServicoXmlToPool(notaServico);
 
-    return res.send({
-      tipo: 'nfse',
-      pessoas,
-      notaPool,
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).send(err);
-  }
+        return {
+          tipo: 'nfse',
+          pessoas,
+          notaPool,
+        };
+      } catch (err) {
+        console.error(err);
+        return null;
+      }
+    }),
+  );
+
+  res.send(responses);
 });
 
 module.exports = fileRouter;

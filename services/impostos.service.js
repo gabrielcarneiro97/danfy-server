@@ -112,7 +112,7 @@ async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {
     return null;
   }
 
-  return impostos.lp.calcularMovimentoPool(notaInicial, notaFinal, aliquota);
+  return impostos.lp.movimentos.calcularMovimentoPool(notaInicial, notaFinal, aliquota);
 }
 
 module.exports = {
