@@ -15,7 +15,7 @@ function criarServico(servicoPool) {
 async function criarServicos(servicosPool) {
   return new Promise((resolve, reject) => {
     const promises = [];
-    servicosPool.forEach(servicoPool => promises(servicoPool.save()));
+    servicosPool.forEach((servicoPool) => promises(servicoPool.save()));
     Promise.All(promises).then(resolve).catch(reject);
   });
 }
@@ -23,7 +23,7 @@ async function criarServicos(servicosPool) {
 function pegarServicosPoolMes(donoCpfcnpj, competencia) {
   const mes = mesInicioFim(competencia);
 
-  const select = str => pg.select(str).from('tb_servico as serv')
+  const select = (str) => pg.select(str).from('tb_servico as serv')
     .where('serv.dono_cpfcnpj', donoCpfcnpj)
     .andWhere('serv.data_hora', '<=', mes.fim)
     .andWhere('serv.data_hora', '>=', mes.inicio);
@@ -39,16 +39,16 @@ function pegarServicosPoolMes(donoCpfcnpj, competencia) {
       retPromise,
       mdPromise,
     ]).then(([servsPg, impsPg, retsPg, metaDadosPg]) => {
-      const servsArr = servsPg.map(o => new Servico(o, true));
-      const impsArr = impsPg.map(o => new Imposto(o, true));
-      const retsArr = retsPg.map(o => new Retencao(o, true));
-      const metaDadosArr = metaDadosPg.map(o => new MetaDados(o, true));
+      const servsArr = servsPg.map((o) => new Servico(o, true));
+      const impsArr = impsPg.map((o) => new Imposto(o, true));
+      const retsArr = retsPg.map((o) => new Retencao(o, true));
+      const metaDadosArr = metaDadosPg.map((o) => new MetaDados(o, true));
 
       const finalArr = servsArr.map((servico) => {
-        const metaDados = servico.metaDadosId ?
-          metaDadosArr.find(o => o.mdId === servico.metaDadosId) : undefined;
-        const imposto = impsArr.find(o => o.id === servico.impostoId);
-        const retencao = retsArr.find(o => o.id === servico.retencaoId);
+        const metaDados = servico.metaDadosId
+          ? metaDadosArr.find((o) => o.mdId === servico.metaDadosId) : undefined;
+        const imposto = impsArr.find((o) => o.id === servico.impostoId);
+        const retencao = retsArr.find((o) => o.id === servico.retencaoId);
 
         return new ServicoPool(servico, metaDados, imposto, retencao);
       });

@@ -3,6 +3,7 @@ const express = require('express');
 const movimentosRouter = require('./routers/movimentos.router');
 const fileRouter = require('./routers/file.router');
 const trimestreRouter = require('./routers/trimestre.router');
+const simplesRouter = require('./routers/simples.router');
 const servicosRouter = require('./routers/servicos.router');
 const dominioRouter = require('./routers/dominio.router');
 const aliquotasRouter = require('./routers/aliquotas.router');
@@ -29,6 +30,8 @@ app.use('/pessoas', pessoasRouter);
 app.use('/estoque', estoqueRouter);
 
 app.use('/version', versionRouter);
+
+app.use('/simples', simplesRouter);
 
 module.exports = {
   app,

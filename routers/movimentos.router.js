@@ -24,6 +24,13 @@ const {
 } = require('../services/trimestre.service');
 
 const {
+  pegarSimplesComNotas,
+  recalcularSimples,
+} = require('../services/simples.service');
+
+const { Aliquota } = require('../services/postgres/models');
+
+const {
   NotaPool,
 } = require('../services/postgres/pools');
 
@@ -77,7 +84,8 @@ movimentoRouter.post('/push', bodyParser.json(), async (req, res) => {
     const movimentoExiste = await pegarMovimentoPoolNotaFinal(movimento.notaFinalChave);
 
     if (movimentoExiste) {
-      res.status(409).send({ error: `Nota já registrada em outro serviço! ID: ${movimentoExiste.movimento.id}` });
+      await movimentoExiste.save();
+      res.sendStatus(201);
     } else if (movimento.notaInicialChave) {
       await movimentoPool.save();
       res.sendStatus(201);
@@ -124,6 +132,7 @@ movimentoRouter.get('/slim', async (req, res) => {
     res.status(500).send(err);
   }
 });
+
 movimentoRouter.get('/notaFinal', async (req, res) => {
   const { notaFinalChave } = req.query;
   try {
@@ -172,11 +181,20 @@ movimentoRouter.put('/editar', bodyParser.json(), async (req, res) => {
     await cancelarMovimento(movimentoAntigoId);
     await movimentoPoolNovo.save();
 
-    await recalcularTrimestre(cnpj, { mes, ano });
+    const [aliquota] = await Aliquota.getBy({
+      donoCpfcnpj: cnpj,
+      ativo: true,
+    });
 
-    const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
-
-    res.send(trim);
+    if (aliquota.tributacao === 'SN') {
+      await recalcularSimples(cnpj, { mes, ano });
+      const simples = await pegarSimplesComNotas(cnpj, { mes, ano });
+      res.send(simples);
+    } else {
+      await recalcularTrimestre(cnpj, { mes, ano });
+      const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
+      res.send(trim);
+    }
   } catch (err) {
     console.error(err);
     res.status(500).send(err);

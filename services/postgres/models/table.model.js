@@ -3,7 +3,7 @@ const { pg } = require('../../pg.service');
 function select(obj, Cl) {
   return new Promise((resolve, reject) => {
     pg.select('*').from(Cl.tbName()).where(obj).then((arr) => {
-      resolve(arr.map(o => new Cl(o, true)));
+      resolve(arr.map((o) => new Cl(o, true)));
     })
       .catch(reject);
   });
@@ -19,14 +19,12 @@ class Table {
     } else if (isSnake) {
       Cl.columns().forEach((column) => {
         const camel = Table.toCamel(column);
-        this[camel] = obj[column];
+        this[camel] = obj[column] || null;
       });
     } else {
-      Object.keys(obj).forEach((key) => {
-        const snake = Table.toSnake(key);
-        if (Cl.columns().includes(snake)) {
-          this[key] = obj[key];
-        }
+      Cl.columns().forEach((column) => {
+        const camel = Table.toCamel(column);
+        this[camel] = obj[camel] || null;
       });
     }
   }
@@ -42,9 +40,11 @@ class Table {
   static columns() {
     return [];
   }
+
   static toCamel(s) {
-    return s.replace(/([-_][a-z])/ig, $1 => $1.toUpperCase().replace('-', '').replace('_', ''));
+    return s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
   }
+
   static toSnake(s) {
     const upperChars = s.match(/([A-Z])/g);
     if (!upperChars) {
@@ -81,7 +81,7 @@ class Table {
         const obj = Table.objToSnake(param1);
         const Cl = param3;
 
-        const err = Object.keys(obj).find(k => !Cl.columns().includes(k));
+        const err = Object.keys(obj).find((k) => !Cl.columns().includes(k));
 
         if (err) throw new Error(`Coluna ${err} não encontrada!`);
         else return select(obj, Cl);

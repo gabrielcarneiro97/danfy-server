@@ -120,4 +120,5 @@ module.exports = {
   pegarMes,
   calcularServicoPool,
   calcularMovimentoPool,
+  pegarMovimentosServicosMes,
 };

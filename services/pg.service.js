@@ -7,7 +7,7 @@ config.types.setTypeParser(1700, parseFloat);
 const pg = knex({
   client: 'pg',
   connection: {
-    host: 'ec2-13-58-192-2.us-east-2.compute.amazonaws.com',
+    host: 'danfy.ctzvj9qzh3yk.us-east-2.rds.amazonaws.com',
     database: 'danfy',
     user,
     password,

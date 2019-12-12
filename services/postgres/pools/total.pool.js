@@ -61,12 +61,17 @@ class TotalPool extends Pool {
 
         case 1:
         default:
-          return select().andWhereRaw('(total.anual = ? or total.anual = ?) AND (total.trimestral = ? OR total.trimestral = ?)', [false, null, false, null]);
+          return select().andWhereRaw('(total.anual = ? OR total.anual = ?) AND (total.trimestral = ? OR total.trimestral = ?)', [false, null, false, null]);
       }
     };
-    const [totalPg] = await getTotal();
+    const [totalPg, ...rest] = await getTotal();
     if (!totalPg) return null;
     const total = new Total(totalPg, true);
+
+    if (rest && rest.length > 0) {
+      const totais = rest.map((t) => new Total(t, true));
+      await Promise.all(totais.map(async (t) => t.del()));
+    }
 
     return new Promise((resolve, reject) => {
       Promise.all([

@@ -16,10 +16,10 @@ trimestreRouter.get('/', async (req, res) => {
   } = req.query;
 
   try {
-    const calcTrim = await calcularTrimestre(cnpj, { mes, ano });
     const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
 
     if (!trim.trimestreData.trim.total.id) {
+      const calcTrim = await calcularTrimestre(cnpj, { mes, ano });
       await calcTrim.trim.save();
       trim.trimestreData.trim = calcTrim.trim;
     }

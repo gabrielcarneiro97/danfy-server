@@ -90,7 +90,7 @@ const getInfosGerais = (obj) => {
 };
 
 function beloHorizonte(obj) {
-  if (!assinada(obj)) return 0;
+  // if (!assinada(obj)) return 0;
 
   const emitente = getEmitente(obj);
 

@@ -122,12 +122,66 @@ function getMesTrim(mesParam) {
   return 10;
 }
 
+function ultimosDoze(comp) {
+  const meses = [];
+
+  const atual = comp;
+  for (let i = 12; i >= 1; i -= 1) {
+    let mes = atual.mes - i;
+    let { ano } = atual;
+    if (mes <= 0) {
+      ano -= 1;
+      mes += 12;
+    }
+
+    meses.push({ mes, ano });
+  }
+
+  return meses;
+}
+
+function mesesExercicio(comp) {
+  const meses = [];
+
+  for (let i = 1; i <= comp.mes; i += 1) {
+    meses.push({ mes: i, ano: comp.ano });
+  }
+
+  return meses;
+}
+
+function compToStr(comp) {
+  return `${comp.mes}/${comp.ano}`;
+}
+
+function strToComp(str) {
+  const [mes, ano] = str.split('/');
+
+  return { mes: parseInt(mes, 10), ano: parseInt(ano, 10) };
+}
+
+function dateToComp(date) {
+  const d = new Date(date);
+
+  return { mes: d.getMonth() + 1, ano: d.getFullYear() };
+}
+
+function compToDate(comp) {
+  return new Date(comp.ano, comp.mes - 1);
+}
+
 module.exports = {
   validarMovimento,
   dtof,
   mesInicioFim,
   stringToDate,
   trim,
+  ultimosDoze,
+  mesesExercicio,
+  compToStr,
+  dateToComp,
+  strToComp,
+  compToDate,
   objParseFloat,
   getMesTrim,
   cfopCompra,

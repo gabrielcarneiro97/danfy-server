@@ -14,6 +14,13 @@ const {
   recalcularTrimestre,
 } = require('../services/trimestre.service');
 
+const {
+  pegarSimplesComNotas,
+  recalcularSimples,
+} = require('../services/simples.service');
+
+const { Aliquota } = require('../services/postgres/models');
+
 const { ServicoPool } = require('../services/postgres/pools');
 
 const servicosRouter = express();
@@ -58,11 +65,10 @@ servicosRouter.post('/push', bodyParser.json(), async (req, res) => {
     const servicoPool = servicoPoolFromObj(servObj);
     const existe = await ServicoPool.getByNotaChave(servicoPool.servico.notaChave);
 
-    if (existe) res.status(409).send(new Error(`Nota já registrada em outro serviço! ID: ${existe.id}`));
-    else {
-      await servicoPool.save();
-      res.sendStatus(201);
-    }
+    if (existe) await existe.save();
+    else await servicoPool.save();
+
+    res.sendStatus(201);
   } catch (err) {
     console.error(err);
     res.status(500).send(err);
@@ -81,9 +87,20 @@ servicosRouter.delete('/id', async (req, res) => {
 
     await servicoPool.del();
 
-    await recalcularTrimestre(cnpj, { mes, ano });
-    const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
-    res.send(trim);
+    const [aliquota] = await Aliquota.getBy({
+      donoCpfcnpj: cnpj,
+      ativo: true,
+    });
+
+    if (aliquota.tributacao === 'SN') {
+      await recalcularSimples(cnpj, { mes, ano });
+      const simples = await pegarSimplesComNotas(cnpj, { mes, ano });
+      res.send(simples);
+    } else {
+      await recalcularTrimestre(cnpj, { mes, ano });
+      const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
+      res.send(trim);
+    }
   } catch (err) {
     console.error(err);
     res.status(500).send(err);
