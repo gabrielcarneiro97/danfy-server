@@ -3,6 +3,7 @@ const knex = require('knex');
 const { user, password } = require('./private.json');
 
 config.types.setTypeParser(1700, parseFloat);
+config.defaults.ssl = true;
 
 const pg = knex({
   client: 'pg',
