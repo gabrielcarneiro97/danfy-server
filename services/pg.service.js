@@ -7,7 +7,7 @@ config.defaults.ssl = true;
 
 const pg = knex({
   client: 'pg',
-  connection: `postgres://${user}:${password}@danfy.ctzvj9qzh3yk.us-east-2.rds.amazonaws.com:5432/danfy?ssl=true`,
+  connection: `postgres://${user}:${password}@danfy.ctzvj9qzh3yk.us-east-2.rds.amazonaws.com:5432/danfy?ssl=true&sslmode=verify-full&sslrootcert=rds-ca-2019-root.pem`,
   searchPath: ['knex', 'danfy'],
 });
 
