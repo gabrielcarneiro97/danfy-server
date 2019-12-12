@@ -11,6 +11,7 @@ const pg = knex({
     database: 'danfy',
     user,
     password,
+    ssl: true,
   },
   searchPath: ['knex', 'danfy'],
 });
