@@ -24,6 +24,7 @@ class Servico extends Table {
       'valor',
       'conferido',
       'meta_dados_id',
+      'grupo_id',
     ];
   }
 

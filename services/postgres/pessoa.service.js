@@ -35,7 +35,11 @@ async function notaPessoaToPool(cpfcnpj, pessoaObj) {
 
   const pessoaPool = new PessoaPool(pessoa, endereco);
 
-  await pessoaPool.save();
+  try {
+    await pessoaPool.save();
+  } catch (err) {
+    console.log('pessoa já no db');
+  }
 
   return pessoaPool;
 }
