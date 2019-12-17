@@ -22,6 +22,7 @@ const TotalServico = require('./totalServico.model');
 const TotalSoma = require('./totalSoma.model');
 const Usuario = require('./usuario.model');
 const Simples = require('./simples.model');
+const Grupo = require('./grupo.model');
 
 module.exports = {
   Acumulado,
@@ -48,4 +49,5 @@ module.exports = {
   TotalSoma,
   Usuario,
   Simples,
+  Grupo,
 };

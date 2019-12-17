@@ -19,6 +19,8 @@ const {
   recalcularSimples,
 } = require('../services/simples.service');
 
+const { dateToComp } = require('../services/calculador.service');
+
 const { Aliquota } = require('../services/postgres/models');
 
 const { ServicoPool } = require('../services/postgres/pools');
@@ -104,6 +106,36 @@ servicosRouter.delete('/id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send(err);
+  }
+});
+
+servicosRouter.put('/:id', bodyParser.json(), async (req, res) => {
+  const { id } = req.params;
+  const { grupoId } = req.body;
+
+  const servicoPool = await ServicoPool.getById(id);
+
+  servicoPool.servico.grupoId = grupoId;
+
+  await servicoPool.save();
+
+  const cnpj = servicoPool.servico.donoCpfcnpj;
+
+  const { mes, ano } = dateToComp(servicoPool.servico.dataHora);
+
+  const [aliquota] = await Aliquota.getBy({
+    donoCpfcnpj: cnpj,
+    ativo: true,
+  });
+
+  if (aliquota.tributacao === 'SN') {
+    await recalcularSimples(cnpj, { mes, ano });
+    const simples = await pegarSimplesComNotas(cnpj, { mes, ano });
+    res.send(simples);
+  } else {
+    await recalcularTrimestre(cnpj, { mes, ano });
+    const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
+    res.send(trim);
   }
 });
 

@@ -22,6 +22,8 @@ const { pegarServicosPoolMes } = require('./postgres/servico.service');
 
 const { pegarMesTotalPool } = require('./postgres/total.service');
 
+const { definirGrupo } = require('./grupo.service');
+
 const impostos = require('./impostos');
 
 async function pegarMovimentosServicosMes(cnpj, competencia) {
@@ -92,11 +94,13 @@ async function calcularServicoPool(chaveNotaServico) {
     ativo: true,
   });
 
-  if (aliquota.tributacao === 'SN') {
-    return impostos.simples.servicos.calcularServicoPool(notaServico);
-  }
+  const servicoPool = aliquota.tributacao === 'SN'
+    ? (await impostos.simples.servicos.calcularServicoPool(notaServico))
+    : (await impostos.lp.servicos.calcularServicoPool(notaServico, aliquota));
 
-  return impostos.lp.servicos.calcularServicoPool(notaServico, aliquota);
+  servicoPool.servico.grupoId = await definirGrupo(servicoPool, notaServico);
+
+  return servicoPool;
 }
 
 async function calcularMovimentoPool(notaInicialChave, notaFinalChave) {

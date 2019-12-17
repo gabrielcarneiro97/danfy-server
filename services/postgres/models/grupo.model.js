@@ -19,6 +19,7 @@ class Grupo extends Table {
       'dono_cpfcnpj',
       'nome',
       'descricao',
+      'cor',
     ];
   }
 

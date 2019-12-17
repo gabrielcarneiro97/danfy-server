@@ -10,6 +10,7 @@ const aliquotasRouter = require('./routers/aliquotas.router');
 const pessoasRouter = require('./routers/pessoas.router');
 const estoqueRouter = require('./routers/estoque.router');
 const versionRouter = require('./routers/version.router');
+const grupoRouter = require('./routers/grupo.router');
 
 const app = express();
 
@@ -32,6 +33,8 @@ app.use('/estoque', estoqueRouter);
 app.use('/version', versionRouter);
 
 app.use('/simples', simplesRouter);
+
+app.use('/grupo', grupoRouter);
 
 module.exports = {
   app,
