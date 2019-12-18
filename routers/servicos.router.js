@@ -27,8 +27,8 @@ const { ServicoPool } = require('../services/postgres/pools');
 
 const servicosRouter = express();
 
-servicosRouter.get('/calcular', async (req, res) => {
-  let { notaServicoChave } = req.query;
+servicosRouter.get('/calcular/:notaServicoChave', async (req, res) => {
+  let { notaServicoChave } = req.params;
   notaServicoChave = decodeURI(notaServicoChave);
   try {
     const servicoPool = await calcularServicoPool(notaServicoChave);
@@ -39,11 +39,12 @@ servicosRouter.get('/calcular', async (req, res) => {
   }
 });
 
-servicosRouter.get('/id', async (req, res) => {
+servicosRouter.get('/id/:cnpj/:servicoId', async (req, res) => {
   try {
-    const { servicoId } = req.query;
+    const { cnpj, servicoId } = req.params;
     const servicoPool = await ServicoPool.getById(servicoId);
-    res.send(servicoPool);
+    if (servicoPool.servico.donoCpfcnpj === cnpj) res.send(servicoPool);
+    else res.send(null);
   } catch (err) {
     console.error(err);
     res.status(500).send(err);
@@ -77,8 +78,8 @@ servicosRouter.post('/push', bodyParser.json(), async (req, res) => {
   }
 });
 
-servicosRouter.delete('/id', async (req, res) => {
-  const { servicoId, cnpj } = req.query;
+servicosRouter.delete('/:cnpj/:servicoId', async (req, res) => {
+  const { servicoId, cnpj } = req.params;
 
   try {
     const servicoPool = await ServicoPool.getById(servicoId);

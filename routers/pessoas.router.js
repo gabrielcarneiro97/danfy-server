@@ -3,8 +3,8 @@ const { pegarPessoaId } = require('../services/postgres/pessoa.service');
 
 const pessoasRouter = express();
 
-pessoasRouter.get('/flat', async (req, res) => {
-  const { pessoaId } = req.query;
+pessoasRouter.get('/:pessoaId', async (req, res) => {
+  const { pessoaId } = req.params;
   try {
     const pessoa = await pegarPessoaId(pessoaId);
     res.send(pessoa);

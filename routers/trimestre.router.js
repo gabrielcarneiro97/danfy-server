@@ -8,12 +8,12 @@ const {
 
 const trimestreRouter = express();
 
-trimestreRouter.get('/', async (req, res) => {
+trimestreRouter.get('/:cnpj/:mes/:ano', async (req, res) => {
   const {
     cnpj,
     mes,
     ano,
-  } = req.query;
+  } = req.params;
 
   try {
     const trim = await pegarTrimestreComNotas(cnpj, { mes, ano });
@@ -30,12 +30,12 @@ trimestreRouter.get('/', async (req, res) => {
   }
 });
 
-trimestreRouter.put('/', async (req, res) => {
+trimestreRouter.put('/:cnpj/:mes/:ano', async (req, res) => {
   const {
     cnpj,
     mes,
     ano,
-  } = req.query;
+  } = req.params;
 
   try {
     await recalcularTrimestre(cnpj, { mes, ano });

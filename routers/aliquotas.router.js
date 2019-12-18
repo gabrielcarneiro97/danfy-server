@@ -19,8 +19,8 @@ aliquotasRouter.post('/', bodyParser.json(), async (req, res) => {
   }
 });
 
-aliquotasRouter.get('/', async (req, res) => {
-  const { cnpj } = req.query;
+aliquotasRouter.get('/:cnpj', async (req, res) => {
+  const { cnpj } = req.params;
   try {
     const aliquota = await pegarEmpresaAliquota(cnpj);
     res.send(aliquota);

@@ -30,12 +30,12 @@ simplesRouter.get('/', async (req, res) => {
   }
 });
 
-simplesRouter.put('/', async (req, res) => {
+simplesRouter.put('/:cnpj/:mes/:ano', async (req, res) => {
   const {
     cnpj,
     mes,
     ano,
-  } = req.query;
+  } = req.params;
 
   try {
     await recalcularSimples(cnpj, { mes, ano });

@@ -115,8 +115,9 @@ movimentoRouter.get('/valor', async (req, res) => {
     res.status(500).send(err);
   }
 });
-movimentoRouter.get('/slim', async (req, res) => {
-  const { notaFinalChave, cnpj } = req.query;
+movimentoRouter.get('/slim/:cnpj', async (req, res) => {
+  const { cnpj } = req.params;
+  const { notaFinalChave } = req.query;
   let { valorInicial } = req.query;
 
   valorInicial = valorInicial ? parseFloat(valorInicial.toString().replace(',', '.')) : 0;
@@ -144,8 +145,8 @@ movimentoRouter.get('/notaFinal', async (req, res) => {
   }
 });
 
-movimentoRouter.put('/cancelar', async (req, res) => {
-  const { cnpj, movimentoId } = req.query;
+movimentoRouter.put('/cancelar/:cnpj/:movimentoId', async (req, res) => {
+  const { cnpj, movimentoId } = req.params;
 
   try {
     await cancelarMovimento(movimentoId);
@@ -167,8 +168,8 @@ movimentoRouter.put('/cancelar', async (req, res) => {
   }
 });
 
-movimentoRouter.put('/editar', bodyParser.json(), async (req, res) => {
-  const { cnpj, movimentoAntigoId } = req.query;
+movimentoRouter.put('/editar/:cnpj/:movimentoAntigoId', bodyParser.json(), async (req, res) => {
+  const { cnpj, movimentoAntigoId } = req.params;
   const { movimentoNovoObj } = req.body;
 
   const movimentoData = new Date(movimentoNovoObj.movimento.dataHora);
