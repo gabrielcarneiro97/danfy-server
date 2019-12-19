@@ -1,16 +1,21 @@
-const { pg } = require('../../pg.service');
+import { pg } from '../../pg.service';
 
-function select(obj, Cl) {
-  return new Promise((resolve, reject) => {
-    pg.select('*').from(Cl.tbName()).where(obj).then((arr) => {
-      resolve(arr.map((o) => new Cl(o, true)));
-    })
-      .catch(reject);
-  });
+export type pgStr = string | null;
+export type pgNum = number | null;
+export type pgDate = Date | null;
+export type pgBool = boolean | null;
+
+export type pgType = pgStr | pgNum | pgDate | pgBool;
+
+interface ITable {
+  new (obj: Table, isSnake: boolean, Cl?: ITable) : Table;
+  tbName() : string;
+  tbUK() : string;
+  columns() : string[];
 }
 
-class Table {
-  constructor(obj, isSnake, Cl) {
+export default class Table {
+  constructor(obj : object, isSnake : boolean, Cl: ITable) {
     if (!obj) {
       Cl.columns().forEach((column) => {
         const camel = Table.toCamel(column);
@@ -41,11 +46,11 @@ class Table {
     return [];
   }
 
-  static toCamel(s) {
+  static toCamel(s: string) : string {
     return s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
   }
 
-  static toSnake(s) {
+  static toSnake(s: string) : string {
     const upperChars = s.match(/([A-Z])/g);
     if (!upperChars) {
       return s;
@@ -63,7 +68,17 @@ class Table {
     return str;
   }
 
-  static async getBy(param1, param2, param3) {
+  static async getBy(column : string | object, value? : string) : Promise<any> {
+    return value;
+  }
+
+  static async getty<T extends Table>(param1 : string | object,
+    param2? : string, param3? : ITable) {
+    const select = async (obj, Cl : ITable) : Promise<T[]> => {
+      const arr = await pg.select('*').from(Cl.tbName()).where(obj);
+      return arr.map((o) => new Cl(o, true));
+    };
+
     if (typeof param1 === 'string') {
       const column = param1;
       const value = param2;
@@ -105,19 +120,24 @@ class Table {
     return obj;
   }
 
-  static async save(obj, Cl) {
+  static async save(obj : Table, Cl : ITable) {
     const update = async () => {
       const [uk] = await pg.table(Cl.tbName())
         .update(obj.snakeObj(), Cl.tbUK())
         .where({ [Cl.tbUK()]: obj[this.toCamel(Cl.tbUK())] });
-      return uk;
+      return <pgType> uk;
     };
 
     const insert = async () => {
-      if (obj[this.toCamel(Cl.tbUK())] === null) delete obj[this.toCamel(Cl.tbUK())];
+      if (obj[this.toCamel(Cl.tbUK())] === null) {
+        delete obj[this.toCamel(Cl.tbUK())]; // eslint-disable-line no-param-reassign
+      }
+
       const [uk] = await pg.table(Cl.tbName()).insert(obj.snakeObj(), Cl.tbUK());
-      obj[this.toCamel(Cl.tbUK())] = uk;
-      return uk;
+
+      obj[this.toCamel(Cl.tbUK())] = uk; // eslint-disable-line no-param-reassign
+
+      return <pgType> uk;
     };
 
     if (obj[this.toCamel(Cl.tbUK())]) {
@@ -132,9 +152,7 @@ class Table {
     return insert();
   }
 
-  static async del(obj, Cl) {
+  static async del(obj : Table, Cl : ITable) : Promise<pgType> {
     return pg.table(Cl.tbName()).where({ [Cl.tbUK()]: obj[this.toCamel(Cl.tbUK())] }).del();
   }
 }
-
-module.exports = Table;
