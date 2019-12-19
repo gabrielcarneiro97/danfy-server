@@ -5,42 +5,46 @@ import Table, {
   pgBool, // eslint-disable-line no-unused-vars
 } from './table.model';
 
-export default class Movimento extends Table {
+export default class Servico extends Table {
   id : pgNum;
-  notaFinalChave : pgStr;
-  notaInicialChave : pgStr;
-  valorSaida : pgNum;
-  lucro : pgNum;
-  dataHora : pgDate;
-  conferido : pgBool;
-  impostoId : pgNum;
-  metaDadosId : pgNum;
   donoCpfcnpj : pgStr;
+  notaChave : pgStr;
+  retencaoId : pgNum;
+  impostoId : pgNum;
+  dataHora : pgDate;
+  valor : pgNum;
+  conferido : pgBool;
+  metaDadosId : pgNum;
+  grupoId : pgNum;
 
-  static tbName = () => 'tb_movimento';
+  static tbName = () => 'tb_servico';
   static tbUK = () => 'id';
   static columns = () => [
     'id',
-    'nota_final_chave',
-    'nota_inicial_chave',
-    'valor_saida',
-    'lucro',
-    'data_hora',
-    'conferido',
-    'imposto_id',
-    'meta_dados_id',
     'dono_cpfcnpj',
+    'nota_chave',
+    'retencao_id',
+    'imposto_id',
+    'data_hora',
+    'valor',
+    'conferido',
+    'meta_dados_id',
+    'grupo_id',
   ];
 
   constructor(obj : object, isSnake? : boolean) {
-    super(obj, isSnake, Movimento);
+    super(obj, isSnake, Servico);
   }
 
   static async getBy(column : string | object, value? : string) {
-    return Table.getty<Movimento>(column, value, Movimento);
+    return Table.getty<Servico>(column, value, Servico);
   }
 
   save() {
-    return Table.save(this, Movimento);
+    return Table.save(this, Servico);
+  }
+
+  del() {
+    return Table.del(this, Servico);
   }
 }

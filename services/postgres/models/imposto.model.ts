@@ -2,7 +2,7 @@ import Table, {
   pgNum, // eslint-disable-line no-unused-vars
 } from './table.model';
 
-class Imposto extends Table {
+export default class Imposto extends Table {
   id : pgNum;
   cofins : pgNum;
   csll : pgNum;
@@ -68,5 +68,3 @@ class Imposto extends Table {
     this.adicionalIr = baseCalculo > 60000 ? (baseCalculo - 60000) * 0.1 : 0;
   }
 }
-
-module.exports = Imposto;

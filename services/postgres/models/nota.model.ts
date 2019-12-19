@@ -4,7 +4,7 @@ import Table, {
   pgDate, // eslint-disable-line no-unused-vars
 } from './table.model';
 
-class Nota extends Table {
+export default class Nota extends Table {
   chave : pgStr;
   emitenteCpfcnpj : pgStr;
   destinatarioCpfcnpj : pgStr;
@@ -49,5 +49,3 @@ class Nota extends Table {
     return Table.save(this, Nota);
   }
 }
-
-module.exports = Nota;

@@ -3,26 +3,28 @@ import Table, {
   pgStr, // eslint-disable-line no-unused-vars
 } from './table.model';
 
-export default class Municipio extends Table {
-  id : pgNum;
+export default class Pessoa extends Table {
+  cpfcnpj : pgStr;
   nome : pgStr;
+  enderecoId : pgNum;
 
-  static tbName = () => 'tb_municipio';
-  static tbUK = () => 'id';
+  static tbName = () => 'tb_pessoa';
+  static tbUK = () => 'cpfcnpj';
   static columns = () => [
-    'id',
+    'cpfcnpj',
     'nome',
+    'endereco_id',
   ];
 
   constructor(obj : object, isSnake? : boolean) {
-    super(obj, isSnake, Municipio);
+    super(obj, isSnake, Pessoa);
   }
 
   static async getBy(column : string | object, value? : string) {
-    return Table.getty<Municipio>(column, value, Municipio);
+    return Table.getty<Pessoa>(column, value, Pessoa);
   }
 
   save() {
-    return Table.save(this, Municipio);
+    return Table.save(this, Pessoa);
   }
 }

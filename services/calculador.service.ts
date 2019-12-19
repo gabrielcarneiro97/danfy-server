@@ -1,14 +1,16 @@
-const cfopCompra = ['1102', '2102'];
-const cfopDevolucao = ['1202', '2202'];
-const cfopDevolucaoCompra = ['5202'];
-const cfopVenda = ['5102', '6102', '6108'];
-const cfopConsignacao = ['1917', '2917'];
-const cfopCompraConsignacao = ['1113'];
-const cfopVendaConsignacao = ['5115', '6115', '5114'];
-const cfopDevolucaoConsignacao = ['5918', '6918'];
-const cfopDevolucaoDemonstracao = ['6913', '5913'];
+export const cfopCompra = ['1102', '2102'];
+export const cfopDevolucao = ['1202', '2202'];
+export const cfopDevolucaoCompra = ['5202'];
+export const cfopVenda = ['5102', '6102', '6108'];
+export const cfopConsignacao = ['1917', '2917'];
+export const cfopCompraConsignacao = ['1113'];
+export const cfopVendaConsignacao = ['5115', '6115', '5114'];
+export const cfopDevolucaoConsignacao = ['5918', '6918'];
+export const cfopDevolucaoDemonstracao = ['6913', '5913'];
 
-function compararCFOP(notaInicial, notaFinal) {
+export type Comp = { mes : string | number, ano : string | number };
+
+export function compararCFOP(notaInicial, notaFinal) {
   const cfopInicial = notaInicial.cfop;
   const cfopFinal = notaFinal.cfop;
 
@@ -40,7 +42,7 @@ function compararCFOP(notaInicial, notaFinal) {
   return false;
 }
 
-function compararProduto(notaInicialPool, notaFinalPool) {
+export function compararProduto(notaInicialPool, notaFinalPool) {
   let retorno = false;
 
   notaInicialPool.produtos.forEach((produtoInicial) => {
@@ -53,7 +55,7 @@ function compararProduto(notaInicialPool, notaFinalPool) {
   return retorno;
 }
 
-function compararData(notaInicial, notaFinal) {
+export function compararData(notaInicial, notaFinal) {
   const dataInicial = new Date(notaInicial.dataHora).getTime();
   const dataFinal = new Date(notaFinal.dataHora).getTime();
 
@@ -63,7 +65,7 @@ function compararData(notaInicial, notaFinal) {
   return false;
 }
 
-function validarMovimento(notaInicialPool, notaFinalPool) {
+export function validarMovimento(notaInicialPool, notaFinalPool) {
   const notaInicial = notaInicialPool.nota;
   const notaFinal = notaFinalPool.nota;
 
@@ -80,35 +82,37 @@ function validarMovimento(notaInicialPool, notaFinalPool) {
   return { isValid: true, error: null };
 }
 
-function dtof(num) {
+export function dtof(num) {
   return parseFloat(num.toString());
 }
 
-function mesInicioFim(competencia) {
+export function mesInicioFim(competencia : Comp) {
   return {
-    inicio: new Date(competencia.ano, competencia.mes - 1),
-    fim: new Date(new Date(competencia.ano, competencia.mes) - 1),
+    inicio: new Date(<number> competencia.ano, <number> competencia.mes - 1),
+    fim: new Date(new Date(<number> competencia.ano, <number> competencia.mes).getTime() - 1),
   };
 }
 
-function stringToDate(string) {
-  const [dia, mes, ano] = string.split('-');
+export function stringToDate(string : string) {
+  const [dia, mes, ano] : string[] = string.split('-');
 
-  return new Date(ano, parseInt(mes, 10) - 1, dia);
+  return new Date(parseInt(ano, 10), parseInt(mes, 10) - 1, parseInt(dia, 10));
 }
 
-function trim(mesParam) {
+export function trim(mesParam) {
   const mes = parseInt(mesParam, 10);
   if ((mes - 1) % 3 === 0) return [mes];
   if ((mes - 2) % 3 === 0) return [mes - 1, mes];
   return [mes - 2, mes - 1, mes];
 }
 
-function objParseFloat(obj) {
-  Object.keys(obj).forEach((k) => { obj[k] = parseFloat(obj[k]); });
+export function objParseFloat(obj) {
+  Object.keys(obj).forEach((k) => {
+    obj[k] = parseFloat(obj[k]); // eslint-disable-line no-param-reassign
+  });
 }
 
-function getMesTrim(mesParam) {
+export function getMesTrim(mesParam) {
   const mes = parseInt(mesParam, 10);
   const meses = {
     1: [1, 2, 3],
@@ -122,7 +126,7 @@ function getMesTrim(mesParam) {
   return 10;
 }
 
-function ultimosDoze(comp) {
+export function ultimosDoze(comp) {
   const meses = [];
 
   const atual = comp;
@@ -140,7 +144,7 @@ function ultimosDoze(comp) {
   return meses;
 }
 
-function mesesExercicio(comp) {
+export function mesesExercicio(comp) {
   const meses = [];
 
   for (let i = 1; i <= comp.mes; i += 1) {
@@ -150,47 +154,22 @@ function mesesExercicio(comp) {
   return meses;
 }
 
-function compToStr(comp) {
+export function compToStr(comp) {
   return `${comp.mes}/${comp.ano}`;
 }
 
-function strToComp(str) {
+export function strToComp(str) {
   const [mes, ano] = str.split('/');
 
   return { mes: parseInt(mes, 10), ano: parseInt(ano, 10) };
 }
 
-function dateToComp(date) {
+export function dateToComp(date) {
   const d = new Date(date);
 
   return { mes: d.getMonth() + 1, ano: d.getFullYear() };
 }
 
-function compToDate(comp) {
+export function compToDate(comp) {
   return new Date(comp.ano, comp.mes - 1);
 }
-
-module.exports = {
-  validarMovimento,
-  dtof,
-  mesInicioFim,
-  stringToDate,
-  trim,
-  ultimosDoze,
-  mesesExercicio,
-  compToStr,
-  dateToComp,
-  strToComp,
-  compToDate,
-  objParseFloat,
-  getMesTrim,
-  cfopCompra,
-  cfopDevolucao,
-  cfopDevolucaoCompra,
-  cfopVenda,
-  cfopConsignacao,
-  cfopCompraConsignacao,
-  cfopVendaConsignacao,
-  cfopDevolucaoConsignacao,
-  cfopDevolucaoDemonstracao,
-};

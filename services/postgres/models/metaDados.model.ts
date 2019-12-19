@@ -5,7 +5,7 @@ import Table, {
   pgBool, // eslint-disable-line no-unused-vars
 } from './table.model';
 
-class MetaDados extends Table {
+export default class MetaDados extends Table {
   mdId : pgNum;
   email : pgStr;
   mdDataHora : pgDate;
@@ -42,5 +42,3 @@ class MetaDados extends Table {
     return Table.del(this, MetaDados);
   }
 }
-
-module.exports = MetaDados;

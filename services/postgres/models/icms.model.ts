@@ -2,7 +2,7 @@ import Table, {
   pgNum, // eslint-disable-line no-unused-vars
 } from './table.model';
 
-class Icms extends Table {
+export default class Icms extends Table {
   id : pgNum;
   baseCalculo : pgNum;
   composicaoBase : pgNum;
@@ -51,5 +51,3 @@ class Icms extends Table {
     return Table.del(this, Icms);
   }
 }
-
-module.exports = Icms;
