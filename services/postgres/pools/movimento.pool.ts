@@ -1,22 +1,28 @@
-const Pool = require('./pool');
-const { pg } = require('../../pg.service');
-const ImpostoPool = require('./imposto.pool');
-const {
-  Movimento,
-  MetaDados,
-} = require('../models');
+import Pool from './pool';
+import { pg } from '../../pg.service';
+import ImpostoPool from './imposto.pool';
 
-class MovimentoPool extends Pool {
-  constructor(movimento, metaDados, impostoPool) {
+import {
+  pgType, // eslint-disable-line no-unused-vars
+} from '../models/table.model';
+import Movimento from '../models/movimento.model';
+import MetaDados from '../models/metaDados.model';
+
+export default class MovimentoPool extends Pool {
+  movimento : Movimento;
+  metaDados : MetaDados;
+  impostoPool : ImpostoPool;
+
+  constructor(movimento : Movimento, metaDados : MetaDados, impostoPool : ImpostoPool) {
     super([movimento, metaDados, impostoPool]);
     this.movimento = movimento;
     this.metaDados = metaDados;
     this.impostoPool = impostoPool;
   }
 
-  static async getById(id) {
+  static async getById(id : pgType) {
     const [movimento] = await Movimento.getBy({ id });
-    const [[impostoPool], [metaDados]] = await Promise.all([
+    const [impostoPool, [metaDados]] = await Promise.all([
       ImpostoPool.getById(movimento.impostoId),
       MetaDados.getBy({ mdId: movimento.metaDadosId }),
     ]);
@@ -24,7 +30,7 @@ class MovimentoPool extends Pool {
     return new MovimentoPool(movimento, metaDados, impostoPool);
   }
 
-  static async getByNotaFinal(notaChave) {
+  static async getByNotaFinal(notaChave : pgType) {
     const [movimentoPg] = await pg.table('tb_movimento')
       .innerJoin('tb_meta_dados', 'tb_movimento.meta_dados_id', 'tb_meta_dados.md_id')
       .where('tb_movimento.nota_final_chave', notaChave)
@@ -32,7 +38,7 @@ class MovimentoPool extends Pool {
 
     if (movimentoPg) {
       const movimento = new Movimento(movimentoPg, true);
-      const [[impostoPool], [metaDados]] = await Promise.all([
+      const [impostoPool, [metaDados]] = await Promise.all([
         ImpostoPool.getById(movimento.impostoId),
         MetaDados.getBy({ mdId: movimento.metaDadosId }),
       ]);
@@ -40,17 +46,15 @@ class MovimentoPool extends Pool {
       return new MovimentoPool(movimento, metaDados, impostoPool);
     }
 
-    return undefined;
+    return null;
   }
 
   async save() {
     const impostoId = await this.impostoPool.save();
     const metaDadosId = await this.metaDados.save();
-    this.movimento.impostoId = impostoId;
-    this.movimento.metaDadosId = metaDadosId;
+    this.movimento.impostoId = <number> impostoId;
+    this.movimento.metaDadosId = <number> metaDadosId;
 
     return this.movimento.save();
   }
 }
-
-module.exports = MovimentoPool;

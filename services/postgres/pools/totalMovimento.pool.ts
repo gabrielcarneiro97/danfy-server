@@ -1,17 +1,21 @@
-const Pool = require('./pool');
-const ImpostoPool = require('./imposto.pool');
-const MovimentoPool = require('./movimento.pool');
+import Pool from './pool';
+import ImpostoPool from './imposto.pool';
+import MovimentoPool from './movimento.pool';
 
-const { TotalMovimento } = require('../models');
+import TotalMovimento from '../models/totalMovimento.model';
+import { pgType } from '../models/table.model'; // eslint-disable-line no-unused-vars
 
-class TotalMovimentoPool extends Pool {
-  constructor(totalMovimento, impostoPool) {
+export default class TotalMovimentoPool extends Pool {
+  totalMovimento : TotalMovimento;
+  impostoPool : ImpostoPool;
+
+  constructor(totalMovimento : TotalMovimento, impostoPool : ImpostoPool) {
     super([totalMovimento, impostoPool]);
     this.totalMovimento = totalMovimento;
     this.impostoPool = impostoPool;
   }
 
-  soma(pool) {
+  soma(pool : MovimentoPool | TotalMovimentoPool) {
     if (pool instanceof MovimentoPool) {
       this.totalMovimento.soma(pool.movimento);
     } else if (pool instanceof TotalMovimentoPool) {
@@ -22,7 +26,7 @@ class TotalMovimentoPool extends Pool {
 
   async save() {
     const impostoId = await this.impostoPool.save();
-    this.totalMovimento.impostoId = impostoId;
+    this.totalMovimento.impostoId = <number> impostoId;
 
     return this.totalMovimento.save();
   }
@@ -32,14 +36,12 @@ class TotalMovimentoPool extends Pool {
     return this.totalMovimento.del();
   }
 
-  static async getById(id) {
+  static async getById(id : pgType) {
     const [totalMovimento] = await TotalMovimento.getBy({ id });
     if (totalMovimento) {
-      const [impostoPool] = await ImpostoPool.getById(totalMovimento.impostoId);
+      const impostoPool = await ImpostoPool.getById(totalMovimento.impostoId);
       return new TotalMovimentoPool(totalMovimento, impostoPool);
     }
-    return undefined;
+    return null;
   }
 }
-
-module.exports = TotalMovimentoPool;

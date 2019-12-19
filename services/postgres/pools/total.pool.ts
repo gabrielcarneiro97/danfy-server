@@ -1,22 +1,31 @@
-const Pool = require('./pool');
-const TotalMovimentoPool = require('./totalMovimento.pool');
-const TotalServicoPool = require('./totalServico.pool');
-const TotalSomaPool = require('./totalSoma.pool');
-const ImpostoPool = require('./imposto.pool');
+import { mesInicioFim, Comp } from '../../calculador.service'; // eslint-disable-line no-unused-vars
+import { pg } from '../../pg.service';
 
-const {
-  Total,
-  TotalSoma,
-  Imposto,
-  Retencao,
-  Acumulado,
-  Icms,
-} = require('../models');
-const { mesInicioFim } = require('../../calculador.service');
-const { pg } = require('../../pg.service');
+import Pool from './pool';
+import TotalMovimentoPool from './totalMovimento.pool';
+import TotalServicoPool from './totalServico.pool';
+import TotalSomaPool from './totalSoma.pool';
+import ImpostoPool from './imposto.pool';
 
-class TotalPool extends Pool {
-  constructor(total, totalMovimentoPool, totalServicoPool, totalSomaPool) {
+import Total from '../models/total.model';
+import TotalSoma from '../models/totalSoma.model';
+import Imposto from '../models/imposto.model';
+import Retencao from '../models/retencao.model';
+import Acumulado from '../models/acumulado.model';
+import Icms from '../models/icms.model';
+import { pgType } from '../models/table.model'; // eslint-disable-line no-unused-vars
+
+
+export default class TotalPool extends Pool {
+  total : Total;
+  totalMovimentoPool : TotalMovimentoPool;
+  totalServicoPool : TotalServicoPool;
+  totalSomaPool : TotalSomaPool;
+
+  constructor(total : Total,
+    totalMovimentoPool : TotalMovimentoPool,
+    totalServicoPool : TotalServicoPool,
+    totalSomaPool : TotalSomaPool) {
     super([total, totalMovimentoPool, totalServicoPool, totalSomaPool]);
     this.total = total;
     this.totalMovimentoPool = totalMovimentoPool;
@@ -35,14 +44,14 @@ class TotalPool extends Pool {
       this.totalSomaPool.save(),
     ]);
 
-    this.total.totalMovimentoId = totalMovimentoId;
-    this.total.totalServicoId = totalServicoId;
-    this.total.totalSomaId = totalSomaId;
+    this.total.totalMovimentoId = <number> totalMovimentoId;
+    this.total.totalServicoId = <number> totalServicoId;
+    this.total.totalSomaId = <number> totalSomaId;
 
     return this.total.save();
   }
 
-  static async getByCnpjComp(cnpj, comp, tipo) {
+  static async getByCnpjComp(cnpj : pgType, comp : Comp, tipo : number) {
     /* tipo = 1 (mensal), tipo = 3 (trimestral), tipo = 12 (anual) */
     const mes = mesInicioFim(comp);
     const getTotal = () => {
@@ -73,36 +82,39 @@ class TotalPool extends Pool {
       await Promise.all(totais.map(async (t) => t.del()));
     }
 
-    return new Promise((resolve, reject) => {
-      Promise.all([
-        TotalMovimentoPool.getById(total.totalMovimentoId),
-        TotalServicoPool.getById(total.totalServicoId),
-        TotalSomaPool.getById(total.totalSomaId),
-      ]).then(([totalMovimentoPool, totalServicoPool, totalSomaPool]) => {
-        resolve(new TotalPool(total, totalMovimentoPool, totalServicoPool, totalSomaPool));
-      }).catch(reject);
-    });
+    const [totalMovimentoPool, totalServicoPool, totalSomaPool] = await Promise.all([
+      TotalMovimentoPool.getById(total.totalMovimentoId),
+      TotalServicoPool.getById(total.totalServicoId),
+      TotalSomaPool.getById(total.totalSomaId),
+    ]);
+
+    return new TotalPool(total, totalMovimentoPool, totalServicoPool, totalSomaPool);
   }
 
-  static newByPools(totalMovimentoPool, totalServicoPool, donoCpfCnpj, dataHora, tipo, aliquotaIr) {
-    const total = new Total();
+  static newByPools(totalMovimentoPool : TotalMovimentoPool,
+    totalServicoPool : TotalServicoPool,
+    donoCpfCnpj : string,
+    dataHora : Date,
+    tipo : number,
+    aliquotaIr : number) {
+    const total = new Total({});
     total.donoCpfcnpj = donoCpfCnpj;
     total.dataHora = dataHora;
     total.anual = tipo === 12;
     total.trimestral = tipo === 3;
 
-    const totalSoma = new TotalSoma();
+    const totalSoma = new TotalSoma({});
     totalSoma.valorMovimento = totalMovimentoPool.totalMovimento.lucro;
     totalSoma.valorServico = totalServicoPool.totalServico.total;
-    const impostoTotalSoma = new Imposto();
+    const impostoTotalSoma = new Imposto({});
     impostoTotalSoma.soma(totalMovimentoPool.impostoPool.imposto);
     impostoTotalSoma.soma(totalServicoPool.imposto);
     impostoTotalSoma.calculaAdicional(totalSoma.valorMovimento, totalSoma.valorServico, aliquotaIr);
-    const icmsTotalSoma = new Icms();
+    const icmsTotalSoma = new Icms({});
     icmsTotalSoma.soma(totalMovimentoPool.impostoPool.icms);
-    const retencaoTotalSoma = new Retencao();
+    const retencaoTotalSoma = new Retencao({});
     retencaoTotalSoma.soma(totalServicoPool.retencao);
-    const acumuladoTotalSoma = new Acumulado();
+    const acumuladoTotalSoma = new Acumulado({});
 
     const totalSomaPool = new TotalSomaPool(
       totalSoma,
@@ -121,5 +133,3 @@ class TotalPool extends Pool {
     return this.total.del();
   }
 }
-
-module.exports = TotalPool;

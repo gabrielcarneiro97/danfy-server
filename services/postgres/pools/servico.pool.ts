@@ -1,13 +1,20 @@
-const Pool = require('./pool');
-const {
-  Servico,
-  MetaDados,
-  Retencao,
-  Imposto,
-} = require('../models');
+import Pool from './pool';
 
-class ServicoPool extends Pool {
-  constructor(servico, metaDados, imposto, retencao) {
+import {
+  pgNum, pgStr, // eslint-disable-line no-unused-vars
+} from '../models/table.model';
+import Servico from '../models/servico.model';
+import MetaDados from '../models/metaDados.model';
+import Retencao from '../models/retencao.model';
+import Imposto from '../models/imposto.model';
+
+export default class ServicoPool extends Pool {
+  servico : Servico;
+  metaDados : MetaDados;
+  imposto : Imposto;
+  retencao : Retencao;
+
+  constructor(servico : Servico, metaDados : MetaDados, imposto : Imposto, retencao : Retencao) {
     super([servico, metaDados, imposto, retencao]);
     this.servico = servico;
     this.metaDados = metaDados;
@@ -17,14 +24,14 @@ class ServicoPool extends Pool {
 
   async save() {
     const retencaoId = await this.retencao.save();
-    this.servico.retencaoId = retencaoId;
+    this.servico.retencaoId = <number> retencaoId;
 
     const impostoId = await this.imposto.save();
-    this.servico.impostoId = impostoId;
+    this.servico.impostoId = <number> impostoId;
 
     if (this.metaDados) {
       const metaDadosId = await this.metaDados.save();
-      this.servico.metaDadosId = metaDadosId;
+      this.servico.metaDadosId = <number> metaDadosId;
     }
 
     return this.servico.save();
@@ -34,22 +41,22 @@ class ServicoPool extends Pool {
     return this.servico.del();
   }
 
-  static async getById(id) {
+  static async getById(id : pgNum) {
     const [servico] = await Servico.getBy({ id });
-    const [metaDados] = servico.metaDadosId ? await MetaDados.getBy('md_id', servico.metaDadosId) : [null];
+    const [metaDados] = servico.metaDadosId ? await MetaDados.getBy('md_id', servico.metaDadosId.toString()) : [null];
 
     const [[retencao], [imposto]] = await Promise.all([
-      Retencao.getBy('id', servico.retencaoId),
-      Imposto.getBy('id', servico.impostoId),
+      Retencao.getBy('id', servico.retencaoId.toString()),
+      Imposto.getBy('id', servico.impostoId.toString()),
     ]);
 
     return new ServicoPool(servico, metaDados, imposto, retencao);
   }
 
-  static async getByNotaChave(notaChave) {
+  static async getByNotaChave(notaChave : pgStr) {
     const servicos = await Servico.getBy({ notaChave });
     const servicosPool = await Promise.all(servicos.map(async (o) => ServicoPool.getById(o.id)));
-    let servicoPool;
+    let servicoPool : ServicoPool;
 
     if (servicosPool.length === 1) {
       [servicoPool] = servicosPool;
@@ -63,5 +70,3 @@ class ServicoPool extends Pool {
     return servicoPool;
   }
 }
-
-module.exports = ServicoPool;

@@ -27,8 +27,9 @@ export default class TotalServico extends Table {
     return Table.getty<TotalServico>(column, value, TotalServico);
   }
 
-  soma({ valor } : Servico) {
-    this.total += valor;
+  soma(servOuTotalServ : Servico | TotalServico) {
+    if (servOuTotalServ instanceof Servico) this.total += servOuTotalServ.valor;
+    else this.total += servOuTotalServ.total;
   }
 
   save() {

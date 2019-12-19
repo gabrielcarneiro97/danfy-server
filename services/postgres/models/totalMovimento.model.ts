@@ -31,7 +31,7 @@ export default class TotalMovimento extends Table {
   soma({
     valorSaida,
     lucro,
-  } : Movimento) {
+  } : Movimento | TotalMovimento) {
     this.valorSaida += valorSaida;
     this.lucro += lucro;
   }
