@@ -1,17 +1,27 @@
-const crypto = require('crypto');
-const { pg } = require('../');
-const { Nota, Estado, Produto } = require('./models');
-const { NotaPool } = require('./pools');
-const { stringToDate } = require('../calculador.service');
+import crypto from 'crypto';
 
-async function criarNota(chave, notaParam) {
-  const nota = new Nota({ ...chave, notaParam });
+import { pg } from '../pg.service';
+import {
+  stringToDate,
+  Periodo, // eslint-disable-line no-unused-vars
+} from '../calculador.service';
+
+import NotaPool from './pools/nota.pool';
+
+import Nota from './models/nota.model';
+import Estado from './models/estado.model';
+import Produto from './models/produto.model';
+
+import NotaXml from '../xml/nota.xml'; // eslint-disable-line no-unused-vars
+
+export async function criarNota(chave : string, notaParam : object) {
+  const nota = new Nota({ chave, ...notaParam });
   await nota.save();
   return nota;
 }
 
-async function criarNotaPoolSlim(valor, destinatario) {
-  const nota = new Nota();
+export async function criarNotaPoolSlim(valor : number, destinatario : string) {
+  const nota = new Nota(null);
   nota.emitenteCpfcnpj = 'INTERNO';
   nota.dataHora = new Date();
   nota.cfop = 'INTERNO';
@@ -20,8 +30,8 @@ async function criarNotaPoolSlim(valor, destinatario) {
   nota.destinatarioCpfcnpj = destinatario;
   nota.valor = valor;
 
-  let chave;
-  let notasPg;
+  let chave : string;
+  let notasPg : Nota[];
 
   /* eslint-disable no-await-in-loop */
   do {
@@ -38,7 +48,7 @@ async function criarNotaPoolSlim(valor, destinatario) {
   return notaPool;
 }
 
-async function pegarNotasPoolProdutoEmitente(nome, cnpj) {
+export async function pegarNotasPoolProdutoEmitente(nome : string, cnpj : string) {
   if (nome === 'INTERNO') {
     throw new Error('Id inválido (INTERNO)');
   } else {
@@ -48,18 +58,20 @@ async function pegarNotasPoolProdutoEmitente(nome, cnpj) {
       .where('prod.nome', nome)
       .andWhere('nota.emitente_cpfcnpj', cnpj);
 
-    const notas = await Promise.all(notasPg.map(async (o) => NotaPool.getByChave(o.chave)));
+    const notas : NotaPool[] = await Promise.all(
+      notasPg.map(async (o) => NotaPool.getByChave(o.chave)),
+    );
     return notas;
   }
 }
 
-async function pegarNotaChave(chave) {
+export async function pegarNotaChave(chave : string) {
   const notaPg = await Nota.getBy({ chave });
   return new Nota(notaPg, true);
 }
 
-async function pegarNotasChaveEmitentePeriodo(emitenteCpfcnpj, periodo) {
-  let notasPg;
+export async function pegarNotasChaveEmitentePeriodo(emitenteCpfcnpj : string, periodo : Periodo) {
+  let notasPg : Nota[];
 
   if (!periodo) {
     notasPg = await pg.select('nota.chave')
@@ -81,12 +93,13 @@ async function pegarNotasChaveEmitentePeriodo(emitenteCpfcnpj, periodo) {
   return notasPg;
 }
 
-async function pegarNotasPoolEmitentePeriodo(emitenteCpfcnpj, periodo) {
+export async function pegarNotasPoolEmitentePeriodo(emitenteCpfcnpj : string, periodo : Periodo) {
   const notasPg = await pegarNotasChaveEmitentePeriodo(emitenteCpfcnpj, periodo);
   return Promise.all(notasPg.map(async (o) => NotaPool.getByChave(o.chave)));
 }
 
-async function pegarNotasPoolEntradaEmitentePeriodo(cpfcnpj, periodo) {
+export async function pegarNotasPoolEntradaEmitentePeriodo(cpfcnpj : string,
+  periodo : Periodo) : Promise<NotaPool[]> {
   let notasPg;
 
   if (!periodo) {
@@ -122,43 +135,34 @@ async function pegarNotasPoolEntradaEmitentePeriodo(cpfcnpj, periodo) {
   return Promise.all(notasPg.flat().map(async (o) => NotaPool.getByChave(o.chave)));
 }
 
-async function notaXmlToPool(notaObj) {
+export async function notaXmlToPool(notaObj : NotaXml) {
   const notaFlat = {
     ...notaObj,
     ...notaObj.geral,
   };
 
-  delete notaFlat.geral;
+  const nota = new Nota(null);
 
-  notaFlat.emitenteCpfcnpj = notaFlat.emitente;
-  notaFlat.destinatarioCpfcnpj = notaFlat.destinatario;
+  nota.emitenteCpfcnpj = notaFlat.emitente;
+  nota.destinatarioCpfcnpj = notaFlat.destinatario;
 
-  delete notaFlat.emitente;
-  delete notaFlat.destinatario;
 
   const { informacoesEstaduais } = notaFlat;
-  notaFlat.estadoGeradorId = await Estado.getIdBySigla(informacoesEstaduais.estadoGerador);
-  notaFlat.estadoDestinoId = await Estado.getIdBySigla(informacoesEstaduais.estadoDestino);
-  notaFlat.destinatarioContribuinte = informacoesEstaduais.destinatarioContribuinte;
-  delete notaFlat.informacoesEstaduais;
+  nota.estadoGeradorId = await Estado.getIdBySigla(informacoesEstaduais.estadoGerador);
+  nota.estadoDestinoId = await Estado.getIdBySigla(informacoesEstaduais.estadoDestino);
+  nota.destinatarioContribuinte = informacoesEstaduais.destinatarioContribuinte;
 
-  notaFlat.valor = parseFloat(notaFlat.valor.total);
+  nota.valor = parseFloat(notaFlat.valor.total);
 
   const { complementar } = notaFlat;
-  notaFlat.textoComplementar = complementar.textoComplementar;
-  delete notaFlat.complementar;
+  nota.textoComplementar = complementar.textoComplementar;
+
 
   const produtosObj = {
     ...notaFlat.produtos,
   };
 
-  delete notaFlat.produtos;
-
-  const nota = new Nota(notaFlat);
-
-  const produtos = [];
-
-  Object.keys(produtosObj).forEach((nome) => {
+  const produtos = Object.keys(produtosObj).map((nome) => {
     const prodObj = produtosObj[nome];
     const prodFlat = {
       nome,
@@ -168,7 +172,7 @@ async function notaXmlToPool(notaObj) {
       notaChave: nota.chave,
     };
 
-    produtos.push(new Produto(prodFlat));
+    return new Produto(prodFlat);
   });
 
   const notaPool = new NotaPool(nota, produtos);
@@ -177,13 +181,3 @@ async function notaXmlToPool(notaObj) {
 
   return notaPool;
 }
-
-module.exports = {
-  criarNota,
-  pegarNotasPoolProdutoEmitente,
-  pegarNotaChave,
-  criarNotaPoolSlim,
-  pegarNotasPoolEmitentePeriodo,
-  pegarNotasPoolEntradaEmitentePeriodo,
-  notaXmlToPool,
-};

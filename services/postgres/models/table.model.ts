@@ -15,7 +15,7 @@ interface ITable {
 }
 
 export default class Table {
-  constructor(obj : object, isSnake : boolean, Cl: ITable) {
+  constructor(obj? : object, isSnake? : boolean, Cl? : ITable) {
     if (!obj) {
       Cl.columns().forEach((column) => {
         const camel = Table.toCamel(column);

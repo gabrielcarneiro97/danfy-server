@@ -1,6 +1,6 @@
-const { Aliquota } = require('./models');
+import Aliquota from './models/aliquota.model';
 
-async function criarAliquota(aliquotasParam) {
+export async function criarAliquota(aliquotasParam : object) {
   const aliquota = new Aliquota({
     ...aliquotasParam,
     ativo: true,
@@ -21,7 +21,7 @@ async function criarAliquota(aliquotasParam) {
   return aliquota.save();
 }
 
-async function pegarEmpresaAliquota(cpfcnpj) {
+export async function pegarEmpresaAliquota(cpfcnpj : string) {
   const [aliquota] = await Aliquota.getBy({
     donoCpfcnpj: cpfcnpj,
     ativo: true,
@@ -29,8 +29,3 @@ async function pegarEmpresaAliquota(cpfcnpj) {
 
   return aliquota;
 }
-
-module.exports = {
-  criarAliquota,
-  pegarEmpresaAliquota,
-};

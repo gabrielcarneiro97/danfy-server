@@ -11,7 +11,7 @@ export default class NotaPool extends Pool {
   nota : Nota;
   produtos : Produto[];
 
-  constructor(nota : Nota, produtos : Produto[]) {
+  constructor(nota : Nota, produtos? : Produto[]) {
     if (produtos) {
       super([nota, ...produtos]);
       this.produtos = produtos;

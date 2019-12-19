@@ -1,25 +1,24 @@
-const {
-  Movimento,
-  Imposto,
-  MetaDados,
-  Icms,
-} = require('./models');
-const {
-  MovimentoPool,
-  ImpostoPool,
-} = require('./pools');
-const { pg } = require('../pg.service');
-const { mesInicioFim } = require('../calculador.service');
+import { pg } from '../pg.service';
+import { mesInicioFim, Comp } from '../calculador.service'; // eslint-disable-line no-unused-vars
+
+import Movimento from './models/movimento.model';
+import Imposto from './models/imposto.model';
+import MetaDados from './models/metaDados.model';
+import Icms from './models/icms.model';
+
+import MovimentoPool from './pools/movimento.pool';
+import ImpostoPool from './pools/imposto.pool';
 
 
-async function criarMovimento(movPool) {
+export async function criarMovimento(movPool : MovimentoPool) {
   return movPool.save();
 }
 
-async function pegarMovimentosPoolMes(donoCpfcnpj, competencia) {
+export async function pegarMovimentosPoolMes(donoCpfcnpj : string,
+  competencia : Comp) : Promise<MovimentoPool[]> {
   const mes = mesInicioFim(competencia);
 
-  const select = (str) => pg.select(str)
+  const select = (str : string) => pg.select(str)
     .from('tb_movimento as mov')
     .where('mov.dono_cpfcnpj', donoCpfcnpj)
     .andWhere('md.ativo', true)
@@ -43,10 +42,10 @@ async function pegarMovimentosPoolMes(donoCpfcnpj, competencia) {
       impPromise,
       icmsPromise,
     ]).then(([movsPg, metaDadosPg, impostosPg, icmsPg]) => {
-      const movimentosArr = movsPg.map((o) => new Movimento(o, true));
-      const metaDadosArr = metaDadosPg.map((o) => new MetaDados(o, true));
-      const impostoArr = impostosPg.map((o) => new Imposto(o, true));
-      const icmsArr = icmsPg.map((o) => new Icms(o, true));
+      const movimentosArr : Movimento[] = movsPg.map((o) => new Movimento(o, true));
+      const metaDadosArr : MetaDados[] = metaDadosPg.map((o) => new MetaDados(o, true));
+      const impostoArr : Imposto[] = impostosPg.map((o) => new Imposto(o, true));
+      const icmsArr : Icms[] = icmsPg.map((o) => new Icms(o, true));
 
       const endArr = movimentosArr.map((movimento) => {
         const metaDados = metaDadosArr.find((o) => o.mdId === movimento.metaDadosId);
@@ -65,7 +64,7 @@ async function pegarMovimentosPoolMes(donoCpfcnpj, competencia) {
   });
 }
 
-async function pegarMovimentoPoolId(id) {
+export async function pegarMovimentoPoolId(id : number | string) {
   const [movimento] = await Movimento.getBy({ id });
   const [metaDados] = await MetaDados.getBy({ mdId: movimento.metaDadosId });
   const [imposto] = await Imposto.getBy({ id: movimento.impostoId });
@@ -74,7 +73,7 @@ async function pegarMovimentoPoolId(id) {
   return new MovimentoPool(movimento, metaDados, new ImpostoPool(imposto, icms));
 }
 
-async function pegarMovimentoPoolNotaFinal(chaveNota) {
+export async function pegarMovimentoPoolNotaFinal(chaveNota : string) {
   const [mov] = await pg.select('mov.id')
     .from('tb_movimento as mov')
     .innerJoin('tb_meta_dados as md', 'mov.meta_dados_id', 'md.md_id')
@@ -84,7 +83,7 @@ async function pegarMovimentoPoolNotaFinal(chaveNota) {
   return null;
 }
 
-async function pegarMovimentoPoolNotaInicial(chaveNota) {
+export async function pegarMovimentoPoolNotaInicial(chaveNota : string) {
   const [mov] = await pg.select('mov.id')
     .from('tb_movimento as mov')
     .innerJoin('tb_meta_dados as md', 'mov.meta_dados_id', 'md.md_id')
@@ -94,13 +93,14 @@ async function pegarMovimentoPoolNotaInicial(chaveNota) {
   return null;
 }
 
-async function pegarMetaDados(movId) {
+export async function pegarMetaDados(movId : number | string) {
   const [movimento] = await Movimento.getBy({ id: movId });
-  const [metaDados] = await MetaDados.getBy('md_id', movimento.metaDadosId);
+  const [metaDados] = await MetaDados.getBy('md_id', movimento.metaDadosId.toString());
 
   return metaDados;
 }
-function movimentoPoolFromObj(obj) {
+
+export function movimentoPoolFromObj(obj) {
   return new MovimentoPool(
     new Movimento(obj.movimento),
     new MetaDados(obj.metaDados),
@@ -111,18 +111,8 @@ function movimentoPoolFromObj(obj) {
   );
 }
 
-async function cancelarMovimento(id) {
+export async function cancelarMovimento(id : number | string) {
   const metaDados = await pegarMetaDados(id);
   metaDados.ativo = false;
   return metaDados.save();
 }
-
-module.exports = {
-  criarMovimento,
-  pegarMovimentoPoolNotaFinal,
-  pegarMovimentoPoolNotaInicial,
-  pegarMovimentosPoolMes,
-  pegarMovimentoPoolId,
-  movimentoPoolFromObj,
-  cancelarMovimento,
-};

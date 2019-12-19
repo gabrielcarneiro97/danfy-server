@@ -97,24 +97,24 @@ export default class TotalPool extends Pool {
     dataHora : Date,
     tipo : number,
     aliquotaIr : number) {
-    const total = new Total({});
+    const total = new Total(null);
     total.donoCpfcnpj = donoCpfCnpj;
     total.dataHora = dataHora;
     total.anual = tipo === 12;
     total.trimestral = tipo === 3;
 
-    const totalSoma = new TotalSoma({});
+    const totalSoma = new TotalSoma(null);
     totalSoma.valorMovimento = totalMovimentoPool.totalMovimento.lucro;
     totalSoma.valorServico = totalServicoPool.totalServico.total;
-    const impostoTotalSoma = new Imposto({});
+    const impostoTotalSoma = new Imposto(null);
     impostoTotalSoma.soma(totalMovimentoPool.impostoPool.imposto);
     impostoTotalSoma.soma(totalServicoPool.imposto);
     impostoTotalSoma.calculaAdicional(totalSoma.valorMovimento, totalSoma.valorServico, aliquotaIr);
-    const icmsTotalSoma = new Icms({});
+    const icmsTotalSoma = new Icms(null);
     icmsTotalSoma.soma(totalMovimentoPool.impostoPool.icms);
-    const retencaoTotalSoma = new Retencao({});
+    const retencaoTotalSoma = new Retencao(null);
     retencaoTotalSoma.soma(totalServicoPool.retencao);
-    const acumuladoTotalSoma = new Acumulado({});
+    const acumuladoTotalSoma = new Acumulado(null);
 
     const totalSomaPool = new TotalSomaPool(
       totalSoma,

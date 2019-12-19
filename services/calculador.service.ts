@@ -9,6 +9,7 @@ export const cfopDevolucaoConsignacao = ['5918', '6918'];
 export const cfopDevolucaoDemonstracao = ['6913', '5913'];
 
 export type Comp = { mes : string | number, ano : string | number };
+export type Periodo = { inicio : string | Date, fim : string | Date };
 
 export function compararCFOP(notaInicial, notaFinal) {
   const cfopInicial = notaInicial.cfop;
@@ -93,8 +94,10 @@ export function mesInicioFim(competencia : Comp) {
   };
 }
 
-export function stringToDate(string : string) {
-  const [dia, mes, ano] : string[] = string.split('-');
+export function stringToDate(date : string | Date) {
+  if (date instanceof Date) return date;
+
+  const [dia, mes, ano] : string[] = date.split('-');
 
   return new Date(parseInt(ano, 10), parseInt(mes, 10) - 1, parseInt(dia, 10));
 }

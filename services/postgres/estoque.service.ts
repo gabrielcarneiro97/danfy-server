@@ -1,36 +1,45 @@
-const ProdutoEstoqueModel = require('./models/produtoEstoque.model');
-const { stringToDate } = require('../calculador.service');
-const { pegarNotasPoolEntradaEmitentePeriodo } = require('./nota.service');
-const { pegarMovimentoPoolNotaInicial } = require('./movimento.service');
+import ProdutoEstoque from './models/produtoEstoque.model';
 
-function periodoAte(data) {
+import { stringToDate } from '../calculador.service';
+
+import { pegarNotasPoolEntradaEmitentePeriodo } from './nota.service';
+import { pegarMovimentoPoolNotaInicial } from './movimento.service';
+
+import NotaPool from './pools/nota.pool'; // eslint-disable-line no-unused-vars
+import MovimentoPool from './pools/movimento.pool'; // eslint-disable-line no-unused-vars
+
+export function periodoAte(data : string) {
   const fim = stringToDate(data);
   const inicio = stringToDate('01-01-1900');
   const periodo = { inicio, fim };
   return periodo;
 }
 
-async function pegarEstoque(cpfcnpj, data) {
-  return ProdutoEstoqueModel.getByDonoAte(cpfcnpj, data);
+export async function pegarEstoque(cpfcnpj : string, data : string) {
+  return ProdutoEstoque.getByDonoAte(cpfcnpj, data);
 }
 
-async function inserirProduto(produto) {
-  if (produto instanceof ProdutoEstoqueModel) {
+export async function inserirProduto(produto : ProdutoEstoque | object) {
+  if (produto instanceof ProdutoEstoque) {
     await produto.save();
     return produto;
   }
-  const pEModel = new ProdutoEstoqueModel(produto);
+  const pEModel = new ProdutoEstoque(produto);
   await pEModel.save();
-  return (await ProdutoEstoqueModel.getBy('id', pEModel.id))[0];
+  const [produtoEstoque] = await ProdutoEstoque.getBy('id', pEModel.id.toString());
+
+  return produtoEstoque;
 }
 
-async function novoProdutoEstoquePorNota(notaInicialPool, cpfcnpj) {
+async function novoProdutoEstoquePorNota(notaInicialPool : NotaPool, cpfcnpj : string) {
   const notaInicialChave = notaInicialPool.nota.chave;
   const movimentoPool = await pegarMovimentoPoolNotaInicial(notaInicialChave);
   const [produto] = notaInicialPool.produtos;
 
   const produtoEstoque = {
     dataEntrada: notaInicialPool.nota.dataHora,
+    dataSaida: null,
+    notaFinalChave: null,
     donoCpfcnpj: cpfcnpj,
     valorEntrada: notaInicialPool.nota.valor,
     notaInicialChave,
@@ -47,14 +56,15 @@ async function novoProdutoEstoquePorNota(notaInicialPool, cpfcnpj) {
   return inserirProduto(produtoEstoque);
 }
 
-async function atualizarSaidaProduto(produtoEstoque, movimentoPool) {
+export async function atualizarSaidaProduto(produtoEstoque : ProdutoEstoque,
+  movimentoPool : MovimentoPool) {
   produtoEstoque.dataSaida = movimentoPool.movimento.dataHora; // eslint-disable-line
   produtoEstoque.notaFinalChave = movimentoPool.movimento.notaFinalChave; // eslint-disable-line
 
   return inserirProduto(produtoEstoque);
 }
 
-async function atualizarEstoque(cpfcnpj, data) {
+export async function atualizarEstoque(cpfcnpj : string, data : string) {
   const periodo = data && periodoAte(data);
   const [estoqueAtual, notasPoolEntrada] = await Promise.all([
     pegarEstoque(cpfcnpj, data),
@@ -90,9 +100,3 @@ async function atualizarEstoque(cpfcnpj, data) {
     estoqueAtualizado,
   };
 }
-
-module.exports = {
-  atualizarEstoque,
-  pegarEstoque,
-  inserirProduto,
-};
