@@ -52,7 +52,7 @@ async function calcularMovimentoPool(notaInicial, notaFinal, aliquota) {
   metaDados.tipo = 'PRIM';
 
   movimento.notaFinalChave = notaFinal.chave;
-  movimento.notaInicialChave = notaInicial.chave;
+  movimento.notaInicialChave = notaInicial && notaInicial.chave;
   movimento.dataHora = notaFinal.dataHora;
   movimento.conferido = true;
   movimento.valorSaida = notaFinal.valor;
