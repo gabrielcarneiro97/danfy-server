@@ -1,9 +1,14 @@
-const { PessoaPool } = require('./pools');
-const { Pessoa, Endereco, Estado } = require('./models');
+import PessoaPool from './pools/pessoa.pool';
 
-async function criarPessoa(pessoaParam) {
+import Pessoa from './models/pessoa.model';
+import Endereco from './models/endereco.model';
+import Estado from './models/estado.model';
+
+export async function criarPessoa(pessoaParam : PessoaPool |
+  { endereco : object, pessoa : object }) {
   if (pessoaParam instanceof PessoaPool) {
-    return pessoaParam.save();
+    await pessoaParam.save();
+    return pessoaParam;
   }
 
   const pessoa = new Pessoa(pessoaParam.pessoa);
@@ -13,7 +18,8 @@ async function criarPessoa(pessoaParam) {
   return pessoaPool;
 }
 
-async function notaPessoaToPool(cpfcnpj, pessoaObj) {
+export async function notaPessoaToPool(cpfcnpj : string, pessoaObj :
+  { nome : string, endereco : any }) {
   const [pessoaPg] = await Pessoa.getBy('cpfcnpj', cpfcnpj);
   const pessoa = pessoaPg || new Pessoa({
     nome: pessoaObj.nome,
@@ -44,13 +50,7 @@ async function notaPessoaToPool(cpfcnpj, pessoaObj) {
   return pessoaPool;
 }
 
-async function pegarPessoaId(cpfcnpj) {
+export async function pegarPessoaId(cpfcnpj : string) {
   const [pessoa] = await Pessoa.getBy({ cpfcnpj });
   return pessoa;
 }
-
-module.exports = {
-  criarPessoa,
-  pegarPessoaId,
-  notaPessoaToPool,
-};

@@ -1,23 +1,26 @@
-const { NotaServico, Retencao } = require('./models');
-const { NotaServicoPool } = require('./pools');
+import NotaServicoPool from './pools/notaServico.pool';
 
-const { objParseFloat } = require('../calculador.service');
+import NotaServico from './models/notaServico.model';
+import Retencao from './models/retencao.model';
 
-async function criarNotaServico(notaServicoParam) {
+import { objParseFloat } from '../calculador.service';
+
+import NotaServicoXml from '../xml/notaServico.xml'; // eslint-disable-line no-unused-vars
+
+
+export async function criarNotaServico(notaServicoParam : { emitente : string, numero : string }) {
   return new NotaServico({
     chave: notaServicoParam.emitente + notaServicoParam.numero,
     ...notaServicoParam,
   }).save();
 }
 
-async function pegarNotaServicoChave(chave) {
-  return NotaServico.getBy({ chave });
+export async function pegarNotaServicoChave(chave : string) {
+  return (await NotaServico.getBy({ chave }))[0];
 }
 
-async function notaServicoXmlToPool(notaObj) {
-  const retObj = { ...notaObj.valor.retencoes };
-
-  objParseFloat(retObj);
+export async function notaServicoXmlToPool(notaObj : NotaServicoXml) {
+  const retObj = objParseFloat(notaObj.valor.retencoes);
 
   const retencao = new Retencao(retObj);
   retencao.totalize();
@@ -39,9 +42,3 @@ async function notaServicoXmlToPool(notaObj) {
 
   return notaServicoPool;
 }
-
-module.exports = {
-  criarNotaServico,
-  pegarNotaServicoChave,
-  notaServicoXmlToPool,
-};

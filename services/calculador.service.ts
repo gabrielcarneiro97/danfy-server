@@ -109,14 +109,17 @@ export function trim(mesParam) {
   return [mes - 2, mes - 1, mes];
 }
 
-export function objParseFloat(obj) {
+export function objParseFloat(obj : object) : object {
+  const ret = {};
   Object.keys(obj).forEach((k) => {
-    obj[k] = parseFloat(obj[k]); // eslint-disable-line no-param-reassign
+    ret[k] = parseFloat(obj[k]);
   });
+
+  return ret;
 }
 
-export function getMesTrim(mesParam) {
-  const mes = parseInt(mesParam, 10);
+export function getMesTrim(mesParam : string | number) {
+  const mes = parseInt(mesParam.toString(), 10);
   const meses = {
     1: [1, 2, 3],
     4: [4, 5, 6],
