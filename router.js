@@ -1,3 +1,3 @@
-const { app } = require('./dist/router');
+const app = require('./dist/router').default;
 
 module.exports = { app };
