@@ -22,7 +22,7 @@ const { pegarServicosPoolMes } = require('./postgres/servico.service');
 
 const { pegarMesTotalPool } = require('./postgres/total.service');
 
-const { definirGrupo } = require('./grupo.service');
+const { definirGrupo } = require('./postgres/grupo.service');
 
 const impostos = require('./impostos');
 

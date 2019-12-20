@@ -1,31 +1,35 @@
-export default class NotaXml {
-  valor: {
-    servico : string,
-    baseCalculo : string,
-    iss: {
-        valor : string,
-        aliquota : string,
-    };
-    retencoes: {
-        iss : string,
-        irpj : string,
-        csll : string,
-        cofins : string,
-        pis : string,
-        inss : string,
-    };
-  };
+export type Iss = {
+  valor : string,
+  aliquota : string,
+}
 
-  emitente : string;
+export type Retencoes = {
+  iss : string,
+  irpj : string,
+  csll : string,
+  cofins : string,
+  pis : string,
+  inss : string,
+};
 
-  destinatario : string;
+export type Valor = {
+  servico : string,
+  baseCalculo : string,
+  iss: Iss,
+  retencoes: Retencoes,
+}
 
-  geral: {
-      numero : string,
-      dataHora : Date,
-      status : string,
-      descricao : string,
-  };
+export type Geral = {
+  numero : string,
+  dataHora : Date,
+  status : string,
+  descricao : string,
+}
 
+export default class NotaServicoXml {
   chave : string;
+  geral: Geral;
+  valor: Valor;
+  emitente : string;
+  destinatario : string;
 }

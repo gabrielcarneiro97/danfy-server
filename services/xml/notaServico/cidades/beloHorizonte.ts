@@ -1,10 +1,27 @@
 /* eslint dot-notation: 0 */
 
-const getInfo = (obj) => obj.CompNfse.Nfse.InfNfse;
+import {
+  ElementCompact, // eslint-disable-line no-unused-vars
+} from 'xml-js';
 
-const assinada = (obj) => obj.CompNfse.Nfse.Signature;
+import NotaServicoXml, { // eslint-disable-line no-unused-vars
+  Valor, // eslint-disable-line no-unused-vars
+  Iss, // eslint-disable-line no-unused-vars
+  Retencoes, // eslint-disable-line no-unused-vars
+  Geral, // eslint-disable-line no-unused-vars
+} from '../../notaServico.xml';
 
-const getRetencoes = (obj) => {
+import EnderecoXml from '../../endereco.xml'; // eslint-disable-line no-unused-vars
+
+import PessoaXml from '../../pessoa.xml'; // eslint-disable-line no-unused-vars
+
+import NotaServicoPessoas from '../../notaServicoPessoas.xml'; // eslint-disable-line no-unused-vars
+
+const getInfo = (obj : ElementCompact) => obj.CompNfse.Nfse.InfNfse;
+
+// const assinada = (obj : ElementCompact) => obj.CompNfse.Nfse.Signature;
+
+const getRetencoes = (obj : ElementCompact) : Retencoes => {
   const info = getInfo(obj);
   const valorBruto = info.Servico.Valores;
 
@@ -18,7 +35,7 @@ const getRetencoes = (obj) => {
   };
 };
 
-const getIss = (obj) => {
+const getIss = (obj : ElementCompact) : Iss => {
   const info = getInfo(obj);
   const valorBruto = info.Servico.Valores;
 
@@ -28,7 +45,7 @@ const getIss = (obj) => {
   };
 };
 
-const getValor = (obj) => {
+const getValor = (obj : ElementCompact) : Valor => {
   const info = getInfo(obj);
   const valorBruto = info.Servico.Valores;
 
@@ -40,7 +57,7 @@ const getValor = (obj) => {
   };
 };
 
-const getEndereco = (pessoa) => ({
+const getEndereco = (pessoa : ElementCompact) : EnderecoXml => ({
   logradouro: pessoa.Endereco.Endereco['_text'],
   numero: pessoa.Endereco.Numero['_text'],
   complemento: pessoa.Endereco.Complemento ? pessoa.Endereco.Complemento['_text'] : '',
@@ -56,7 +73,7 @@ const getEndereco = (pessoa) => ({
   cep: pessoa.Endereco.Cep['_text'],
 });
 
-const getEmitente = (obj) => {
+const getEmitente = (obj : ElementCompact) : PessoaXml => {
   const info = getInfo(obj);
   const emitenteBruto = info.PrestadorServico;
 
@@ -67,7 +84,7 @@ const getEmitente = (obj) => {
   };
 };
 
-const getDestinatario = (obj) => {
+const getDestinatario = (obj : ElementCompact) : PessoaXml => {
   const info = getInfo(obj);
   const destinatarioBruto = info.TomadorServico;
 
@@ -78,7 +95,7 @@ const getDestinatario = (obj) => {
   };
 };
 
-const getInfosGerais = (obj) => {
+const getInfosGerais = (obj : ElementCompact) : Geral => {
   const info = getInfo(obj);
 
   return {
@@ -89,7 +106,7 @@ const getInfosGerais = (obj) => {
   };
 };
 
-function beloHorizonte(obj) {
+export default function beloHorizonte(obj : ElementCompact) : NotaServicoPessoas[] {
   // if (!assinada(obj)) return 0;
 
   const emitente = getEmitente(obj);
@@ -97,7 +114,7 @@ function beloHorizonte(obj) {
   const destinatario = getDestinatario(obj);
 
 
-  const notaServico = {
+  const notaServico : NotaServicoXml = {
     valor: getValor(obj),
     emitente: emitente.cpfcnpj,
     destinatario: destinatario.cpfcnpj,
@@ -109,5 +126,3 @@ function beloHorizonte(obj) {
 
   return [{ notaServico, emitente, destinatario }];
 }
-
-module.exports = beloHorizonte;

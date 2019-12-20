@@ -1,14 +1,31 @@
 /* eslint dot-notation: 0 */
 
-function pad(num, size) {
+import {
+  ElementCompact, // eslint-disable-line no-unused-vars
+} from 'xml-js';
+
+import NotaServicoXml, { // eslint-disable-line no-unused-vars
+  Valor, // eslint-disable-line no-unused-vars
+  Iss, // eslint-disable-line no-unused-vars
+  Retencoes, // eslint-disable-line no-unused-vars
+  Geral, // eslint-disable-line no-unused-vars
+} from '../../notaServico.xml';
+
+import EnderecoXml from '../../endereco.xml'; // eslint-disable-line no-unused-vars
+
+import PessoaXml from '../../pessoa.xml'; // eslint-disable-line no-unused-vars
+
+import NotaServicoPessoas from '../../notaServicoPessoas.xml'; // eslint-disable-line no-unused-vars
+
+function pad(num : string | number, size : number) {
   let s = `${num}`;
   while (s.length < size) s = `0${s}`;
   return s;
 }
 
-const getNfses = (obj) => [].concat(obj['ns2:NFSE']['ns2:Nfse']);
+const getNfses = (obj : ElementCompact) : ElementCompact[] => [].concat(obj['ns2:NFSE']['ns2:Nfse']);
 
-const getRetencoes = (nfse) => {
+const getRetencoes = (nfse : ElementCompact) : Retencoes => {
   const valores = nfse['ns3:Servico']['ns3:Valores'];
 
   return {
@@ -21,7 +38,7 @@ const getRetencoes = (nfse) => {
   };
 };
 
-const getIss = (nfse) => {
+const getIss = (nfse : ElementCompact) : Iss => {
   const valores = nfse['ns3:Servico']['ns3:Valores'];
 
   return {
@@ -30,7 +47,7 @@ const getIss = (nfse) => {
   };
 };
 
-const getValor = (nfse) => {
+const getValor = (nfse : ElementCompact) : Valor => {
   const valores = nfse['ns3:Servico']['ns3:Valores'];
 
   return {
@@ -41,7 +58,7 @@ const getValor = (nfse) => {
   };
 };
 
-const getEndereco = (pessoa) => ({
+const getEndereco = (pessoa : ElementCompact) : EnderecoXml => ({
   logradouro: pessoa['ns3:Endereco']['ns3:Endereco'] ? pessoa['ns3:Endereco']['ns3:Endereco']['_text'] : 'uknow',
   numero: pessoa['ns3:Endereco']['ns3:Numero'] ? pessoa['ns3:Endereco']['ns3:Numero']['_text'] : '0',
   complemento: pessoa['ns3:Endereco']['ns3:Complemento'] ? pessoa['ns3:Endereco']['ns3:Complemento']['_text'] || '' : '',
@@ -57,7 +74,7 @@ const getEndereco = (pessoa) => ({
   cep: pessoa['ns3:Endereco']['ns3:Cep'] ? pessoa['ns3:Endereco']['ns3:Cep']['_text'] : '',
 });
 
-const getEmitente = (nfse) => {
+const getEmitente = (nfse : ElementCompact) : PessoaXml => {
   const emitenteBruto = nfse['ns3:PrestadorServico'];
 
   return {
@@ -67,7 +84,7 @@ const getEmitente = (nfse) => {
   };
 };
 
-const getDestinatario = (nfse) => {
+const getDestinatario = (nfse : ElementCompact) : PessoaXml => {
   const destinatarioBruto = nfse['ns3:TomadorServico'];
 
   return {
@@ -79,7 +96,7 @@ const getDestinatario = (nfse) => {
   };
 };
 
-const getInfosGerais = (nfse) => {
+const getInfosGerais = (nfse : ElementCompact) : Geral => {
   const ano = new Date(nfse['ns3:DataEmissao']['_text']).getFullYear();
   const num = nfse['ns3:IdentificacaoNfse']['ns3:Numero']['_text'];
 
@@ -91,13 +108,13 @@ const getInfosGerais = (nfse) => {
   };
 };
 
-function lerNota(nfse) {
+function lerNota(nfse : ElementCompact) : NotaServicoPessoas {
   const emitente = getEmitente(nfse);
 
   const destinatario = getDestinatario(nfse);
 
 
-  const notaServico = {
+  const notaServico : NotaServicoXml = {
     valor: getValor(nfse),
     emitente: emitente.cpfcnpj,
     destinatario: destinatario.cpfcnpj,
@@ -110,11 +127,8 @@ function lerNota(nfse) {
   return { notaServico, emitente, destinatario };
 }
 
-function contagem(obj) {
+export default function contagem(obj : ElementCompact) : NotaServicoPessoas[] {
   const nfses = getNfses(obj);
 
   return nfses.map(lerNota);
 }
-
-
-module.exports = contagem;
