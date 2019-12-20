@@ -1,10 +1,10 @@
-const express = require('express');
+import * as express from 'express';
 
-const {
+import {
   calcularTrimestre,
   pegarTrimestreComNotas,
   recalcularTrimestre,
-} = require('../services/trimestre.service');
+} from '../services/trimestre.service';
 
 const trimestreRouter = express();
 
@@ -48,4 +48,4 @@ trimestreRouter.put('/:cnpj/:mes/:ano', async (req, res) => {
   }
 });
 
-module.exports = trimestreRouter;
+export default trimestreRouter;

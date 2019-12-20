@@ -1,38 +1,35 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+import * as express from 'express';
+import * as bodyParser from 'body-parser';
 
-const {
-  criarNotaPoolSlim,
-  pegarNotasPoolProdutoEmitente,
+import {
   pegarMovimentoPoolNotaFinal,
   cancelarMovimento,
   pegarMovimentoPoolId,
   movimentoPoolFromObj,
-} = require('../services/postgres');
+} from '../services/postgres/movimento.service';
 
-const {
-  validarMovimento,
-} = require('../services/calculador.service');
+import {
+  criarNotaPoolSlim,
+  pegarNotasPoolProdutoEmitente,
+} from '../services/postgres/nota.service';
 
-const {
-  calcularMovimentoPool,
-} = require('../services/impostos.service');
+import { validarMovimento } from '../services/calculador.service';
 
-const {
+import { calcularMovimentoPool } from '../services/impostos.service';
+
+import {
   pegarTrimestreComNotas,
   recalcularTrimestre,
-} = require('../services/trimestre.service');
+} from '../services/trimestre.service';
 
-const {
+import {
   pegarSimplesComNotas,
   recalcularSimples,
-} = require('../services/simples.service');
+} from '../services/simples.service';
 
-const { Aliquota } = require('../services/postgres/models');
+import Aliquota from '../services/postgres/models/aliquota.model';
 
-const {
-  NotaPool,
-} = require('../services/postgres/pools');
+import NotaPool from '../services/postgres/pools/nota.pool';
 
 const movimentoRouter = express();
 
@@ -202,4 +199,4 @@ movimentoRouter.put('/editar/:cnpj/:movimentoAntigoId', bodyParser.json(), async
   }
 });
 
-module.exports = movimentoRouter;
+export default movimentoRouter;

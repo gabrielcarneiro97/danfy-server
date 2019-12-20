@@ -1,29 +1,29 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+import * as express from 'express';
+import * as bodyParser from 'body-parser';
 
-const {
+import {
   servicoPoolFromObj,
-} = require('../services/postgres/servico.service');
+} from '../services/postgres/servico.service';
 
-const {
+import {
   calcularServicoPool,
-} = require('../services/impostos.service');
+} from '../services/impostos.service';
 
-const {
+import {
   pegarTrimestreComNotas,
   recalcularTrimestre,
-} = require('../services/trimestre.service');
+} from '../services/trimestre.service';
 
-const {
+import {
   pegarSimplesComNotas,
   recalcularSimples,
-} = require('../services/simples.service');
+} from '../services/simples.service';
 
-const { dateToComp } = require('../services/calculador.service');
+import { dateToComp } from '../services/calculador.service';
 
-const { Aliquota } = require('../services/postgres/models');
+import Aliquota from '../services/postgres/models/aliquota.model';
 
-const { ServicoPool } = require('../services/postgres/pools');
+import ServicoPool from '../services/postgres/pools/servico.pool';
 
 const servicosRouter = express();
 
@@ -42,7 +42,7 @@ servicosRouter.get('/calcular/:notaServicoChave', async (req, res) => {
 servicosRouter.get('/id/:cnpj/:servicoId', async (req, res) => {
   try {
     const { cnpj, servicoId } = req.params;
-    const servicoPool = await ServicoPool.getById(servicoId);
+    const servicoPool = await ServicoPool.getById(parseInt(servicoId, 10));
     if (servicoPool.servico.donoCpfcnpj === cnpj) res.send(servicoPool);
     else res.send(null);
   } catch (err) {
@@ -82,7 +82,7 @@ servicosRouter.delete('/:cnpj/:servicoId', async (req, res) => {
   const { servicoId, cnpj } = req.params;
 
   try {
-    const servicoPool = await ServicoPool.getById(servicoId);
+    const servicoPool = await ServicoPool.getById(parseInt(servicoId, 10));
 
     const data = new Date(servicoPool.servico.dataHora);
     const mes = data.getMonth() + 1;
@@ -114,7 +114,7 @@ servicosRouter.put('/:id', bodyParser.json(), async (req, res) => {
   const { id } = req.params;
   const { grupoId } = req.body;
 
-  const servicoPool = await ServicoPool.getById(id);
+  const servicoPool = await ServicoPool.getById(parseInt(id, 10));
 
   servicoPool.servico.grupoId = grupoId;
 
@@ -140,4 +140,4 @@ servicosRouter.put('/:id', bodyParser.json(), async (req, res) => {
   }
 });
 
-module.exports = servicosRouter;
+export default servicosRouter;

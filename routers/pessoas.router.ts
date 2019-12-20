@@ -1,5 +1,5 @@
-const express = require('express');
-const { pegarPessoaId } = require('../services/postgres/pessoa.service');
+import * as express from 'express';
+import { pegarPessoaId } from '../services/postgres/pessoa.service';
 
 const pessoasRouter = express();
 
@@ -15,4 +15,4 @@ pessoasRouter.get('/:pessoaId', async (req, res) => {
 });
 
 
-module.exports = pessoasRouter;
+export default pessoasRouter;

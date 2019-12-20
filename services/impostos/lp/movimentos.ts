@@ -1,46 +1,44 @@
-const {
-  Movimento,
-  MetaDados,
-  Imposto,
-  Icms,
-  DifalAliquota,
-} = require('../../postgres/models');
+import Movimento from '../../postgres/models/movimento.model';
+import MetaDados from '../../postgres/models/metaDados.model';
+import Imposto from '../../postgres/models/imposto.model';
+import Icms from '../../postgres/models/icms.model';
+import DifalAliquota from '../../postgres/models/difalAliquota.model';
+import Nota from '../../postgres/models/nota.model'; // eslint-disable-line no-unused-vars
+import Aliquota from '../../postgres/models/aliquota.model'; // eslint-disable-line no-unused-vars
 
-const {
-  MovimentoPool,
-  ImpostoPool,
-} = require('../../postgres/pools');
+import MovimentoPool from '../../postgres/pools/movimento.pool';
+import ImpostoPool from '../../postgres/pools/imposto.pool';
 
-const {
+import {
   cfopDevolucao,
   cfopDevolucaoConsignacao,
   cfopDevolucaoDemonstracao,
-} = require('../../');
+} from '../../calculador.service';
 
-function eMovimentoInterno(nota) {
+function eMovimentoInterno(nota : Nota) {
   return nota.estadoGeradorId === nota.estadoDestinoId;
 }
 
-function eDestinatarioContribuinte(nota) {
-  return nota.destinatario_contribuinte === '1';
+function eDestinatarioContribuinte(nota : Nota) {
+  return nota.destinatarioContribuinte === '1';
 }
 
-function eDevolucao(nota) {
+function eDevolucao(nota : Nota) {
   return cfopDevolucao.includes(nota.cfop);
 }
 
-function eDevolucaoConsigOuDemo(nota) {
+function eDevolucaoConsigOuDemo(nota : Nota) {
   return cfopDevolucaoConsignacao.includes(nota.cfop)
   || cfopDevolucaoDemonstracao.includes(nota.cfop);
 }
 
-async function calcularMovimentoPool(notaInicial, notaFinal, aliquota) {
+async function calcularMovimentoPool(notaInicial : Nota, notaFinal : Nota, aliquota : Aliquota) {
   if (notaFinal.estadoGeradorId !== 11) throw new Error('Estado informado não suportado!');
 
-  const movimento = new Movimento();
-  const metaDados = new MetaDados();
-  const imposto = new Imposto();
-  const icms = new Icms();
+  const movimento = new Movimento(null);
+  const metaDados = new MetaDados(null);
+  const imposto = new Imposto(null);
+  const icms = new Icms(null);
 
   const movimentoPool = new MovimentoPool(
     movimento,
@@ -70,7 +68,7 @@ async function calcularMovimentoPool(notaInicial, notaFinal, aliquota) {
 
   if (eDevolucao(notaFinal) && notaInicial) {
     const movimentoAnterior = await MovimentoPool.getByNotaFinal(notaInicial.chave);
-    movimento.lucro = movimentoAnterior ? (-1) * movimentoAnterior.lucro : 0;
+    movimento.lucro = movimentoAnterior ? (-1) * movimentoAnterior.movimento.lucro : 0;
     movimento.valorSaida = 0;
   }
 
@@ -121,6 +119,6 @@ async function calcularMovimentoPool(notaInicial, notaFinal, aliquota) {
   return movimentoPool;
 }
 
-module.exports = {
+export default {
   calcularMovimentoPool,
 };

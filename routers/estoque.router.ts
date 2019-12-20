@@ -1,11 +1,11 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+import * as express from 'express';
+import * as bodyParser from 'body-parser';
 
-const {
+import {
   pegarEstoque,
   atualizarEstoque,
   inserirProduto,
-} = require('../services/postgres/estoque.service');
+} from '../services/postgres/estoque.service';
 
 const estoqueRouter = express();
 
@@ -47,4 +47,4 @@ estoqueRouter.post('/:cpfcnpj', bodyParser.json(), async (req, res) => {
   }
 });
 
-module.exports = estoqueRouter;
+export default estoqueRouter;

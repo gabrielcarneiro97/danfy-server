@@ -5,6 +5,7 @@ export type Pais = {
 
 export type Municipio = {
   codigo : string;
+  nome? : string;
 }
 
 export default class EnderecoXml {

@@ -4,7 +4,7 @@ import Grupo from './models/grupo.model';
 import NotaServico from './models/notaServico.model'; // eslint-disable-line no-unused-vars
 
 
-async function definirGrupo(servicoPool : ServicoPool, notaServico : NotaServico) {
+export async function definirGrupo(servicoPool : ServicoPool, notaServico : NotaServico) {
   const { servico } = servicoPool;
 
   const grupos = await Grupo.getBy({ donoCpfcnpj: servico.donoCpfcnpj });

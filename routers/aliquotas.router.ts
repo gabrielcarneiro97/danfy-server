@@ -1,10 +1,10 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+import * as express from 'express';
+import * as bodyParser from 'body-parser';
 
-const {
+import {
   pegarEmpresaAliquota,
   criarAliquota,
-} = require('../services/postgres/aliquota.service');
+} from '../services/postgres/aliquota.service';
 
 const aliquotasRouter = express();
 
@@ -30,4 +30,4 @@ aliquotasRouter.get('/:cnpj', async (req, res) => {
   }
 });
 
-module.exports = aliquotasRouter;
+export default aliquotasRouter;

@@ -1,26 +1,43 @@
 /* eslint dot-notation: 0 */
+import {
+  ElementCompact, // eslint-disable-line no-unused-vars
+} from 'xml-js';
 
-const getInfo = (obj) => (obj.nfeProc ? obj.nfeProc.NFe.infNFe : obj.NFe.infNFe);
+import NotaXml, { // eslint-disable-line no-unused-vars
+  Valor, // eslint-disable-line no-unused-vars
+  Complementar, // eslint-disable-line no-unused-vars
+  InformacoesEstaduais, // eslint-disable-line no-unused-vars
+  Geral, // eslint-disable-line no-unused-vars
+} from './nota.xml';
 
-const ambienteProducao = (obj) => {
+import EnderecoXml from './endereco.xml'; // eslint-disable-line no-unused-vars
+
+import PessoaXml from './pessoa.xml'; // eslint-disable-line no-unused-vars
+
+import NotaPessoas from './notaPessoas.xml'; // eslint-disable-line no-unused-vars
+
+const getInfo = (obj : ElementCompact)
+  : ElementCompact => (obj.nfeProc ? obj.nfeProc.NFe.infNFe : obj.NFe.infNFe);
+
+const ambienteProducao = (obj : ElementCompact) => {
   const info = getInfo(obj);
   return info.ide.tpAmb['_text'] === '1';
 };
 
-const getChave = (obj) => {
+const getChave = (obj : ElementCompact) => {
   const info = getInfo(obj);
-  return info['_attributes'].Id.split('NFe')[1];
+  return info['_attributes'].Id.toString().split('NFe')[1];
 };
 
-const getEndereco = (obj, emitOuDest) => {
+const getEndereco = (obj : ElementCompact, emitOuDest : string) : EnderecoXml => {
   const info = getInfo(obj);
   const pessoa = info[emitOuDest];
 
-  if (!pessoa) return {};
+  if (!pessoa) return null;
 
   const ender = emitOuDest === 'emit' ? pessoa['enderEmit'] : pessoa['enderDest'];
 
-  if (!ender) return {};
+  if (!ender) return null;
 
   return {
     logradouro: ender.xLgr['_text'],
@@ -40,7 +57,7 @@ const getEndereco = (obj, emitOuDest) => {
   };
 };
 
-const getPessoa = (obj, emitOuDest) => {
+const getPessoa = (obj : ElementCompact, emitOuDest : string) : PessoaXml => {
   const info = getInfo(obj);
   const pessoa = info[emitOuDest];
 
@@ -51,7 +68,7 @@ const getPessoa = (obj, emitOuDest) => {
   };
 };
 
-const getCFOP = (obj) => {
+const getCFOP = (obj : ElementCompact) : string => {
   const info = getInfo(obj);
   const { det } = info;
 
@@ -64,7 +81,7 @@ const getCFOP = (obj) => {
   return prod.CFOP['_text'];
 };
 
-const getInfosGerais = (obj) => {
+const getInfosGerais = (obj : ElementCompact) : Geral => {
   const info = getInfo(obj);
 
   return {
@@ -77,7 +94,8 @@ const getInfosGerais = (obj) => {
   };
 };
 
-const getInfosEstaduais = (obj, emitente, destinatario) => {
+const getInfosEstaduais = (obj : ElementCompact,
+  emitente : PessoaXml, destinatario : PessoaXml) : InformacoesEstaduais => {
   const info = getInfo(obj);
   const { dest } = info;
 
@@ -88,7 +106,7 @@ const getInfosEstaduais = (obj, emitente, destinatario) => {
   };
 };
 
-const getValores = (obj) => {
+const getValores = (obj : ElementCompact) : Valor => {
   const info = getInfo(obj);
 
   return {
@@ -96,7 +114,7 @@ const getValores = (obj) => {
   };
 };
 
-const getProdutos = (obj) => {
+const getProdutos = (obj : ElementCompact) : object => {
   const info = getInfo(obj);
   const { det } = info;
   const produtos = {};
@@ -140,7 +158,7 @@ const getProdutos = (obj) => {
   return produtos;
 };
 
-const getComplementar = (obj) => {
+const getComplementar = (obj : ElementCompact) : Complementar => {
   const info = getInfo(obj);
 
   let complementar;
@@ -160,14 +178,14 @@ const getComplementar = (obj) => {
   return complementar;
 };
 
-function leitor(obj) {
-  if (!ambienteProducao(obj)) return 0;
+export function leitor(obj : ElementCompact) : NotaPessoas {
+  if (!ambienteProducao(obj)) return null;
 
   const emitente = getPessoa(obj, 'emit');
 
   const destinatario = getPessoa(obj, 'dest');
 
-  const nota = {
+  const nota : NotaXml = {
     chave: getChave(obj),
     emitente: emitente.cpfcnpj,
     destinatario: destinatario.cpfcnpj,
@@ -181,11 +199,11 @@ function leitor(obj) {
   return { nota, emitente, destinatario };
 }
 
-function eDanfe(obj) {
+export function eDanfe(obj : ElementCompact) {
   return !!(obj.nfeProc && getInfo(obj));
 }
 
-module.exports = {
+export default {
   leitor,
   eDanfe,
 };

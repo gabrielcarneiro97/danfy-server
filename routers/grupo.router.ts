@@ -1,7 +1,7 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+import * as express from 'express';
+import * as bodyParser from 'body-parser';
 
-const { Grupo } = require('../services/postgres/models');
+import Grupo from '../services/postgres/models/grupo.model';
 
 const grupoRouter = express();
 
@@ -72,4 +72,4 @@ grupoRouter.put('/:cnpj', bodyParser.json(), async (req, res) => {
   }
 });
 
-module.exports = grupoRouter;
+export default grupoRouter;

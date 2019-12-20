@@ -1,17 +1,17 @@
-const express = require('express');
-const multer = require('multer');
+import * as express from 'express';
+import * as multer from 'multer';
 
-const {
-  notaPessoaToPool,
-  notaXmlToPool,
-  notaServicoXmlToPool,
-} = require('../services/postgres');
+import { notaPessoaToPool } from '../services/postgres/pessoa.service';
 
-const {
+import { notaXmlToPool } from '../services/postgres/nota.service';
+
+import { notaServicoXmlToPool } from '../services/postgres/notaServico.service';
+
+import {
   xmlToObj,
   servico,
   danfe,
-} = require('../services/xml');
+} from '../services/xml';
 
 const fileRouter = express();
 const upload = multer();
@@ -67,7 +67,7 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
     }),
   );
 
-  res.send(responses);
+  return res.send(responses);
 });
 
-module.exports = fileRouter;
+export default fileRouter;

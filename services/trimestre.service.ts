@@ -1,34 +1,58 @@
-const {
-  TotalMovimento,
-  Imposto,
-  Icms,
-  Retencao,
-  TotalServico,
-  Nota,
-  NotaServico,
-  Aliquota,
-} = require('./postgres/models');
+import TotalMovimento from './postgres/models/totalMovimento.model';
+import Imposto from './postgres/models/imposto.model';
+import Icms from './postgres/models/icms.model';
+import Retencao from './postgres/models/retencao.model';
+import TotalServico from './postgres/models/totalServico.model';
+import Nota from './postgres/models/nota.model';
+import NotaServico from './postgres/models/notaServico.model';
+import Aliquota from './postgres/models/aliquota.model';
 
-const {
-  TotalPool,
-  TotalMovimentoPool,
-  ImpostoPool,
-  TotalServicoPool,
-} = require('./postgres/pools');
+import TotalPool from './postgres/pools/total.pool';
+import TotalMovimentoPool from './postgres/pools/totalMovimento.pool';
+import ImpostoPool from './postgres/pools/imposto.pool';
+import TotalServicoPool from './postgres/pools/totalServico.pool';
+import MovimentoPool from './postgres/pools/movimento.pool'; // eslint-disable-line no-unused-vars
+import ServicoPool from './postgres/pools/servico.pool'; // eslint-disable-line no-unused-vars
 
-const { pegarMes, calcularMes } = require('./impostos.service');
+import { pegarMes, calcularMes } from './impostos.service';
 
-const { pegarTrimestreTotalPool } = require('./postgres/total.service');
+import { pegarTrimestreTotalPool } from './postgres/total.service';
 
-const {
+import {
   trim,
   getMesTrim,
-} = require('.');
+  Comp, // eslint-disable-line no-unused-vars
+} from './calculador.service';
 
-async function calcularTrimestre(cnpj, competencia) {
-  const trimestreData = {
+export type MesData = {
+  totalPool: TotalPool;
+  movimentosPool: MovimentoPool[];
+  servicosPool: ServicoPool[];
+};
+
+export type TrimestreData = {
+  movimentosPool: MovimentoPool[],
+  servicosPool: ServicoPool[],
+  trim: TotalPool,
+  1?: MesData,
+  2?: MesData,
+  3?: MesData,
+  4?: MesData,
+  5?: MesData,
+  6?: MesData,
+  7?: MesData,
+  8?: MesData,
+  9?: MesData,
+  10?: MesData,
+  11?: MesData,
+  12?: MesData,
+}
+
+export async function calcularTrimestre(cnpj : string, competencia : Comp) {
+  const trimestreData : TrimestreData = {
     servicosPool: [],
     movimentosPool: [],
+    trim: null,
   };
 
   const meses = trim(competencia.mes);
@@ -38,13 +62,13 @@ async function calcularTrimestre(cnpj, competencia) {
   const mesesPool = await Promise.all(mesesPromise);
 
   const totalMovimentoPoolTrimestre = new TotalMovimentoPool(
-    new TotalMovimento(),
-    new ImpostoPool(new Imposto(), new Icms()),
+    new TotalMovimento(null),
+    new ImpostoPool(new Imposto(null), new Icms(null)),
   );
   const totalServicoPoolTrimestre = new TotalServicoPool(
-    new TotalServico(),
-    new Imposto(),
-    new Retencao(),
+    new TotalServico(null),
+    new Imposto(null),
+    new Retencao(null),
   );
 
   mesesPool.forEach((mesPool, index) => {
@@ -67,7 +91,7 @@ async function calcularTrimestre(cnpj, competencia) {
     totalMovimentoPoolTrimestre,
     totalServicoPoolTrimestre,
     cnpj,
-    new Date(competencia.ano, mesTrim - 1),
+    new Date(parseInt(competencia.ano.toString(), 10), mesTrim - 1),
     3,
     aliquotaIr,
   );
@@ -77,7 +101,7 @@ async function calcularTrimestre(cnpj, competencia) {
   return trimestreData;
 }
 
-async function pegarTrimestre(cnpj, competencia) {
+export async function pegarTrimestre(cnpj : string, competencia : Comp) {
   const trimestreTotalPool = await pegarTrimestreTotalPool(cnpj, competencia);
 
   if (!trimestreTotalPool) {
@@ -85,7 +109,7 @@ async function pegarTrimestre(cnpj, competencia) {
     await trimestreData.trim.save();
     return trimestreData;
   }
-  const trimestreData = {
+  const trimestreData : TrimestreData = {
     servicosPool: [],
     movimentosPool: [],
     trim: trimestreTotalPool,
@@ -108,7 +132,7 @@ async function pegarTrimestre(cnpj, competencia) {
   return trimestreData;
 }
 
-async function pegarTrimestreComNotas(cnpj, competencia) {
+export async function pegarTrimestreComNotas(cnpj : string, competencia : Comp) {
   const trimestreData = await pegarTrimestre(cnpj, competencia);
   const { movimentosPool, servicosPool } = trimestreData;
 
@@ -147,7 +171,7 @@ async function pegarTrimestreComNotas(cnpj, competencia) {
   };
 }
 
-async function recalcularTrimestre(cnpj, competencia) {
+export async function recalcularTrimestre(cnpj : string, competencia : Comp) {
   const [trimDb, trimNovo] = await Promise.all([
     pegarTrimestre(cnpj, competencia),
     calcularTrimestre(cnpj, competencia),
@@ -166,10 +190,3 @@ async function recalcularTrimestre(cnpj, competencia) {
 
   return trimNovo;
 }
-
-module.exports = {
-  pegarTrimestre,
-  pegarTrimestreComNotas,
-  calcularTrimestre,
-  recalcularTrimestre,
-};

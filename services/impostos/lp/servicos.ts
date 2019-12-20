@@ -1,16 +1,14 @@
-const {
-  Servico,
-  MetaDados,
-  Imposto,
-  Retencao,
-} = require('../../postgres/models');
+import Servico from '../../postgres/models/servico.model';
+import MetaDados from '../../postgres/models/metaDados.model';
+import Imposto from '../../postgres/models/imposto.model';
+import Retencao from '../../postgres/models/retencao.model';
+import NotaServico from '../../postgres/models/notaServico.model'; // eslint-disable-line no-unused-vars
+import Aliquota from '../../postgres/models/aliquota.model'; // eslint-disable-line no-unused-vars
 
-const {
-  ServicoPool,
-} = require('../../postgres/pools');
+import ServicoPool from '../../postgres/pools/servico.pool';
 
 
-async function calcularServicoPool(notaServico, aliquota) {
+async function calcularServicoPool(notaServico : NotaServico, aliquota : Aliquota) {
   const {
     emitenteCpfcnpj,
     status,
@@ -18,7 +16,7 @@ async function calcularServicoPool(notaServico, aliquota) {
     valor,
   } = notaServico;
 
-  const servico = new Servico();
+  const servico = new Servico(null);
 
   servico.donoCpfcnpj = emitenteCpfcnpj;
   servico.notaChave = notaServico.chave;
@@ -27,16 +25,16 @@ async function calcularServicoPool(notaServico, aliquota) {
   servico.conferido = true;
 
   if (status === 'CANCELADA') {
-    return new ServicoPool(servico, new MetaDados(), new Imposto(), new Retencao());
+    return new ServicoPool(servico, new MetaDados(null), new Imposto(null), new Retencao(null));
   }
 
   servico.valor = valor;
 
   const servicoPool = new ServicoPool(
     servico,
-    new MetaDados(),
-    new Imposto(),
-    new Retencao(),
+    new MetaDados(null),
+    new Imposto(null),
+    new Retencao(null),
   );
 
   aliquota.irpj = 0.048; // eslint-disable-line
@@ -58,6 +56,6 @@ async function calcularServicoPool(notaServico, aliquota) {
   return servicoPool;
 }
 
-module.exports = {
+export default {
   calcularServicoPool,
 };

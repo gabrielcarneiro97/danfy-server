@@ -1,10 +1,10 @@
-const express = require('express');
+import * as express from 'express';
 
-const {
+import {
   calcularSimples,
   recalcularSimples,
   pegarSimplesComNotas,
-} = require('../services/simples.service');
+} from '../services/simples.service';
 
 const simplesRouter = express();
 
@@ -48,4 +48,4 @@ simplesRouter.put('/:cnpj/:mes/:ano', async (req, res) => {
   }
 });
 
-module.exports = simplesRouter;
+export default simplesRouter;

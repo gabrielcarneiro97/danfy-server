@@ -1,12 +1,9 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+import * as express from 'express';
+import * as bodyParser from 'body-parser';
 
-const {
-  pegarDominioCodigo,
-  adicionarEmpresa,
-} = require('../services/postgres');
+import { pegarDominioCodigo, adicionarEmpresa } from '../services/postgres/dominio.service';
 
-const { Usuario } = require('../services/postgres/models');
+import Usuario from '../services/postgres/models/usuario.model';
 
 const dominioRouter = express();
 
@@ -45,4 +42,4 @@ dominioRouter.post('/empresa', bodyParser.json(), async (req, res) => {
   }
 });
 
-module.exports = dominioRouter;
+export default dominioRouter;

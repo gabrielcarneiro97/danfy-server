@@ -1,6 +1,7 @@
-const express = require('express');
+import * as express from 'express';
+import { pg } from '../services/pg.service';
+
 const { version: api } = require('../package.json');
-const { pg } = require('../services/pg.service');
 
 const versionRouter = express();
 
@@ -11,4 +12,4 @@ versionRouter.get('/', async (req, res) => {
   res.send({ node, api, db });
 });
 
-module.exports = versionRouter;
+export default versionRouter;

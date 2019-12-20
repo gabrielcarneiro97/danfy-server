@@ -1,28 +1,27 @@
-const {
-  Simples,
-  Nota,
-  NotaServico,
-} = require('./postgres/models');
+import Simples from './postgres/models/simples.model';
+import Nota from './postgres/models/nota.model';
+import NotaServico from './postgres/models/notaServico.model';
 
-const {
+import {
   ultimosDoze,
   mesesExercicio,
   compToStr,
   strToComp,
   dateToComp,
   compToDate,
-} = require('./calculador.service');
+  Comp, // eslint-disable-line no-unused-vars
+} from './calculador.service';
 
-const { pegarMovimentosServicosMes } = require('./impostos.service');
+import { pegarMovimentosServicosMes } from './impostos.service';
 
-async function pegarSimplesData(cnpj, competencia) {
+export async function pegarSimplesData(cnpj : string, competencia : Comp) {
   const simplesData = await pegarMovimentosServicosMes(cnpj, competencia);
   simplesData.simples = await Simples.getByCnpjComp(cnpj, competencia);
 
   return simplesData;
 }
 
-async function pegarSimplesComNotas(cnpj, competencia) {
+export async function pegarSimplesComNotas(cnpj : string, competencia : Comp) {
   const simplesData = await pegarSimplesData(cnpj, competencia);
 
   const { movimentosPool, servicosPool } = simplesData;
@@ -62,7 +61,7 @@ async function pegarSimplesComNotas(cnpj, competencia) {
   };
 }
 
-async function calcularSimples(cnpj, competencia) {
+export async function calcularSimples(cnpj : string, competencia : Comp) {
   const simplesData = await pegarMovimentosServicosMes(cnpj, competencia);
 
   const totalMovimentos = simplesData.movimentosPool.reduce(
@@ -110,15 +109,15 @@ async function calcularSimples(cnpj, competencia) {
 
   const totalExercicio = todosSimples.reduce((acc, crr) => {
     if (!crr
-      || dateToComp(crr.dataHora).ano !== parseInt(competencia.ano, 10)
-      || dateToComp(crr.dataHora).mes >= parseInt(competencia.mes, 10)) return acc;
+      || dateToComp(crr.dataHora).ano !== parseInt(competencia.ano.toString(), 10)
+      || dateToComp(crr.dataHora).mes >= parseInt(competencia.mes.toString(), 10)) return acc;
     return acc + crr.totalMes;
   }, totalMes);
 
   const totalDoze = todosSimples.reduce((acc, crr) => {
     if (!crr
-      || (dateToComp(crr.dataHora).mes >= parseInt(competencia.mes, 10)
-      && dateToComp(crr.dataHora).ano === parseInt(competencia.ano, 10))) return acc;
+      || (dateToComp(crr.dataHora).mes >= parseInt(competencia.mes.toString(), 10)
+      && dateToComp(crr.dataHora).ano === parseInt(competencia.ano.toString(), 10))) return acc;
     return acc + crr.totalMes;
   }, 0);
 
@@ -135,7 +134,7 @@ async function calcularSimples(cnpj, competencia) {
   });
 }
 
-async function recalcularSimples(cnpj, competencia) {
+export async function recalcularSimples(cnpj : string, competencia : Comp) {
   const onDb = await Simples.getByCnpjComp(cnpj, competencia);
   const novo = await calcularSimples(cnpj, competencia);
 
@@ -145,10 +144,3 @@ async function recalcularSimples(cnpj, competencia) {
 
   return novo;
 }
-
-module.exports = {
-  calcularSimples,
-  recalcularSimples,
-  pegarSimplesData,
-  pegarSimplesComNotas,
-};
