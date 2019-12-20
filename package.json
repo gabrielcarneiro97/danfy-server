@@ -39,7 +39,7 @@
     "ext": "ts"
   },
   "name": "danfy-server",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "main": "server.js",
   "repository": "https://github.com/gabrielcarneiro97/danfy-server.git",
   "author": "Gabriel Carneiro <gabriel.carneiro97@live.com>",
