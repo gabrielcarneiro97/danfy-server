@@ -35,7 +35,6 @@ export type MesData = {
   servicosPool : ServicoPool[],
 }
 
-
 export async function pegarMovimentosServicosMes(cnpj : string, competencia : Comp)
   : Promise<{
     movimentosPool: MovimentoPool[];
