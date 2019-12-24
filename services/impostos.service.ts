@@ -29,7 +29,6 @@ import {
   Comp, // eslint-disable-line no-unused-vars
 } from './calculador.service';
 
-
 export type MesData = {
   totalPool : TotalPool,
   movimentosPool : MovimentoPool[],
