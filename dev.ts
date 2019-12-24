@@ -2,7 +2,7 @@ import * as https from 'https';
 import * as cors from 'cors';
 import * as express from 'express';
 import { SSL } from './services/ssl';
-import danfy from './router';
+import danfy from './routerTS';
 
 const app = express();
 

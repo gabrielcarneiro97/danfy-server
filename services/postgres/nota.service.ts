@@ -143,9 +143,14 @@ export async function notaXmlToPool(notaObj : NotaXml) {
 
   const nota = new Nota(null);
 
+  nota.chave = notaFlat.chave;
+  nota.numero = notaFlat.numero;
   nota.emitenteCpfcnpj = notaFlat.emitente;
   nota.destinatarioCpfcnpj = notaFlat.destinatario;
-
+  nota.cfop = notaFlat.cfop;
+  nota.dataHora = new Date(notaFlat.dataHora);
+  nota.status = notaFlat.status;
+  nota.tipo = notaFlat.tipo;
 
   const { informacoesEstaduais } = notaFlat;
   nota.estadoGeradorId = await Estado.getIdBySigla(informacoesEstaduais.estadoGerador);
@@ -178,6 +183,8 @@ export async function notaXmlToPool(notaObj : NotaXml) {
   const notaPool = new NotaPool(nota, produtos);
 
   await notaPool.save();
+
+  console.log(notaPool);
 
   return notaPool;
 }

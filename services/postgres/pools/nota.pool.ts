@@ -30,7 +30,7 @@ export default class NotaPool extends Pool {
 
   async save() {
     const notaId = await this.nota.save();
-    if (this.produtos) this.produtos.forEach((produto) => produto.save());
+    if (this.produtos) await Promise.all(this.produtos.map(async (produto) => produto.save()));
     return notaId;
   }
 }

@@ -74,7 +74,7 @@ export default class Table {
 
   static async getty<T extends Table>(param1 : string | object,
     param2? : string, param3? : ITable) {
-    const select = async (obj, Cl : ITable) : Promise<T[]> => {
+    const select = async (obj, Cl) : Promise<T[]> => {
       const arr = await pg.select('*').from(Cl.tbName()).where(obj);
       return arr.map((o) => new Cl(o, true));
     };
