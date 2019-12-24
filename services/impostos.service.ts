@@ -29,12 +29,12 @@ import {
   Comp, // eslint-disable-line no-unused-vars
 } from './calculador.service';
 
-
 export type MesData = {
   totalPool : TotalPool,
   movimentosPool : MovimentoPool[],
   servicosPool : ServicoPool[],
 }
+
 
 export async function pegarMovimentosServicosMes(cnpj : string, competencia : Comp)
   : Promise<{
