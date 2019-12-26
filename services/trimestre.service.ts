@@ -77,7 +77,10 @@ export async function calcularTrimestre(cnpj : string, competencia : Comp) {
     trimestreData.servicosPool = trimestreData.servicosPool.concat(mesPool.servicosPool);
   });
 
-  const [{ irpj: aliquotaIr }] = await Aliquota.getBy('dono_cpfcnpj', cnpj);
+  const [{ irpj: aliquotaIr }] = await Aliquota.getBy({
+    donoCpfcnpj: cnpj,
+    ativo: true,
+  });
 
   const mesTrim = getMesTrim(competencia.mes);
 

@@ -71,7 +71,10 @@ export async function calcularMes(cnpj : string, competencia : Comp) : Promise<M
 
   servicosPool.forEach((servicoPool) => totalServicoPool.soma(servicoPool));
 
-  const [{ irpj: aliquotaIr }] = await Aliquota.getBy('dono_cpfcnpj', cnpj);
+  const [{ irpj: aliquotaIr }] = await Aliquota.getBy({
+    donoCpfcnpj: cnpj,
+    ativo: true,
+  });
 
   const totalPool = await TotalPool.newByPools(
     totalMovimentoPool,
