@@ -27,9 +27,8 @@ import {
   recalcularSimples,
 } from '../services/simples.service';
 
-import Aliquota from '../services/postgres/models/aliquota.model';
-
 import NotaPool from '../services/postgres/pools/nota.pool';
+import { pegarEmpresaAliquota } from '../services/postgres/aliquota.service';
 
 const movimentoRouter = express();
 
@@ -179,10 +178,7 @@ movimentoRouter.put('/editar/:cnpj/:movimentoAntigoId', bodyParser.json(), async
     await cancelarMovimento(movimentoAntigoId);
     await movimentoPoolNovo.save();
 
-    const [aliquota] = await Aliquota.getBy({
-      donoCpfcnpj: cnpj,
-      ativo: true,
-    });
+    const aliquota = await pegarEmpresaAliquota(cnpj);
 
     if (aliquota.tributacao === 'SN') {
       await recalcularSimples(cnpj, { mes, ano });

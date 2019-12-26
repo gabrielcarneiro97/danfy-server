@@ -5,7 +5,6 @@ import Retencao from './postgres/models/retencao.model';
 import TotalServico from './postgres/models/totalServico.model';
 import Nota from './postgres/models/nota.model';
 import NotaServico from './postgres/models/notaServico.model';
-import Aliquota from './postgres/models/aliquota.model';
 import Simples from './postgres/models/simples.model'; // eslint-disable-line no-unused-vars
 
 import TotalPool from './postgres/pools/total.pool';
@@ -28,6 +27,7 @@ import { simples, lp } from './impostos';
 import {
   Comp, // eslint-disable-line no-unused-vars
 } from './calculador.service';
+import { pegarEmpresaAliquota } from './postgres/aliquota.service';
 
 export type MesData = {
   totalPool : TotalPool,
@@ -71,10 +71,7 @@ export async function calcularMes(cnpj : string, competencia : Comp) : Promise<M
 
   servicosPool.forEach((servicoPool) => totalServicoPool.soma(servicoPool));
 
-  const [{ irpj: aliquotaIr }] = await Aliquota.getBy({
-    donoCpfcnpj: cnpj,
-    ativo: true,
-  });
+  const { irpj: aliquotaIr } = await pegarEmpresaAliquota(cnpj);
 
   const totalPool = await TotalPool.newByPools(
     totalMovimentoPool,
@@ -112,10 +109,7 @@ export async function pegarMes(cnpj : string, competencia : Comp) : Promise<MesD
 
 export async function calcularServicoPool(chaveNotaServico : string) {
   const [notaServico] = await NotaServico.getBy('chave', chaveNotaServico);
-  const [aliquota] = await Aliquota.getBy({
-    donoCpfcnpj: notaServico.emitenteCpfcnpj,
-    ativo: true,
-  });
+  const aliquota = await pegarEmpresaAliquota(notaServico.emitenteCpfcnpj);
 
   const servicoPool = aliquota.tributacao === 'SN'
     ? (await simples.servicos.calcularServicoPool(notaServico))
@@ -131,7 +125,7 @@ export async function calcularMovimentoPool(notaInicialChave : string, notaFinal
 
   if (notaFinal.estadoGeradorId !== 11) throw new Error('Estado informado não suportado!');
 
-  const [aliquota] = await Aliquota.getBy({ donoCpfcnpj: notaFinal.emitenteCpfcnpj, ativo: true });
+  const aliquota = await pegarEmpresaAliquota(notaFinal.emitenteCpfcnpj);
 
   const [notaInicial] = notaInicialChave ? await Nota.getBy({ chave: notaInicialChave }) : [null];
 

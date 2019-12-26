@@ -21,9 +21,8 @@ import {
 
 import { dateToComp } from '../services/calculador.service';
 
-import Aliquota from '../services/postgres/models/aliquota.model';
-
 import ServicoPool from '../services/postgres/pools/servico.pool';
+import { pegarEmpresaAliquota } from '../services/postgres/aliquota.service';
 
 const servicosRouter = express();
 
@@ -90,10 +89,7 @@ servicosRouter.delete('/:cnpj/:servicoId', async (req, res) => {
 
     await servicoPool.del();
 
-    const [aliquota] = await Aliquota.getBy({
-      donoCpfcnpj: cnpj,
-      ativo: true,
-    });
+    const aliquota = await pegarEmpresaAliquota(cnpj);
 
     if (aliquota.tributacao === 'SN') {
       await recalcularSimples(cnpj, { mes, ano });
@@ -124,10 +120,7 @@ servicosRouter.put('/:id', bodyParser.json(), async (req, res) => {
 
   const { mes, ano } = dateToComp(servicoPool.servico.dataHora);
 
-  const [aliquota] = await Aliquota.getBy({
-    donoCpfcnpj: cnpj,
-    ativo: true,
-  });
+  const aliquota = await pegarEmpresaAliquota(cnpj);
 
   if (aliquota.tributacao === 'SN') {
     await recalcularSimples(cnpj, { mes, ano });

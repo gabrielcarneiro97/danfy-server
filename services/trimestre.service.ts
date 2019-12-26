@@ -5,7 +5,6 @@ import Retencao from './postgres/models/retencao.model';
 import TotalServico from './postgres/models/totalServico.model';
 import Nota from './postgres/models/nota.model';
 import NotaServico from './postgres/models/notaServico.model';
-import Aliquota from './postgres/models/aliquota.model';
 
 import TotalPool from './postgres/pools/total.pool';
 import TotalMovimentoPool from './postgres/pools/totalMovimento.pool';
@@ -23,6 +22,7 @@ import {
   getMesTrim,
   Comp, // eslint-disable-line no-unused-vars
 } from './calculador.service';
+import { pegarEmpresaAliquota } from './postgres/aliquota.service';
 
 export type TrimestreData = {
   movimentosPool: MovimentoPool[],
@@ -77,10 +77,7 @@ export async function calcularTrimestre(cnpj : string, competencia : Comp) {
     trimestreData.servicosPool = trimestreData.servicosPool.concat(mesPool.servicosPool);
   });
 
-  const [{ irpj: aliquotaIr }] = await Aliquota.getBy({
-    donoCpfcnpj: cnpj,
-    ativo: true,
-  });
+  const { irpj: aliquotaIr } = await pegarEmpresaAliquota(cnpj);
 
   const mesTrim = getMesTrim(competencia.mes);
 
