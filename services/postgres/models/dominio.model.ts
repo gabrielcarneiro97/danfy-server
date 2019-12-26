@@ -6,7 +6,7 @@ import Table, {
 export default class Dominio extends Table {
   id : pgNum;
   codigo : pgNum;
-  numero : pgNum;
+  numero : pgStr;
   cnpj : pgStr;
 
   static tbName = () => 'tb_dominio';
