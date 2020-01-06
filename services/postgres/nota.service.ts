@@ -184,7 +184,5 @@ export async function notaXmlToPool(notaObj : NotaXml) {
 
   await notaPool.save();
 
-  console.log(notaPool);
-
   return notaPool;
 }
