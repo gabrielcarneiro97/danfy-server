@@ -122,34 +122,32 @@ const getEndereco = (pessoa : ElementCompact) : EnderecoXml => ({
 });
 
 const getEmitente = (nfse : ElementCompact) : PessoaXml => {
-  const emitenteBruto = nfse['ns3:PrestadorServico'];
+  const emitenteBruto = nfse.prestador;
 
   return {
-    cpfcnpj: emitenteBruto['ns3:IdentificacaoPrestador']['ns3:Cnpj']['_text'],
-    nome: emitenteBruto['ns3:RazaoSocial']['_text'],
+    cpfcnpj: emitenteBruto.documento['_text'],
+    nome: emitenteBruto.nome['_text'],
     endereco: getEndereco(emitenteBruto),
   };
 };
 
 const getDestinatario = (nfse : ElementCompact) : PessoaXml => {
-  const destinatarioBruto = nfse['ns3:TomadorServico'];
+  const destinatarioBruto = nfse.tomador;
 
   return {
-    cpfcnpj: destinatarioBruto['ns3:IdentificacaoTomador']['ns3:CpfCnpj']['ns3:Cpf']
-      ? destinatarioBruto['ns3:IdentificacaoTomador']['ns3:CpfCnpj']['ns3:Cpf']['_text']
-      : destinatarioBruto['ns3:IdentificacaoTomador']['ns3:CpfCnpj']['ns3:Cnpj']['_text'],
-    nome: destinatarioBruto['ns3:RazaoSocial']['_text'],
+    cpfcnpj: destinatarioBruto.documento['_text'],
+    nome: destinatarioBruto.nome['_text'],
     endereco: getEndereco(destinatarioBruto),
   };
 };
 
 const getInfosGerais = (nfse : ElementCompact) : Geral => {
-  const ano = new Date(nfse['ns3:DataEmissao']['_text']).getFullYear();
-  const num = nfse['ns3:IdentificacaoNfse']['ns3:Numero']['_text'];
+  const ano = new Date(nfse.prestacao['_text']).getFullYear();
+  const num = nfse.numero['_text'];
 
   return {
     numero: `${ano}${pad(num, 11)}`,
-    dataHora: nfse['ns3:DataEmissao']['_text'],
+    dataHora: nfse.prestacao['_text'],
     status: nfse.nfseCancelamento ? 'CANCELADA' : 'NORMAL',
     descricao: nfse['ns3:Servico']['ns3:Discriminacao']['_text'].replace(/\|/g, '\n'),
   };
@@ -177,7 +175,10 @@ function lerNota(nfse : ElementCompact) : NotaServicoPessoas {
 export default function govDigital(obj : ElementCompact) : void /* NotaServicoPessoas[] */ {
   // if (!assinada(obj)) return 0;
 
-  getNfses(obj).forEach((n) => console.log(getValor(n)));
+  getNfses(obj).forEach((n) => {
+    console.log(getEmitente(n));
+    console.log(getDestinatario(n));
+  });
 
   // const emitente = getEmitente(obj);
 
