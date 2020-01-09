@@ -1,0 +1,19 @@
+{
+  "$$isArray": false,
+  "$$info": "CompNfse.Nfse.InfNfse",
+  "$$valores": "$$info.Servico.Valores",
+  "$$retidos": {
+    "$$iss": "$$valores.ValorIssRetido",
+    "$$ir": "$$valores.ValorIr",
+    "$$csll": "$$valores.ValorCsll",
+    "$$pis": "$$valores.ValorPis",
+    "$$cofins": "$$valores.ValorCofins",
+    "$$inss": "$$valores.ValorInss"
+  },
+  "$$iss": {
+    "$$aliquota": "$$valores.Aliquota",
+    "$$valor": "$$valores.ValorIss"
+  },
+  "$$baseCalculo": "$$valores.BaseCalculo",
+  "$$servico": "$$valores.ValorServicos"
+}
