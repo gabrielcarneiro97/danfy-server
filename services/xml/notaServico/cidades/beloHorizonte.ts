@@ -26,12 +26,12 @@ const getRetencoes = (obj : ElementCompact) : Retencoes => {
   const valorBruto = info.Servico.Valores;
 
   return {
-    iss: valorBruto.ValorIssRetido ? valorBruto.ValorIssRetido['_text'] : '0.0',
-    irpj: valorBruto.ValorIr ? valorBruto.ValorIr['_text'] : '0.0',
-    csll: valorBruto.ValorCsll ? valorBruto.ValorCsll['_text'] : '0.0',
-    cofins: valorBruto.ValorCofins ? valorBruto.ValorCofins['_text'] : '0.0',
-    pis: valorBruto.ValorPis ? valorBruto.ValorPis['_text'] : '0.0',
-    inss: valorBruto.ValorInss ? valorBruto.ValorInss['_text'] : '0.0',
+    iss: valorBruto.ValorIssRetido?._text || '0',
+    irpj: valorBruto.ValorIr?._text || '0',
+    csll: valorBruto.ValorCsll?._text || '0',
+    cofins: valorBruto.ValorCofins?._text || '0',
+    pis: valorBruto.ValorPis?._text || '0',
+    inss: valorBruto.ValorInss?._text || '0',
   };
 };
 
@@ -40,8 +40,8 @@ const getIss = (obj : ElementCompact) : Iss => {
   const valorBruto = info.Servico.Valores;
 
   return {
-    valor: valorBruto.ValorIss ? valorBruto.ValorIss['_text'] : '0.0',
-    aliquota: valorBruto.Aliquota ? valorBruto.Aliquota['_text'] : '0.0',
+    valor: valorBruto.ValorIss?._text || '0',
+    aliquota: valorBruto.Aliquota?._text || '0',
   };
 };
 
@@ -60,8 +60,8 @@ const getValor = (obj : ElementCompact) : Valor => {
 const getEndereco = (pessoa : ElementCompact) : EnderecoXml => ({
   logradouro: pessoa.Endereco.Endereco['_text'],
   numero: pessoa.Endereco.Numero['_text'],
-  complemento: pessoa.Endereco.Complemento ? pessoa.Endereco.Complemento['_text'] : '',
-  bairro: pessoa.Endereco.Bairro ? pessoa.Endereco.Bairro['_text'] : '',
+  complemento: pessoa.Endereco.Complemento?._text || '',
+  bairro: pessoa.Endereco.Bairro?._text || '',
   municipio: {
     codigo: pessoa.Endereco.CodigoMunicipio['_text'],
   },
@@ -90,7 +90,7 @@ const getDestinatario = (obj : ElementCompact) : PessoaXml => {
 
   return {
     nome: destinatarioBruto.RazaoSocial['_text'],
-    cpfcnpj: destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cpf ? destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cpf['_text'] : destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cnpj['_text'],
+    cpfcnpj: destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cpf?._text || destinatarioBruto.IdentificacaoTomador.CpfCnpj.Cnpj?._text || '',
     endereco: getEndereco(destinatarioBruto),
   };
 };
