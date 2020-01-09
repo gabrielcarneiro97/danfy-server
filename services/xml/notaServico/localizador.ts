@@ -12,9 +12,12 @@ const isBeloHorizonte = (obj : ElementCompact) : boolean => (
 
 const isContagem = (obj : ElementCompact) : boolean => !!obj['ns2:NFSE'];
 
+const isGovDigital = (obj : ElementCompact) : boolean => !!obj.GovDigital;
+
 function qualCidade(obj : ElementCompact) : (obj : ElementCompact) => NotaServicoPessoas[] {
   if (isBeloHorizonte(obj)) return cidades.beloHorizonte;
   if (isContagem(obj)) return cidades.contagem;
+  if (isGovDigital(obj)) return cidades.govDivital;
 
   return () => [null];
 }

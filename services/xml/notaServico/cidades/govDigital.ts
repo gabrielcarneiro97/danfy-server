@@ -1,14 +1,7 @@
 /* eslint dot-notation: 0 */
-
-import * as fs from 'fs';
 import {
   ElementCompact, // eslint-disable-line no-unused-vars
 } from 'xml-js';
-
-import { xmlToObj } from '../../xml';
-
-/* eslint dot-notation: 0 */
-
 
 import NotaServicoXml, { // eslint-disable-line no-unused-vars
   Valor, // eslint-disable-line no-unused-vars
@@ -148,8 +141,8 @@ const getInfosGerais = (nfse : ElementCompact) : Geral => {
   return {
     numero: `${ano}${pad(num, 11)}`,
     dataHora: nfse.prestacao['_text'],
-    status: nfse.nfseCancelamento ? 'CANCELADA' : 'NORMAL',
-    descricao: nfse['ns3:Servico']['ns3:Discriminacao']['_text'].replace(/\|/g, '\n'),
+    status: nfse.dataCancelamento ? 'CANCELADA' : 'NORMAL',
+    descricao: getItens(nfse)[0].descricao,
   };
 };
 
@@ -172,35 +165,6 @@ function lerNota(nfse : ElementCompact) : NotaServicoPessoas {
   return { notaServico, emitente, destinatario };
 }
 
-export default function govDigital(obj : ElementCompact) : void /* NotaServicoPessoas[] */ {
-  // if (!assinada(obj)) return 0;
-
-  getNfses(obj).forEach((n) => {
-    console.log(getEmitente(n));
-    console.log(getDestinatario(n));
-  });
-
-  // const emitente = getEmitente(obj);
-
-  // const destinatario = getDestinatario(obj);
-
-
-  // const notaServico : NotaServicoXml = {
-  //   valor: getValor(obj),
-  //   emitente: emitente.cpfcnpj,
-  //   destinatario: destinatario.cpfcnpj,
-  //   geral: getInfosGerais(obj),
-  //   chave: '',
-  // };
-
-  // notaServico.chave = notaServico.emitente + notaServico.geral.numero;
-
-  // return [{ notaServico, emitente, destinatario }];
+export default function govDigital(obj : ElementCompact) : NotaServicoPessoas[] {
+  return getNfses(obj).map(lerNota);
 }
-
-const file = fs.readFileSync('./govD.xml');
-const file2 = fs.readFileSync('./ex.xml');
-
-// console.log(xmlToObj({ buffer: file2 }).GovDigital.emissao['nf-e'][0].retido);
-
-govDigital((xmlToObj({ buffer: file })));
