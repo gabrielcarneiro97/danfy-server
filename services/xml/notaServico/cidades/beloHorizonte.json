@@ -15,5 +15,34 @@
     "$$valor": "$$valores.ValorIss"
   },
   "$$baseCalculo": "$$valores.BaseCalculo",
-  "$$servico": "$$valores.ValorServicos"
+  "$$servico": "$$valores.ValorServicos",
+  "#notaServico": {
+    "chave": "",
+    "emitente": "",
+    "destinatario": "",
+    "geral": {
+      "numero": "",
+      "dataHora": "",
+      "status": "",
+      "descricao": ""
+    },
+    "valor": {
+      "servico": "",
+      "baseCalculo": "",
+      "iss": {
+        "valor": "",
+        "aliquota": ""
+      },
+      "retencoes": {
+        "iss": "",
+        "irpj": "",
+        "csll": "",
+        "cofins": "",
+        "pis": "",
+        "inss": ""
+      }
+    }
+  },
+  "#emitente": "!pessoaType",
+  "#destinatario": "!pessoaType"
 }
