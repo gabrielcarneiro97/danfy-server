@@ -82,8 +82,8 @@ export async function excluirServico(servicoId : string) {
   return servicoPool.del();
 }
 
-export function servicoPoolFromObj(obj : { servico : object, metaDados : object,
-  imposto : object, retencao : object }) {
+export function servicoPoolFromObj(obj : { servico : object; metaDados : object;
+  imposto : object; retencao : object; }) {
   return new ServicoPool(
     new Servico(obj.servico),
     new MetaDados(obj.metaDados),

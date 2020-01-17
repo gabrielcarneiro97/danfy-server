@@ -8,7 +8,7 @@ import { objParseFloat } from '../calculador.service';
 import NotaServicoXml from '../xml/notaServico.xml';
 
 
-export async function criarNotaServico(notaServicoParam : { emitente : string, numero : string }) {
+export async function criarNotaServico(notaServicoParam : { emitente : string; numero : string }) {
   return new NotaServico({
     chave: notaServicoParam.emitente + notaServicoParam.numero,
     ...notaServicoParam,
