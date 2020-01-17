@@ -130,7 +130,7 @@ export async function pegarTrimestreComNotas(cnpj : string, competencia : Comp) 
   const trimestreData = await pegarTrimestre(cnpj, competencia);
   const { movimentosPool, servicosPool } = trimestreData;
 
-  const [notasPool, notasServicoPool] = await Promise.all([
+  const [notas, notasServico] = await Promise.all([
     (async () => {
       const [notasIniciais, notasFinais] = await Promise.all([
         Promise.all(movimentosPool.map(async (movimentoPool) => {
@@ -147,21 +147,17 @@ export async function pegarTrimestreComNotas(cnpj : string, competencia : Comp) 
 
       return notasIniciais.concat(notasFinais);
     })(),
-    (async () => {
-      const notasServico = await Promise.all(servicosPool.map(async (servicoPool) => {
-        const { notaChave: chave } = servicoPool.servico;
-        const [nota] = await NotaServico.getBy({ chave });
-        return nota;
-      }));
-
-      return notasServico;
-    })(),
+    (async () => Promise.all(servicosPool.map(async (servicoPool) => {
+      const { notaChave: chave } = servicoPool.servico;
+      const [nota] = await NotaServico.getBy({ chave });
+      return nota;
+    })))(),
   ]);
 
   return {
     trimestreData,
-    notasPool,
-    notasServicoPool,
+    notas,
+    notasServico,
   };
 }
 

@@ -26,7 +26,7 @@ export async function pegarSimplesComNotas(cnpj : string, competencia : Comp) {
 
   const { movimentosPool, servicosPool } = simplesData;
 
-  const [notasPool, notasServicoPool] = await Promise.all([
+  const [notas, notasServico] = await Promise.all([
     (async () => {
       const [notasIniciais, notasFinais] = await Promise.all([
         Promise.all(movimentosPool.map(async (movimentoPool) => {
@@ -43,21 +43,17 @@ export async function pegarSimplesComNotas(cnpj : string, competencia : Comp) {
 
       return notasIniciais.concat(notasFinais);
     })(),
-    (async () => {
-      const notasServico = await Promise.all(servicosPool.map(async (servicoPool) => {
-        const { notaChave: chave } = servicoPool.servico;
-        const [nota] = await NotaServico.getBy({ chave });
-        return nota;
-      }));
-
-      return notasServico;
-    })(),
+    (async () => Promise.all(servicosPool.map(async (servicoPool) => {
+      const { notaChave: chave } = servicoPool.servico;
+      const [nota] = await NotaServico.getBy({ chave });
+      return nota;
+    })))(),
   ]);
 
   return {
     simplesData,
-    notasPool,
-    notasServicoPool,
+    notas,
+    notasServico,
   };
 }
 
