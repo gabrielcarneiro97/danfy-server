@@ -1,10 +1,10 @@
 import {
-  ElementCompact, // eslint-disable-line no-unused-vars
+  ElementCompact,
 } from 'xml-js';
 
 import cidades from './cidades';
 
-import NotaServicoPessoas from '../notaServicoPessoas.xml'; // eslint-disable-line no-unused-vars
+import NotaServicoPessoas from '../notaServicoPessoas.xml';
 
 const isBeloHorizonte = (obj : ElementCompact) : boolean => (
   !!obj && !!obj.CompNfse && !!obj.CompNfse.Nfse && !!obj.CompNfse.Nfse.InfNfse

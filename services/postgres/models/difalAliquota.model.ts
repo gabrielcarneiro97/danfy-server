@@ -1,5 +1,5 @@
 import Table, {
-  pgNum, // eslint-disable-line no-unused-vars
+  pgNum,
 } from './table.model';
 
 export default class DifalAliquota extends Table {

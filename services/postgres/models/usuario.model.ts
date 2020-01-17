@@ -1,6 +1,6 @@
 import Table, {
-  pgNum, // eslint-disable-line no-unused-vars
-  pgStr, // eslint-disable-line no-unused-vars
+  pgNum,
+  pgStr,
 } from './table.model';
 
 export default class Usuario extends Table {

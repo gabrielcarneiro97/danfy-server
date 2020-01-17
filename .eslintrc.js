@@ -4,7 +4,8 @@ module.exports = {
         "node": true
     },
     "extends": [
-        "airbnb-base"
+        "airbnb-base",
+        "plugin:@typescript-eslint/recommended"
     ],
     "globals": {
         "Atomics": "readonly",
@@ -37,5 +38,8 @@ module.exports = {
             }
          ],
          "lines-between-class-members": ["error", "always", { exceptAfterSingleLine: true }],
+         "@typescript-eslint/type-annotation-spacing": "off",
+         "@typescript-eslint/consistent-type-assertions": "off",
+         "@typescript-eslint/interface-name-prefix": "off"
     }
 };

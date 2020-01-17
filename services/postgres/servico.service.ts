@@ -8,7 +8,7 @@ import Retencao from './models/retencao.model';
 import { pg } from '../pg.service';
 import {
   mesInicioFim,
-  Comp, // eslint-disable-line no-unused-vars
+  Comp,
 } from '../calculador.service';
 
 export async function criarServico(servicoPool : ServicoPool) {

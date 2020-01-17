@@ -1,4 +1,4 @@
-import EnderecoXml from './endereco.xml'; // eslint-disable-line no-unused-vars
+import EnderecoXml from './endereco.xml';
 
 export default class PessoaXml {
   cpfcnpj : string;

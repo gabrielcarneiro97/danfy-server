@@ -3,7 +3,7 @@ import * as crypto from 'crypto';
 import { pg } from '../pg.service';
 import {
   stringToDate,
-  Periodo, // eslint-disable-line no-unused-vars
+  Periodo,
 } from '../calculador.service';
 
 import NotaPool from './pools/nota.pool';
@@ -12,7 +12,7 @@ import Nota from './models/nota.model';
 import Estado from './models/estado.model';
 import Produto from './models/produto.model';
 
-import NotaXml from '../xml/nota.xml'; // eslint-disable-line no-unused-vars
+import NotaXml from '../xml/nota.xml';
 
 export async function criarNota(chave : string, notaParam : object) {
   const nota = new Nota({ chave, ...notaParam });

@@ -1,20 +1,20 @@
 /* eslint dot-notation: 0 */
 import {
-  ElementCompact, // eslint-disable-line no-unused-vars
+  ElementCompact,
 } from 'xml-js';
 
-import NotaXml, { // eslint-disable-line no-unused-vars
-  Valor, // eslint-disable-line no-unused-vars
-  Complementar, // eslint-disable-line no-unused-vars
-  InformacoesEstaduais, // eslint-disable-line no-unused-vars
-  Geral, // eslint-disable-line no-unused-vars
+import NotaXml, {
+  Valor,
+  Complementar,
+  InformacoesEstaduais,
+  Geral,
 } from './nota.xml';
 
-import EnderecoXml from './endereco.xml'; // eslint-disable-line no-unused-vars
+import EnderecoXml from './endereco.xml';
 
-import PessoaXml from './pessoa.xml'; // eslint-disable-line no-unused-vars
+import PessoaXml from './pessoa.xml';
 
-import NotaPessoas from './notaPessoas.xml'; // eslint-disable-line no-unused-vars
+import NotaPessoas from './notaPessoas.xml';
 
 const getInfo = (obj : ElementCompact)
   : ElementCompact => (obj.nfeProc ? obj.nfeProc.NFe.infNFe : obj.NFe.infNFe);

@@ -3,8 +3,8 @@ import MetaDados from '../../postgres/models/metaDados.model';
 import Imposto from '../../postgres/models/imposto.model';
 import Icms from '../../postgres/models/icms.model';
 import DifalAliquota from '../../postgres/models/difalAliquota.model';
-import Nota from '../../postgres/models/nota.model'; // eslint-disable-line no-unused-vars
-import Aliquota from '../../postgres/models/aliquota.model'; // eslint-disable-line no-unused-vars
+import Nota from '../../postgres/models/nota.model';
+import Aliquota from '../../postgres/models/aliquota.model';
 
 import MovimentoPool from '../../postgres/pools/movimento.pool';
 import ImpostoPool from '../../postgres/pools/imposto.pool';

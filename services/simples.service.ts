@@ -9,7 +9,7 @@ import {
   strToComp,
   dateToComp,
   compToDate,
-  Comp, // eslint-disable-line no-unused-vars
+  Comp,
 } from './calculador.service';
 
 import { pegarMovimentosServicosMes } from './impostos.service';

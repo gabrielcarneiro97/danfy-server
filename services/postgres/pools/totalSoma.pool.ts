@@ -4,7 +4,7 @@ import ImpostoPool from './imposto.pool';
 import TotalSoma from '../models/totalSoma.model';
 import Retencao from '../models/retencao.model';
 import Acumulado from '../models/acumulado.model';
-import { pgType } from '../models/table.model'; // eslint-disable-line no-unused-vars
+import { pgType } from '../models/table.model';
 
 export default class TotalSomaPool extends Pool {
   totalSoma : TotalSoma;

@@ -5,14 +5,14 @@ import Retencao from './postgres/models/retencao.model';
 import TotalServico from './postgres/models/totalServico.model';
 import Nota from './postgres/models/nota.model';
 import NotaServico from './postgres/models/notaServico.model';
-import Simples from './postgres/models/simples.model'; // eslint-disable-line no-unused-vars
+import Simples from './postgres/models/simples.model';
 
 import TotalPool from './postgres/pools/total.pool';
 import TotalMovimentoPool from './postgres/pools/totalMovimento.pool';
 import ImpostoPool from './postgres/pools/imposto.pool';
 import TotalServicoPool from './postgres/pools/totalServico.pool';
-import MovimentoPool from './postgres/pools/movimento.pool'; // eslint-disable-line no-unused-vars
-import ServicoPool from './postgres/pools/servico.pool'; // eslint-disable-line no-unused-vars
+import MovimentoPool from './postgres/pools/movimento.pool';
+import ServicoPool from './postgres/pools/servico.pool';
 
 import { pegarMovimentosPoolMes } from './postgres/movimento.service';
 
@@ -25,14 +25,14 @@ import { definirGrupo } from './postgres/grupo.service';
 import { simples, lp } from './impostos';
 
 import {
-  Comp, // eslint-disable-line no-unused-vars
+  Comp,
 } from './calculador.service';
 import { pegarEmpresaAliquota } from './postgres/aliquota.service';
 
 export type MesData = {
-  totalPool : TotalPool,
-  movimentosPool : MovimentoPool[],
-  servicosPool : ServicoPool[],
+  totalPool : TotalPool;
+  movimentosPool : MovimentoPool[];
+  servicosPool : ServicoPool[];
 }
 
 export async function pegarMovimentosServicosMes(cnpj : string, competencia : Comp)

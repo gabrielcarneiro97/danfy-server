@@ -1,7 +1,7 @@
 import Pool from './pool';
 
 import Pessoa from '../models/pessoa.model';
-import Endereco from '../models/endereco.model'; // eslint-disable-line no-unused-vars
+import Endereco from '../models/endereco.model';
 
 export default class PessoaPool extends Pool {
   pessoa : Pessoa;

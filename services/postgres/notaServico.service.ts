@@ -5,7 +5,7 @@ import Retencao from './models/retencao.model';
 
 import { objParseFloat } from '../calculador.service';
 
-import NotaServicoXml from '../xml/notaServico.xml'; // eslint-disable-line no-unused-vars
+import NotaServicoXml from '../xml/notaServico.xml';
 
 
 export async function criarNotaServico(notaServicoParam : { emitente : string, numero : string }) {

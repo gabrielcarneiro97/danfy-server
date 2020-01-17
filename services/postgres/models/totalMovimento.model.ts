@@ -1,8 +1,8 @@
 import Table, {
-  pgNum, // eslint-disable-line no-unused-vars
+  pgNum,
 } from './table.model';
 
-import Movimento from './movimento.model'; // eslint-disable-line no-unused-vars
+import Movimento from './movimento.model';
 
 export default class TotalMovimento extends Table {
   id : pgNum;

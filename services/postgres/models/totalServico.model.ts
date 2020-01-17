@@ -1,8 +1,8 @@
 import Table, {
-  pgNum, // eslint-disable-line no-unused-vars
+  pgNum,
 } from './table.model';
 
-import Servico from './servico.model'; // eslint-disable-line no-unused-vars
+import Servico from './servico.model';
 
 export default class TotalServico extends Table {
   id : pgNum;

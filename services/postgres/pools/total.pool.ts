@@ -1,4 +1,4 @@
-import { mesInicioFim, Comp } from '../../calculador.service'; // eslint-disable-line no-unused-vars
+import { mesInicioFim, Comp } from '../../calculador.service';
 import { pg } from '../../pg.service';
 
 import Pool from './pool';
@@ -13,7 +13,7 @@ import Imposto from '../models/imposto.model';
 import Retencao from '../models/retencao.model';
 import Acumulado from '../models/acumulado.model';
 import Icms from '../models/icms.model';
-import { pgType } from '../models/table.model'; // eslint-disable-line no-unused-vars
+import { pgType } from '../models/table.model';
 
 
 export default class TotalPool extends Pool {

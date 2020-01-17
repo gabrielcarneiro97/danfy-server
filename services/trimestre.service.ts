@@ -10,8 +10,8 @@ import TotalPool from './postgres/pools/total.pool';
 import TotalMovimentoPool from './postgres/pools/totalMovimento.pool';
 import ImpostoPool from './postgres/pools/imposto.pool';
 import TotalServicoPool from './postgres/pools/totalServico.pool';
-import MovimentoPool from './postgres/pools/movimento.pool'; // eslint-disable-line no-unused-vars
-import ServicoPool from './postgres/pools/servico.pool'; // eslint-disable-line no-unused-vars
+import MovimentoPool from './postgres/pools/movimento.pool';
+import ServicoPool from './postgres/pools/servico.pool';
 
 import { pegarMes, calcularMes } from './impostos.service';
 
@@ -20,26 +20,26 @@ import { pegarTrimestreTotalPool } from './postgres/total.service';
 import {
   trim,
   getMesTrim,
-  Comp, // eslint-disable-line no-unused-vars
+  Comp,
 } from './calculador.service';
 import { pegarEmpresaAliquota } from './postgres/aliquota.service';
 
 export type TrimestreData = {
-  movimentosPool: MovimentoPool[],
-  servicosPool: ServicoPool[],
-  trim: TotalPool,
-  1?: TotalPool,
-  2?: TotalPool,
-  3?: TotalPool,
-  4?: TotalPool,
-  5?: TotalPool,
-  6?: TotalPool,
-  7?: TotalPool,
-  8?: TotalPool,
-  9?: TotalPool,
-  10?: TotalPool,
-  11?: TotalPool,
-  12?: TotalPool,
+  movimentosPool : MovimentoPool[];
+  servicosPool : ServicoPool[];
+  trim : TotalPool;
+  1? : TotalPool;
+  2? : TotalPool;
+  3? : TotalPool;
+  4? : TotalPool;
+  5? : TotalPool;
+  6? : TotalPool;
+  7? : TotalPool;
+  8? : TotalPool;
+  9? : TotalPool;
+  10? : TotalPool;
+  11? : TotalPool;
+  12? : TotalPool;
 }
 
 export async function calcularTrimestre(cnpj : string, competencia : Comp) {

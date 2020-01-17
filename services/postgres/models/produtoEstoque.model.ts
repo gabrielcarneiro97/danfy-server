@@ -1,8 +1,8 @@
 import Table, {
-  pgNum, // eslint-disable-line no-unused-vars
-  pgStr, // eslint-disable-line no-unused-vars
-  pgDate, // eslint-disable-line no-unused-vars
-  pgBool, // eslint-disable-line no-unused-vars
+  pgNum,
+  pgStr,
+  pgDate,
+  pgBool,
 } from './table.model';
 import { pg } from '../../pg.service';
 import { stringToDate } from '../../calculador.service';

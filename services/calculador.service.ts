@@ -8,8 +8,8 @@ export const cfopVendaConsignacao = ['5115', '6115', '5114'];
 export const cfopDevolucaoConsignacao = ['5918', '6918'];
 export const cfopDevolucaoDemonstracao = ['6913', '5913'];
 
-export type Comp = { mes : string | number, ano : string | number };
-export type Periodo = { inicio : string | Date, fim : string | Date };
+export type Comp = { mes : string | number; ano : string | number };
+export type Periodo = { inicio : string | Date; fim : string | Date };
 
 export function compararCFOP(notaInicial, notaFinal) {
   const cfopInicial = notaInicial.cfop;

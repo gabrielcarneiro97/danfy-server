@@ -1,23 +1,23 @@
 export type Geral = {
-  dataHora : string,
-  naturezaOperacao : string,
-  numero : string,
-  tipo : string,
-  status : string,
-  cfop : string,
+  dataHora : string;
+  naturezaOperacao : string;
+  numero : string;
+  tipo : string;
+  status : string;
+  cfop : string;
 }
 
 export type InformacoesEstaduais = {
-  estadoGerador : string,
-  estadoDestino : string,
-  destinatarioContribuinte : string,
+  estadoGerador : string;
+  estadoDestino : string;
+  destinatarioContribuinte : string;
 }
 
 export type Valor = { total : string };
 
 export type Complementar = {
-  notaReferencia? : string,
-  textoComplementar? : string,
+  notaReferencia? : string;
+  textoComplementar? : string;
 };
 
 export default class NotaXml {

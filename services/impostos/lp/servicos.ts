@@ -2,8 +2,8 @@ import Servico from '../../postgres/models/servico.model';
 import MetaDados from '../../postgres/models/metaDados.model';
 import Imposto from '../../postgres/models/imposto.model';
 import Retencao from '../../postgres/models/retencao.model';
-import NotaServico from '../../postgres/models/notaServico.model'; // eslint-disable-line no-unused-vars
-import Aliquota from '../../postgres/models/aliquota.model'; // eslint-disable-line no-unused-vars
+import NotaServico from '../../postgres/models/notaServico.model';
+import Aliquota from '../../postgres/models/aliquota.model';
 
 import ServicoPool from '../../postgres/pools/servico.pool';
 

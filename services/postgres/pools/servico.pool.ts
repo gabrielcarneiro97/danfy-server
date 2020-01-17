@@ -1,7 +1,7 @@
 import Pool from './pool';
 
 import {
-  pgNum, pgStr, // eslint-disable-line no-unused-vars
+  pgNum, pgStr,
 } from '../models/table.model';
 import Servico from '../models/servico.model';
 import MetaDados from '../models/metaDados.model';

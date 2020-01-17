@@ -1,7 +1,7 @@
-import ServicoPool from './pools/servico.pool'; // eslint-disable-line no-unused-vars
+import ServicoPool from './pools/servico.pool';
 
 import Grupo from './models/grupo.model';
-import NotaServico from './models/notaServico.model'; // eslint-disable-line no-unused-vars
+import NotaServico from './models/notaServico.model';
 
 
 export async function definirGrupo(servicoPool : ServicoPool, notaServico : NotaServico) {

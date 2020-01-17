@@ -1,21 +1,21 @@
 /* eslint dot-notation: 0 */
 
 import {
-  ElementCompact, // eslint-disable-line no-unused-vars
+  ElementCompact,
 } from 'xml-js';
 
-import NotaServicoXml, { // eslint-disable-line no-unused-vars
-  Valor, // eslint-disable-line no-unused-vars
-  Iss, // eslint-disable-line no-unused-vars
-  Retencoes, // eslint-disable-line no-unused-vars
-  Geral, // eslint-disable-line no-unused-vars
+import NotaServicoXml, {
+  Valor,
+  Iss,
+  Retencoes,
+  Geral,
 } from '../../notaServico.xml';
 
-import EnderecoXml from '../../endereco.xml'; // eslint-disable-line no-unused-vars
+import EnderecoXml from '../../endereco.xml';
 
-import PessoaXml from '../../pessoa.xml'; // eslint-disable-line no-unused-vars
+import PessoaXml from '../../pessoa.xml';
 
-import NotaServicoPessoas from '../../notaServicoPessoas.xml'; // eslint-disable-line no-unused-vars
+import NotaServicoPessoas from '../../notaServicoPessoas.xml';
 
 function pad(num : string | number, size : number) {
   let s = `${num}`;

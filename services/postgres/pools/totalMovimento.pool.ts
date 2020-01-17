@@ -3,7 +3,7 @@ import ImpostoPool from './imposto.pool';
 import MovimentoPool from './movimento.pool';
 
 import TotalMovimento from '../models/totalMovimento.model';
-import { pgType } from '../models/table.model'; // eslint-disable-line no-unused-vars
+import { pgType } from '../models/table.model';
 
 export default class TotalMovimentoPool extends Pool {
   totalMovimento : TotalMovimento;

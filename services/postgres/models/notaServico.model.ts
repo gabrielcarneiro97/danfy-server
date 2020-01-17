@@ -1,7 +1,7 @@
 import Table, {
-  pgNum, // eslint-disable-line no-unused-vars
-  pgStr, // eslint-disable-line no-unused-vars
-  pgDate, // eslint-disable-line no-unused-vars
+  pgNum,
+  pgStr,
+  pgDate,
 } from './table.model';
 
 export default class NotaServico extends Table {

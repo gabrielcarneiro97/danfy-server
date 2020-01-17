@@ -1,6 +1,6 @@
 import {
   xml2js,
-  ElementCompact, // eslint-disable-line no-unused-vars
+  ElementCompact,
 } from 'xml-js';
 
 export function xmlToObj(file : string | { buffer : Buffer }) : ElementCompact {

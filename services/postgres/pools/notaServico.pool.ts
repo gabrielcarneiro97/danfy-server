@@ -1,7 +1,7 @@
 import Pool from './pool';
 
 import {
-  pgType, // eslint-disable-line no-unused-vars
+  pgType,
 } from '../models/table.model';
 import NotaServico from '../models/notaServico.model';
 import Retencao from '../models/retencao.model';

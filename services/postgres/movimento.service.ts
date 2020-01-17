@@ -1,5 +1,5 @@
 import { pg } from '../pg.service';
-import { mesInicioFim, Comp } from '../calculador.service'; // eslint-disable-line no-unused-vars
+import { mesInicioFim, Comp } from '../calculador.service';
 
 import Movimento from './models/movimento.model';
 import Imposto from './models/imposto.model';

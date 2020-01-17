@@ -5,8 +5,8 @@ import { stringToDate } from '../calculador.service';
 import { pegarNotasPoolEntradaEmitentePeriodo } from './nota.service';
 import { pegarMovimentoPoolNotaInicial } from './movimento.service';
 
-import NotaPool from './pools/nota.pool'; // eslint-disable-line no-unused-vars
-import MovimentoPool from './pools/movimento.pool'; // eslint-disable-line no-unused-vars
+import NotaPool from './pools/nota.pool';
+import MovimentoPool from './pools/movimento.pool';
 
 export function periodoAte(data : string) {
   const fim = stringToDate(data);

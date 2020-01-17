@@ -3,7 +3,7 @@ import { pg } from '../../pg.service';
 import ImpostoPool from './imposto.pool';
 
 import {
-  pgType, // eslint-disable-line no-unused-vars
+  pgType,
 } from '../models/table.model';
 import Movimento from '../models/movimento.model';
 import MetaDados from '../models/metaDados.model';

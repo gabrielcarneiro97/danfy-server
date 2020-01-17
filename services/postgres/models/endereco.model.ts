@@ -1,6 +1,6 @@
 import Table, {
-  pgStr, // eslint-disable-line no-unused-vars
-  pgNum, // eslint-disable-line no-unused-vars
+  pgStr,
+  pgNum,
 } from './table.model';
 
 export default class Endereco extends Table {
