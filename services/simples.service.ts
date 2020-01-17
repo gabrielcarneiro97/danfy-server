@@ -57,6 +57,7 @@ export async function pegarSimplesComNotas(cnpj : string, competencia : Comp) {
   };
 }
 
+
 export async function calcularSimples(cnpj : string, competencia : Comp) {
   const simplesData = await pegarMovimentosServicosMes(cnpj, competencia);
 
