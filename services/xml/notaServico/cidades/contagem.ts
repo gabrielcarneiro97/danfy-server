@@ -30,11 +30,11 @@ const getRetencoes = (nfse : ElementCompact) : Retencoes => {
 
   return {
     iss: valores['ns3:ValorISSRetido'] ? valores['ns3:ValorISSRetido']['_text'] : '0.0',
-    irpj: valores['ns3:ValorIR'] ? valores['ns3:ValorIR']['_text'] : '0.0',
-    csll: valores['ns3:ValorCSLL'] ? valores['ns3:ValorCSLL']['_text'] : '0.0',
-    cofins: valores['ns3:ValorCOFINS'] ? valores['ns3:ValorCOFINS']['_text'] : '0.0',
-    pis: valores['ns3:ValorPIS'] ? valores['ns3:ValorPIS']['_text'] : '0.0',
-    inss: valores['ns3:ValorINSS'] ? valores['ns3:ValorINSS']['_text'] : '0.0',
+    irpj: valores['ns3:ValorIr'] ? valores['ns3:ValorIr']['_text'] : '0.0',
+    csll: valores['ns3:ValorCsll'] ? valores['ns3:ValorCsll']['_text'] : '0.0',
+    cofins: valores['ns3:ValorCofins'] ? valores['ns3:ValorCofins']['_text'] : '0.0',
+    pis: valores['ns3:ValorPis'] ? valores['ns3:ValorPis']['_text'] : '0.0',
+    inss: valores['ns3:ValorInss'] ? valores['ns3:ValorInss']['_text'] : '0.0',
   };
 };
 

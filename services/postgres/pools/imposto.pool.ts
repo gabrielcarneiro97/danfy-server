@@ -31,7 +31,7 @@ export default class ImpostoPool extends Pool {
   }
 
   async del() {
-    await this.icms.del();
+    if (this.icms) await this.icms.del();
     return this.imposto.del();
   }
 
