@@ -12,6 +12,7 @@ export default class Aliquota extends Table {
   csll : pgNum;
   irpj : pgNum;
   iss : pgNum;
+  issProfissional: pgBool;
   icmsAliquota : pgNum;
   icmsReducao : pgNum;
   formaPagamento : pgStr;
