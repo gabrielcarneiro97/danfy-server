@@ -58,19 +58,19 @@ const getValor = (obj : ElementCompact) : Valor => {
 };
 
 const getEndereco = (pessoa : ElementCompact) : EnderecoXml => ({
-  logradouro: pessoa.Endereco.Endereco['_text'],
-  numero: pessoa.Endereco.Numero['_text'],
+  logradouro: pessoa.Endereco.Endereco?._text || '',
+  numero: pessoa.Endereco.Numero?._text || '',
   complemento: pessoa.Endereco.Complemento?._text || '',
   bairro: pessoa.Endereco.Bairro?._text || '',
   municipio: {
-    codigo: pessoa.Endereco.CodigoMunicipio['_text'],
+    codigo: pessoa.Endereco.CodigoMunicipio?._text || '',
   },
-  estado: pessoa.Endereco.Uf['_text'],
+  estado: pessoa.Endereco.Uf?._text || '',
   pais: {
     nome: 'Brasil',
     codigo: '1058',
   },
-  cep: pessoa.Endereco.Cep['_text'],
+  cep: pessoa.Endereco.Cep?._text || '',
 });
 
 const getEmitente = (obj : ElementCompact) : PessoaXml => {
