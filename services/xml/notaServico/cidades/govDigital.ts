@@ -43,7 +43,7 @@ const getItens = (obj : ElementCompact) : any[] => {
 };
 
 const getRetencoes = (nfse : ElementCompact) : Retencoes => {
-  const valores = nfse.deducoes?.deducao;
+  let valores = nfse.deducoes?.deducao;
 
   const iss = nfse.valorImposto?._text || '0';
 
@@ -59,7 +59,7 @@ const getRetencoes = (nfse : ElementCompact) : Retencoes => {
   };
 
   if (!valores) return vazio;
-  if (!valores.reduce) return vazio;
+  if (!Array.isArray(valores)) valores = [valores];
 
   const rets : Retencoes = valores.reduce((acc, crr) => {
     const val = crr['_text'];
