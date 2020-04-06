@@ -59,7 +59,7 @@ const getRetencoes = (nfse : ElementCompact) : Retencoes => {
   };
 
   if (!valores) return vazio;
-
+  if (!valores.reduce) return vazio;
 
   const rets : Retencoes = valores.reduce((acc, crr) => {
     const val = crr['_text'];
