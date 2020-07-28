@@ -4,6 +4,8 @@ import * as express from 'express';
 import { SSL } from './services/ssl';
 import danfy from './routerTS';
 
+import Nota from './sequelize/models/Nota';
+
 const app = express();
 
 app.options('*', cors());
@@ -21,3 +23,8 @@ if (process.argv[2] === 'ssl') {
     console.log('Example app listening at http://localhost:8080');
   });
 }
+
+(async () => {
+  const nota = await Nota.findByPk('26180802671595000728550000000084221087705821', { include: ['produtos'] });
+  console.log(nota.toJSON());
+})();
