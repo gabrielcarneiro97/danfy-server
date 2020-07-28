@@ -50,7 +50,7 @@ servicosRouter.get('/id/:cnpj/:servicoId', async (req, res) => {
   }
 });
 
-servicosRouter.get('/nota', async (req, res) => {
+servicosRouter.get('/nota', async (req : any, res) => {
   const { notaChave } = req.query;
   try {
     const servicoPool = await ServicoPool.getByNotaChave(notaChave);

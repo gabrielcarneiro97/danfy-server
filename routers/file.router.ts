@@ -12,6 +12,7 @@ import {
   servico,
   danfe,
 } from '../services/xml';
+import { upsertNotaPessoas } from '../prisma/services/nota';
 
 const fileRouter = express();
 const upload = multer();
@@ -27,6 +28,8 @@ fileRouter.post('/', upload.single('file'), async (req, res) => {
         notaPessoaToPool(nota.emitente, emitente),
         notaPessoaToPool(nota.destinatario, destinatario),
       ]);
+
+      upsertNotaPessoas(danfe.leitor(obj));
 
       const notaPool = await notaXmlToPool(nota);
 

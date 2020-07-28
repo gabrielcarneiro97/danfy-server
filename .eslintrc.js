@@ -1,45 +1,35 @@
 module.exports = {
-    "env": {
-        "es6": true,
-        "node": true
+    env: {
+      browser: true,
     },
-    "extends": [
-        "airbnb-base",
-        "plugin:@typescript-eslint/recommended"
-    ],
-    "globals": {
-        "Atomics": "readonly",
-        "SharedArrayBuffer": "readonly"
+    parser: '@typescript-eslint/parser',
+    plugins: ['@typescript-eslint'],
+    extends: ['airbnb'],
+    settings: {
+      'import/extensions': ['.js', '.jsx', '.ts', '.tsx'],
+      'import/parsers': {
+        '@typescript-eslint/parser': ['.ts', '.tsx'],
+      },
+      'import/resolver': {
+        node: {
+          extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        },
+      },
     },
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaVersion": 2018,
-        "sourceType": "module"
+    rules: {
+      'lines-between-class-members': 'off',
+      'import/no-cycle': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'error',
+      'no-useless-constructor': 'off',
+      '@typescript-eslint/no-useless-constructor': 'error',
+      'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx', '.ts', '.tsx'] }],
+      'import/extensions': ['error', 'ignorePackages', {
+        ts: 'never',
+        tsx: 'never',
+        js: 'never',
+        jsx: 'never',
+        mjs: 'never',
+      }],
     },
-    "plugins": [
-        "@typescript-eslint"
-    ],
-    "settings": {
-        "import/resolver": {
-            "node": {
-            "extensions": [".js", ".jsx", ".ts", ".tsx"]
-            }
-        }
-    },
-    "rules": {
-        "import/extensions": [
-            "error",
-            "ignorePackages",
-            {
-              "js": "never",
-              "jsx": "never",
-              "ts": "never",
-              "tsx": "never"
-            }
-         ],
-         "lines-between-class-members": ["error", "always", { exceptAfterSingleLine: true }],
-         "@typescript-eslint/type-annotation-spacing": "off",
-         "@typescript-eslint/consistent-type-assertions": "off",
-         "@typescript-eslint/interface-name-prefix": "off"
-    }
-};
+  };

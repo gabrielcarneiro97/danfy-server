@@ -8,7 +8,7 @@ import {
 
 const simplesRouter = express();
 
-simplesRouter.get('/', async (req, res) => {
+simplesRouter.get('/', async (req : any, res) => {
   const {
     cnpj,
     mes,

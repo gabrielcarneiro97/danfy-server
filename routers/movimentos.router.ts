@@ -68,7 +68,6 @@ movimentoRouter.post('/calcular', bodyParser.json(), async (req, res) => {
   res.send({ movimentos, notasIniciais });
 });
 
-
 movimentoRouter.post('/push', bodyParser.json(), async (req, res) => {
   const { movimentoPool: movPoolFlat, donoCpfcnpj } = req.body;
   let { valorInicial } = req.body;
@@ -101,7 +100,7 @@ movimentoRouter.post('/push', bodyParser.json(), async (req, res) => {
   }
 });
 
-movimentoRouter.get('/valor', async (req, res) => {
+movimentoRouter.get('/valor', async (req : any, res) => {
   const { notaInicialChave, notaFinalChave } = req.query;
   try {
     const movimentoPool = await calcularMovimentoPool(notaInicialChave, notaFinalChave);
@@ -111,7 +110,7 @@ movimentoRouter.get('/valor', async (req, res) => {
     res.status(500).send(err);
   }
 });
-movimentoRouter.get('/slim/:cnpj', async (req, res) => {
+movimentoRouter.get('/slim/:cnpj', async (req : any, res) => {
   const { cnpj } = req.params;
   const { notaFinalChave } = req.query;
   let { valorInicial } = req.query;
@@ -130,7 +129,7 @@ movimentoRouter.get('/slim/:cnpj', async (req, res) => {
   }
 });
 
-movimentoRouter.get('/notaFinal', async (req, res) => {
+movimentoRouter.get('/notaFinal', async (req : any, res) => {
   const { notaFinalChave } = req.query;
   try {
     const movimento = await pegarMovimentoPoolNotaFinal(notaFinalChave);

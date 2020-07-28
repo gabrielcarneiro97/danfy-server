@@ -4,6 +4,8 @@ import danfy from './router';
 
 const app = express();
 
+require('dotenv').config();
+
 app.use('/api', danfy);
 app.use(express.static(path.join(__dirname, 'build')));
 
