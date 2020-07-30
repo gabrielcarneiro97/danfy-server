@@ -25,6 +25,9 @@ if (process.argv[2] === 'ssl') {
 }
 
 (async () => {
-  const nota = await Nota.findByPk('26180802671595000728550000000084221087705821', { include: ['produtos'] });
+    const nota = await Nota.findByPk(
+      '26180802671595000728550000000084221087705821',
+      { include: ['produtos', { association: 'emitente', include: ['endereco'] }, 'destinatario'] }
+    );
   console.log(nota.toJSON());
 })();

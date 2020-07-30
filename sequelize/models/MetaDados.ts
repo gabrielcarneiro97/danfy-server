@@ -28,6 +28,7 @@ export default class MetaDados extends Model<MetaDadosAttrs, MetaDadosCreateAttr
 
 MetaDados.init({
   id: {
+    field: 'md_id',
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
@@ -41,7 +42,7 @@ MetaDados.init({
     allowNull: true,
   },
   dataHora: {
-    field: 'data_hora',
+    field: 'md_data_hora',
     type: DataTypes.DATE,
     allowNull: true,
   },
