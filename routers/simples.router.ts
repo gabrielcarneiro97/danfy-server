@@ -13,7 +13,7 @@ simplesRouter.get('/', async (req, res) => {
     cnpj,
     mes,
     ano,
-  } = req.query;
+  } = req.query as { cnpj: string, mes: string, ano: string };
 
   try {
     const data = await pegarSimplesComNotas(cnpj, { mes, ano });
