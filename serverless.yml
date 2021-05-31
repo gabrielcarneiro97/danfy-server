@@ -1,14 +1,19 @@
 service: danfy-serverless
+frameworkVersion: '2'
 
 provider:
   name: aws
   runtime: nodejs14.x
-  stage: dev
+  stage: ${opt:stage, 'local'}
   region: us-east-2
 
 functions:
   app:
     handler: app.handler
     events:
-      - http: ANY /
-      - http: 'ANY {proxy+}'
+      - httpApi: 
+          path: /
+          method: 'ANY'
+      - httpApi: 
+          path: /{proxy+}
+          method: 'ANY'
