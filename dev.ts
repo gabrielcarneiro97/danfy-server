@@ -1,3 +1,4 @@
+import * as serverless from 'serverless-http';
 import * as https from 'https';
 import * as cors from 'cors';
 import * as express from 'express';
@@ -19,3 +20,5 @@ if (process.argv[2] === 'ssl') {
     console.log('Example app listening at http://localhost:8080');
   });
 }
+
+module.exports.handler = serverless(app);
