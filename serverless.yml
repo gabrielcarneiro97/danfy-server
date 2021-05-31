@@ -7,9 +7,12 @@ provider:
   stage: ${opt:stage, 'local'}
   region: us-east-2
 
+plugins:
+  - serverless-plugin-typescript
+
 functions:
   app:
-    handler: app.handler
+    handler: dev.handler
     events:
       - http: ANY /
       - http: 'ANY {proxy+}'

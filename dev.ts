@@ -22,3 +22,4 @@ if (process.argv[2] === 'ssl') {
 }
 
 module.exports.handler = serverless(app);
+// export const handler = serverless(app);
