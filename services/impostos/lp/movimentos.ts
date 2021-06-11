@@ -72,9 +72,7 @@ async function calcularMovimentoPool(notaInicial : Nota, notaFinal : Nota, aliqu
     movimento.valorSaida = 0;
   }
 
-  const impostosFederais = ['pis', 'cofins', 'csll', 'irpj'];
-
-  impostosFederais.forEach((impostoNome) => {
+  ['csll', 'irpj'].forEach((impostoNome) => {
     const valor = movimento.lucro * aliquota[impostoNome];
     imposto[impostoNome] = valor;
     imposto.total += valor;
@@ -89,6 +87,13 @@ async function calcularMovimentoPool(notaInicial : Nota, notaFinal : Nota, aliqu
     icms.baseCalculo = movimento.lucro * aliquota.icmsReducao;
     icms.proprio = movimento.lucro * aliquota.icmsReducao * aliquota.icmsAliquota;
     imposto.total += icms.proprio;
+
+    ['pis', 'cofins'].forEach((impostoNome) => {
+      const valor = (movimento.lucro - icms.proprio) * aliquota[impostoNome];
+      imposto[impostoNome] = valor;
+      imposto.total += valor;
+    });
+
     return movimentoPool;
   }
 
@@ -115,6 +120,12 @@ async function calcularMovimentoPool(notaInicial : Nota, notaFinal : Nota, aliqu
 
     imposto.total += difal + proprio;
   }
+
+  ['pis', 'cofins'].forEach((impostoNome) => {
+    const valor = (movimento.lucro - icms.proprio) * aliquota[impostoNome];
+    imposto[impostoNome] = valor;
+    imposto.total += valor;
+  });
 
   return movimentoPool;
 }

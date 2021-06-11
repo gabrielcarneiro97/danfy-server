@@ -2,6 +2,7 @@
 *apiKey.json
 *private.json
 *build
+.local/*
 
 # Logs
 logs
