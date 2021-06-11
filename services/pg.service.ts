@@ -16,7 +16,7 @@ export const pg = knex({
     host: 'danfy.ctzvj9qzh3yk.us-east-2.rds.amazonaws.com',
     user,
     password,
-    ssl: cert,
+    ssl: false,
     // ssl: {
     //   root: cert,
     // },
